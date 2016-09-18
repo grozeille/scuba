@@ -1,0 +1,56 @@
+
+<div class="container-fluid sg-page-container" style="padding-top:20px;">
+
+  <div class="row" style="margin-bottom:20px;">
+
+    <div class="col-md-1">
+      <button type="button" class="btn btn-primary" aria-label="Left Align" ui-sref="viewEditor">
+        <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Back
+      </button>
+    </div>
+
+    <div class="col-md-11">
+
+      <div class="input-group" >
+        <span class="input-group-addon" id="catalog-filter"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+        <input ng-model="chooseTable.sourceFilter" type="text" class="form-control" placeholder="Search" aria-describedby="catalog-filter">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row">
+
+    <div class="col-sm-3" ng-repeat="table in chooseTable.tables | filter:chooseTable.sourceFilter | orderBy:'-access'">
+
+      <div class="panel panel-default" >
+        <div class="panel-heading" >
+        </div>
+        <div class="panel-body" style="height:300px; overflow: hidden;">
+          <p><b>Database:</b> {{table.database}}</p>
+          <p><b>Table:</b> {{table.table}}</p>
+          <p><b>Path:</b> {{table.path}}</p>
+          <br/>
+          <p><b>Format:</b> {{table.format}}</p>
+          <p><b>Data Domain Owner:</b> <a href="mailto:{{table.dataDomainOwner}}">{{table.dataDomainOwner}}</a></p>
+          <p><b>Comment:</b><br/><span ng-bind-html="table.comment"></span></p>
+          <p><b>Tags:</b><br/>
+            <span ng-repeat="tag in table.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
+          </p>
+      </div>
+      <div class="panel-body">
+        <button ng-click="chooseTable.selectTable('{{table.database}}', '{{table.table}}')" type="button" class="btn btn-success btn-sm pull-right" aria-label="Left Align">
+          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
+      </div>
+
+
+    </div>
+  </div>
+
+
+</div>
+
+
+<!-- END : main-container -->
+

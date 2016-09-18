@@ -1,0 +1,30 @@
+server:
+  port: 8000
+
+logging.level.org.hibernate.SQL: debug
+logging.level.org.apache.hadoop.yarn.util.RackResolver: warn
+
+
+spring:
+  jackson.serialization.write_dates_as_timestamps: false
+  h2.console.enabled: true
+  jpa:
+    database: H2
+    hibernate:
+      ddl-auto: none
+  datasource:
+    primary:
+        url: jdbc:h2:./target/database/db
+        username: sa
+        password:
+        driver-class-name: org.h2.Driver
+    hive:
+        url: jdbc:hive2://hadoop:10000/default
+        username: mathias
+        driver-class-name: org.apache.hive.jdbc.HiveDriver
+        maximumPoolSize: 1
+
+toto.liquibase:
+  enabled: true
+  url: jdbc:h2:./target/database/db
+  user: sa
