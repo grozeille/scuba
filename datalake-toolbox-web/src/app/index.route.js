@@ -49,6 +49,30 @@
         data: {
             css: 'app/chooseTable/chooseTable.css'
         }
+      })
+      .state('catalog', {
+        url: '/catalog',
+        templateUrl: 'app/catalog/catalog.html',
+        controller: 'CatalogController',
+        controllerAs: 'catalog',
+        data: {
+            css: 'app/catalog/catalog.css'
+        },
+        params: {
+          scrollTo: 'body'
+        }
+      })
+      .state('tableEditor', {
+        url: '/tableEditor',
+        templateUrl: 'app/tableEditor/tableEditor.html',
+        controller: 'TableEditorController',
+        controllerAs: 'tableEditor',
+        data: {
+            css: 'app/tableEditor/tableEditor.css'
+        },
+        params: {
+          scrollTo: 'body'
+        }
       });
 
     $urlRouterProvider.otherwise('/');
