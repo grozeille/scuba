@@ -57,7 +57,7 @@
                     <div class="col-xs-4">
                       <div class="form-group">
                         <label class="control-label">Upload a file</label>
-                        <input type="file" class="filestyle" data-icon="false" fileread="tableEditor.fileInfo">
+                        <input type="file" class="filestyle" data-icon="false" ngf-select="" ng-model="tableEditor.fileInfo" name="file" ngf-accept="'*/*'"/>
                       </div>
                     </div>
                     <div class="col-sm-2">
@@ -97,7 +97,7 @@
                     <div class="col-sm-2">
                       <div class="form-group">
                         <label for="inputTextQualifier" class="control-label">CSV/TXT Text qualifier</label>
-                        <select class="form-control" id="inputTextQualifier" style="font-family: FontAwesome, sans-serif;" ng-model="tableEditor.csvTextQualifier">
+                        <select class="form-control" id="inputTextQualifier"  ng-model="tableEditor.csvTextQualifier">
                           <option value="">None</option>
                           <option value="doublequote">"</option>
                           <option value="simplequote">'</option>
@@ -108,7 +108,7 @@
                     <div class="col-sm-2">
                       <div class="form-group">
                         <label for="inputFirstLineHeader" class="control-label">Use first line as header</label>
-                        <select class="form-control" id="inputFirstLineHeader" style="font-family: FontAwesome, sans-serif;" ng-model="tableEditor.csvFirstLineHeader">
+                        <select class="form-control" id="inputFirstLineHeader"  ng-model="tableEditor.csvFirstLineHeader">
                           <option value="true">Yes</option>
                           <option value="false">No</option>
                         </select>
@@ -121,17 +121,26 @@
                     <div class="col-sm-2">
                       <div class="form-group">
                         <label for="inputExcelSource" class="control-label">Excel worksheet/table</label>
-                        <select class="form-control" id="inputExcelSource" style="font-family: FontAwesome, sans-serif;" ng-model="tableEditor.excelSource">
-                          <option value=""></option>
+                        <select class="form-control" id="inputExcelSource"  ng-model="tableEditor.excelSource" ng-options="item as item for item in tableEditor.excelSheets">
                         </select>
                       </div>
                     </div>
 
                     <div class="col-sm-2">
                       <div class="form-group" style="padding-top:23px;">
-                        <button id="inputRefreshExcel" ng-click="tableEditor.getWorksheet" type="button" class="btn btn-default"  aria-label="Left Align">
+                        <button id="inputRefreshExcel" ng-click="tableEditor.getWorksheet()" type="button" class="btn btn-default"  aria-label="Left Align">
                           <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reload
                         </button>
+                      </div>
+                    </div>
+
+                    <div class="col-sm-2">
+                      <div class="form-group">
+                        <label for="inputFirstLineHeaderExcel" class="control-label">Use first line as header</label>
+                        <select class="form-control" id="inputFirstLineHeaderExcel"  ng-model="tableEditor.excelFirstLineHeader">
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -159,7 +168,6 @@
 
               <nav class="navbar navbar-default fill-height-substract" style="margin: 0px 10px; border-width: 0px;">
                 <form class="navbar-form navbar-right">
-                  <button type="button" class="btn btn-default" ng-click="tableEditor.cancelGetData()" ng-if="tableEditor.isLoading" style="margin-right:10px;">  <i><span>cancel</span></i></button>
                   <div class="form-group" style="margin-right:10px;" ng-if="tableEditor.isLoading">
                     <div class="progress" style="margin-bottom:0px;">
                       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100px;">
@@ -170,7 +178,7 @@
                   <button type="button" class="btn btn-default" ng-click="tableEditor.getData()">  <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
                 </form>
               </nav>
-              <div style="border-bottom-width: 0px;border-left-width: 0px;border-right-width: 0px;" fill-height="fill-height-substract" ui-grid="viewEditor.gridSampleOptions" class="gridSample"  ui-grid-resize-columns ui-grid-auto-resize ></div>
+              <div style="border-bottom-width: 0px;border-left-width: 0px;border-right-width: 0px;" fill-height="fill-height-substract" ui-grid="tableEditor.gridOptions" class="gridSample"  ui-grid-resize-columns ui-grid-auto-resize ></div>
             </div>
           </div>
         </div>

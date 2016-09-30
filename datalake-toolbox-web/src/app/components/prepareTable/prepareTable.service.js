@@ -6,15 +6,12 @@
     .factory('prepareTableService', prepareTableService);
 
   /** @ngInject */
-  function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hiveService) {
+  function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hiveService, Upload) {
 
     var vm = this;
     vm.apiHost = $location.protocol() +"://"+$location.host() +":"+$location.port()+"/api";
     //vm.apiHost = "http://localhost:8000/api";
 
-
-
-    vm.cancelCurrentGetData = null;
 
     vm.getServiceData = function(response) {
       return response.data;
@@ -24,44 +21,41 @@
       $log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
     };
 
-
-
-    function getData(maxRows){
-
-      if(vm.cancelCurrentGetData != null){
-        vm.cancelCurrentGetData("new Get Data");
-      }
-      vm.cancelCurrentGetData = null;
-
-      if(angular.isUndefined(maxRows)){
-        maxRows = 10000;
-      }
-
-      if(Object.keys(vm.tables).length == 0){
-        return $q.when([]);
-      }
-
-      var result = hiveService.getData(buildDataSetConf(), maxRows);
-
-      vm.cancelCurrentGetData = result.cancel;
-      return result.promise;
+    function getRawData(file){
     }
 
-    function cancelGetData(){
-      if(vm.cancelCurrentGetData != null){
-        vm.cancelCurrentGetData("user cancellation");
-      }
-      vm.cancelCurrentGetData = null;
-    };
+    function getCsvData(options){
+    }
 
-    function getExcelWorksheets(){
+    function getExcelData(data){
 
-    };
+      var upload = Upload.upload({
+        url: vm.apiHost+"/excel/data",
+        data: data
+      });
+
+      return upload
+        .then(vm.getServiceData)
+        .catch(vm.catchServiceException);
+    }
+
+    function getExcelWorksheets(file){
+
+      var upload = Upload.upload({
+        url: vm.apiHost+"/excel/sheets",
+        data: { file: file}
+      });
+
+      return upload
+        .then(vm.getServiceData)
+        .catch(vm.catchServiceException);
+    }
 
 
     var service = {
-      getData: getData,
-      cancelGetData: cancelGetData,
+      getExcelData: getExcelData,
+      getCsvData: getCsvData,
+      getRawData: getRawData,
       getExcelWorksheets: getExcelWorksheets
     };
 

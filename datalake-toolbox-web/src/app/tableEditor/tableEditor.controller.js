@@ -6,7 +6,7 @@
     .controller('TableEditorController', TableEditorController);
 
   /** @ngInject */
-  function TableEditorController($timeout, $log, $location, $filter, $scope) {
+  function TableEditorController($timeout, $log, $location, $filter, $scope, prepareTableService) {
     var vm = this;
     vm.isLoading = false;
 
@@ -18,13 +18,35 @@
     vm.csvTextQualifier = "";
     vm.csvFirstLineHeader = "true";
     vm.fileInfo = {};
-    /*$scope.$watch("tableEditor.fileInfo", function( newValue, oldValue ) {
-      $log.info(vm.fileInfo.name);
-    }, true);*/
+    vm.excelSource = "";
+    vm.excelSheets = [];
+    vm.excelFirstLineHeader = "true";
+
+    var columnDefs = [];
+    /*columnDefs.push({
+      field: "aaa",
+      enableHiding: false,
+      minWidth: 70,
+      width: 100,
+      enableColumnResizing: true
+    });*/
+
+    vm.gridOptions = {
+      enableSorting: false,
+      enableColumnMenus: false,
+      enableColumnResizing: true,
+      appScopeProvider: vm,
+      columnDefs: columnDefs,
+      data : [ ],
+      onRegisterApi: function( gridApi ) {
+        vm.gridSampleApi = gridApi;
+      }
+    };
+
     $scope.$watch(function(scope){
       return(vm.fileInfo);
     }, function( newValue, oldValue ) {
-      if(angular.isUndefined(newValue.name)){
+      if(newValue == null || angular.isUndefined(newValue.name)){
         return;
       }
 
@@ -43,24 +65,85 @@
 
 
     vm.getWorksheet = function(){
+      prepareTableService.getExcelWorksheets(vm.fileInfo).then(function(data){
+        vm.excelSheets = data;
+        if(vm.excelSheets.length > 0){
+          vm.excelSource = vm.excelSheets[0];
+        }
+      });
 
     };
 
 
     vm.getData = function(){
       vm.isLoading = true;
-      return preparationService.getData(vm.maxRows).then(function(data){
-        if(data != null){
-          vm.gridSampleOptions.data = data.data;
-        }
-        vm.isLoading = false;
-      }).catch(function(error) {
-        vm.isLoading = false;
-      });
-    };
 
-    vm.cancelGetData = function(){
-      preparationService.cancelGetData("user cancel");
+      var loadData = function(data){
+        if(data != null){
+          vm.gridOptions = {
+                enableSorting: false,
+                enableColumnMenus: false,
+                enableColumnResizing: true,
+                appScopeProvider: vm,
+                columnDefs: columnDefs,
+                data : [ ],
+                onRegisterApi: function( gridApi ) {
+                  vm.gridSampleApi = gridApi;
+                }
+              };
+          vm.gridOptions.data = data.data;
+        }
+      };
+
+      var stopLoading = function(){
+        vm.isLoading = false;
+      };
+
+      if(vm.dataType == 'excel'){
+        var options = {
+          file: vm.fileInfo,
+          sheet: vm.excelSource,
+          firstLineHeader: vm.excelFirstLineHeader
+        };
+
+        return prepareTableService.getExcelData(options)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
+      if(vm.dataType == 'csv'){
+
+        var separator = "";
+        if(vm.csvSeparator == 'semicolon'){
+          separator = ';';
+        } else if(vm.csvSeparator == 'comma'){
+          separator = ',';
+        } else if(vm.csvSeparator == 'tab'){
+          separator = '\t';
+        } else if(vm.csvSeparator == 'space'){
+          separator = ' ';
+        } else if(vm.csvSeparator == 'custom'){
+          separator = vm.csvSeparatorCustom;
+        }
+
+        var options = {
+          file: vm.fileInfo,
+          separator: separator,
+          textQualifier: vm.csvTextQualifier,
+          firstLineHeader: vm.csvFirstLineHeader
+        };
+
+        return prepareTableService.getCsvData(options)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
+      if(vm.dataType == 'raw'){
+        return prepareTableService.getRawData(vm.fileInfo)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
     };
 
     activate();
