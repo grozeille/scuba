@@ -5,6 +5,11 @@ logging.level.org.hibernate.SQL: debug
 logging.level.org.apache.hadoop.yarn.util.RackResolver: warn
 
 
+multipart:
+    enabled: true
+    max-file-size: 500Mb
+    max-request-size: 550Mb
+
 spring:
   jackson.serialization.write_dates_as_timestamps: false
   h2.console.enabled: true
@@ -23,6 +28,7 @@ spring:
         username: mathias
         driver-class-name: org.apache.hive.jdbc.HiveDriver
         maximumPoolSize: 1
+
 
 toto.liquibase:
   enabled: true

@@ -13,30 +13,21 @@
     vm.name = "";
     vm.description = "";
     vm.dataType = "";
-    vm.csvSeparator = "semicolon";
+    vm.csvSeparator = "comma";
     vm.csvSeparatorCustom = "";
-    vm.csvTextQualifier = "";
+    vm.csvTextQualifier = "doublequote";
     vm.csvFirstLineHeader = "true";
     vm.fileInfo = {};
     vm.excelSource = "";
     vm.excelSheets = [];
     vm.excelFirstLineHeader = "true";
 
-    var columnDefs = [];
-    /*columnDefs.push({
-      field: "aaa",
-      enableHiding: false,
-      minWidth: 70,
-      width: 100,
-      enableColumnResizing: true
-    });*/
-
     vm.gridOptions = {
       enableSorting: false,
       enableColumnMenus: false,
       enableColumnResizing: true,
       appScopeProvider: vm,
-      columnDefs: columnDefs,
+      columnDefs: [],
       data : [ ],
       onRegisterApi: function( gridApi ) {
         vm.gridSampleApi = gridApi;
@@ -77,20 +68,13 @@
 
     vm.getData = function(){
       vm.isLoading = true;
+      vm.gridOptions.columnDefs = [];
+      vm.gridOptions.data = [ ];
+
 
       var loadData = function(data){
         if(data != null){
-          vm.gridOptions = {
-                enableSorting: false,
-                enableColumnMenus: false,
-                enableColumnResizing: true,
-                appScopeProvider: vm,
-                columnDefs: columnDefs,
-                data : [ ],
-                onRegisterApi: function( gridApi ) {
-                  vm.gridSampleApi = gridApi;
-                }
-              };
+
           vm.gridOptions.data = data.data;
         }
       };
@@ -126,10 +110,17 @@
           separator = vm.csvSeparatorCustom;
         }
 
+        var textQualifier = "";
+        if(vm.csvTextQualifier == 'doublequote'){
+          textQualifier = '"';
+        } else if(vm.csvTextQualifier == 'simplequote'){
+          textQualifier = '\'';
+        }
+
         var options = {
           file: vm.fileInfo,
           separator: separator,
-          textQualifier: vm.csvTextQualifier,
+          textQualifier: textQualifier,
           firstLineHeader: vm.csvFirstLineHeader
         };
 

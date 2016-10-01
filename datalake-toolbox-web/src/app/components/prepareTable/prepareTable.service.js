@@ -22,15 +22,31 @@
     };
 
     function getRawData(file){
+      var upload = Upload.upload({
+        url: vm.apiHost+"/hive/raw/data",
+        data: { file: file}
+      });
+
+      return upload
+        .then(vm.getServiceData)
+        .catch(vm.catchServiceException);
     }
 
-    function getCsvData(options){
+    function getCsvData(data){
+      var upload = Upload.upload({
+        url: vm.apiHost+"/hive/csv/data",
+        data: data
+      });
+
+      return upload
+        .then(vm.getServiceData)
+        .catch(vm.catchServiceException);
     }
 
     function getExcelData(data){
 
       var upload = Upload.upload({
-        url: vm.apiHost+"/excel/data",
+        url: vm.apiHost+"/hive/excel/data",
         data: data
       });
 
@@ -42,7 +58,7 @@
     function getExcelWorksheets(file){
 
       var upload = Upload.upload({
-        url: vm.apiHost+"/excel/sheets",
+        url: vm.apiHost+"/hive/excel/sheets",
         data: { file: file}
       });
 
