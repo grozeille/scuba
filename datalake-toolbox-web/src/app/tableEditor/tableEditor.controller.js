@@ -22,6 +22,13 @@
     vm.excelSheets = [];
     vm.excelFirstLineHeader = "true";
 
+    vm.jsTags = {
+      edit: true,
+      texts: {
+        inputPlaceHolder: "Type text here"
+      },
+    };
+
     vm.gridOptions = {
       enableSorting: false,
       enableColumnMenus: false,
