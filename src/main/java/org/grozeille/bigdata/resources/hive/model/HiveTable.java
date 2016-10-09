@@ -18,5 +18,7 @@ public class HiveTable {
 
     private String format;
 
+    private String datalakeItemType;
+
     private HiveColumn[] columns;
 }

@@ -63,7 +63,7 @@
         }
       })
       .state('tableEditor', {
-        url: '/tableEditor',
+        url: '/tableEditor/:database/:table',
         templateUrl: 'app/tableEditor/tableEditor.html',
         controller: 'TableEditorController',
         controllerAs: 'tableEditor',

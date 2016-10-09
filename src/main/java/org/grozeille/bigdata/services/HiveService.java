@@ -196,7 +196,11 @@ public class HiveService {
 
         String createViewSql = "CREATE VIEW `" + dataSetConf.getDatabase() + "`.`" + dataSetConf.getTable() + "`\n" +
                 "COMMENT '"+dataSetConf.getComment()+"'\n"+
-                "TBLPROPERTIES (\"format\" = \""+dataSetConf.getFormat()+"\", \"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\")\n"+
+                "TBLPROPERTIES (" +
+                "\"format\" = \""+dataSetConf.getFormat()+"\"," +
+                "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
+                "\"datalakeItemType\" = \"user_dataset\"" +
+                ")\n"+
                 "AS "+sqlQuery;
 
         log.info("Create dataSet: " + createViewSql);
@@ -229,7 +233,11 @@ public class HiveService {
                 "COMMENT '"+table.getComment()+"'\n"+
                 "STORED AS ORC \n"+
                 "LOCATION '"+table.getPath()+"'\n"+
-                "TBLPROPERTIES (\"format\" = \""+table.getFormat()+"\", \"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\")\n";
+                "TBLPROPERTIES (" +
+                "\"format\" = \""+table.getFormat()+"\"," +
+                "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
+                "\"datalakeItemType\" = \"user_file\"" +
+                ")";
 
         log.info("Drop table: " + dropSql);
         log.info("Create table: " + createSql);
@@ -698,7 +706,8 @@ public class HiveService {
         hiveTable.setComment(table.getParameters().getOrDefault("comment", ""));
         hiveTable.setDataDomainOwner(table.getOwner());
         hiveTable.setFormat(table.getParameters().getOrDefault("format", ""));
-        // TODO format view ?
+        hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", ""));
+        // TODO detect format ?
         String tagsJson = table.getParameters().getOrDefault("tags", "[]");
         String[] tags = new String[0];
         try {

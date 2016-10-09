@@ -6,9 +6,15 @@
     .controller('TableEditorController', TableEditorController);
 
   /** @ngInject */
-  function TableEditorController($timeout, $log, $location, $filter, $scope, prepareTableService) {
+  function TableEditorController($timeout, $log, $location, $filter, $scope, $stateParams, prepareTableService) {
     var vm = this;
     vm.isLoading = false;
+
+    vm.database = $stateParams.database;
+    vm.table = $stateParams.table;
+    if(angular.isDefined(vm.table) && vm.table !== ""){
+      // TODO load existing table
+    }
 
     vm.name = "";
     vm.description = "";

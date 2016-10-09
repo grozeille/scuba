@@ -12,6 +12,13 @@
 
     vm.tables = [];
 
+    vm.delete = function(database, table){
+    };
+
+    vm.edit = function(database, table){
+      $location.path( "/tableEditor/"+database+"/"+table );
+    };
+
 
     activate();
 

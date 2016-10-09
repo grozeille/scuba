@@ -22,7 +22,8 @@
 
     var service = {
       getData: getData,
-      getTables: getTables
+      getTables: getTables,
+      getTable: getTable
     };
 
     return service;
@@ -30,6 +31,12 @@
 
     function getTables() {
       return $http.get(vm.apiHost + '/hive/tables')
+                  .then(vm.getServiceData)
+                  .catch(vm.catchServiceException);
+    }
+
+    function getTable(database, table) {
+      return $http.get(vm.apiHost + '/hive/tables/'+database+"/"+table)
                   .then(vm.getServiceData)
                   .catch(vm.catchServiceException);
     }
