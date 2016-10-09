@@ -72,6 +72,34 @@
 
     };
 
+    function getSeparator(){
+
+      var separator = "";
+      if(vm.csvSeparator == 'semicolon'){
+        separator = ';';
+      } else if(vm.csvSeparator == 'comma'){
+        separator = ',';
+      } else if(vm.csvSeparator == 'tab'){
+        separator = '\t';
+      } else if(vm.csvSeparator == 'space'){
+        separator = ' ';
+      } else if(vm.csvSeparator == 'custom'){
+        separator = vm.csvSeparatorCustom;
+      }
+
+      return separator;
+    }
+
+    function getTextQualifier(){
+      var textQualifier = "";
+      if(vm.csvTextQualifier == 'doublequote'){
+        textQualifier = '"';
+      } else if(vm.csvTextQualifier == 'simplequote'){
+        textQualifier = '\'';
+      }
+      return textQualifier;
+    }
+
 
     vm.getData = function(){
       vm.isLoading = true;
@@ -104,25 +132,9 @@
       }
       if(vm.dataType == 'csv'){
 
-        var separator = "";
-        if(vm.csvSeparator == 'semicolon'){
-          separator = ';';
-        } else if(vm.csvSeparator == 'comma'){
-          separator = ',';
-        } else if(vm.csvSeparator == 'tab'){
-          separator = '\t';
-        } else if(vm.csvSeparator == 'space'){
-          separator = ' ';
-        } else if(vm.csvSeparator == 'custom'){
-          separator = vm.csvSeparatorCustom;
-        }
+        var separator = getSeparator();
 
-        var textQualifier = "";
-        if(vm.csvTextQualifier == 'doublequote'){
-          textQualifier = '"';
-        } else if(vm.csvTextQualifier == 'simplequote'){
-          textQualifier = '\'';
-        }
+        var textQualifier = getTextQualifier();
 
         var options = {
           file: vm.fileInfo,
@@ -142,6 +154,35 @@
           .then(stopLoading)
           .catch(stopLoading);
       }
+    };
+
+    vm.save = function(){
+
+      var options = {
+        file: vm.fileInfo,
+        name: vm.name,
+        description: vm.description,
+        format: vm.dataType
+      };
+
+      if(vm.dataType == 'csv'){
+        options.csvOptions = {
+          separator: getSeparator(),
+          textQualifier: getTextQualifier(),
+          firstLineHeader: vm.csvFirstLineHeader
+        };
+      }
+      else if(vm.dataType == 'excel'){
+        options.excelOptions = {
+          sheet: vm.excelSource,
+          firstLineHeader: vm.excelFirstLineHeader
+        };
+      }
+
+      return prepareTableService.save(options)
+          .then(function(){
+            $location.path( "/catalog" );
+          });
     };
 
     activate();

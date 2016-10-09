@@ -2,9 +2,11 @@ package org.grozeille.bigdata.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
 import org.grozeille.bigdata.resources.dataset.model.*;
 import org.grozeille.bigdata.resources.hive.model.HiveColumn;
 import org.grozeille.bigdata.resources.hive.model.HiveColumnStatistics;
+import org.grozeille.bigdata.resources.hive.model.HiveDatabase;
 import org.grozeille.bigdata.resources.hive.model.HiveTable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
@@ -67,11 +69,44 @@ public class HiveService {
         hiveJdbcTemplate = new JdbcTemplate(dataSource);
 
         hiveJdbcTemplate.execute("set tez.session.am.dag.submit.timeout.secs=7200"); // 2h session
-        hiveJdbcTemplate.execute("set tez.am.session.min.held-containers=2");
+        hiveJdbcTemplate.execute("set tez.am.session.min.held-containers=1");
     }
 
     //@Autowired
     //private HiveContext sparkHiveContext;
+
+    public HiveDatabase[] findAllPublicDatabases() throws TException {
+
+        List<HiveDatabase> result = new ArrayList<>();
+
+        List<String> databases = hiveMetaStoreClient.getAllDatabases();
+        for(String db : databases){
+
+            Database database = hiveMetaStoreClient.getDatabase(db);
+
+            HiveDatabase hiveDB = new HiveDatabase();
+            hiveDB.setDatabase(db);
+            hiveDB.setPath(database.getLocationUri());
+            result.add(hiveDB);
+
+        }
+
+        return result.toArray(new HiveDatabase[0]);
+
+    }
+
+    public HiveDatabase findOneDatabase(String database) throws TException {
+        try {
+            Database db = hiveMetaStoreClient.getDatabase(database);
+            HiveDatabase hiveDB = new HiveDatabase();
+            hiveDB.setDatabase(database);
+            hiveDB.setPath(db.getLocationUri());
+            return hiveDB;
+        }
+        catch (org.apache.hadoop.hive.metastore.api.NoSuchObjectException nsoe){
+            return null;
+        }
+    }
 
     public HiveTable[] findAllPublicTables() throws TException {
 
@@ -99,8 +134,13 @@ public class HiveService {
     }
 
     public HiveTable findOne(String database, String table) throws TException {
-        Table t = hiveMetaStoreClient.getTable(database, table);
-        return buildHiveTable(t);
+        try {
+            Table t = hiveMetaStoreClient.getTable(database, table);
+            return buildHiveTable(t);
+        }
+        catch (org.apache.hadoop.hive.metastore.api.NoSuchObjectException nsoe){
+            return null;
+        }
     }
 
     public List<Map<String, Object>> getData(String database, String table, long max){
@@ -166,6 +206,39 @@ public class HiveService {
             hiveJdbcTemplate.execute(createViewSql);
         }catch(Exception e){
             throw new HiveQueryException("Unable to create view: "+sqlQuery, e);
+        }
+    }
+
+    public void createOrcTable(HiveTable table) throws HiveQueryException {
+        String jsonTags = "[]";
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonTags = objectMapper.writeValueAsString(table.getTags());
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to serialize tags", e);
+        }
+
+        String columns = StringUtils.join(Arrays.asList(table.getColumns()).stream()
+                .map(c -> "`"+c.getName()+"` STRING COMMENT '"+c.getDescription()+"'")
+                .toArray(size -> new String[size]), ",\n");
+
+        String dropSql = "DROP TABLE IF EXISTS `" + table.getDatabase() + "`.`" + table.getTable() + "`";
+
+        String createSql = "CREATE EXTERNAL TABLE `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
+                "("+columns+")\n"+
+                "COMMENT '"+table.getComment()+"'\n"+
+                "STORED AS ORC \n"+
+                "LOCATION '"+table.getPath()+"'\n"+
+                "TBLPROPERTIES (\"format\" = \""+table.getFormat()+"\", \"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\")\n";
+
+        log.info("Drop table: " + dropSql);
+        log.info("Create table: " + createSql);
+
+        try {
+            hiveJdbcTemplate.execute(dropSql);
+            hiveJdbcTemplate.execute(createSql);
+        }catch(Exception e){
+            throw new HiveQueryException("Unable to create table: "+createSql, e);
         }
     }
 

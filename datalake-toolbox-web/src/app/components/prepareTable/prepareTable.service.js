@@ -23,7 +23,7 @@
 
     function getRawData(file){
       var upload = Upload.upload({
-        url: vm.apiHost+"/hive/raw/data",
+        url: vm.apiHost+"/hive/data/raw",
         data: { file: file}
       });
 
@@ -34,7 +34,7 @@
 
     function getCsvData(data){
       var upload = Upload.upload({
-        url: vm.apiHost+"/hive/csv/data",
+        url: vm.apiHost+"/hive/data/csv",
         data: data
       });
 
@@ -46,7 +46,7 @@
     function getExcelData(data){
 
       var upload = Upload.upload({
-        url: vm.apiHost+"/hive/excel/data",
+        url: vm.apiHost+"/hive/data/excel",
         data: data
       });
 
@@ -58,13 +58,51 @@
     function getExcelWorksheets(file){
 
       var upload = Upload.upload({
-        url: vm.apiHost+"/hive/excel/sheets",
+        url: vm.apiHost+"/hive/data/excel/sheets",
         data: { file: file}
       });
 
       return upload
-        .then(vm.getServiceData)
         .catch(vm.catchServiceException);
+    }
+
+    function upload(options){
+    }
+
+    function save(options){
+
+    var url = vm.apiHost+"/hive/tables/"+"app_aaa/"+options.name;
+
+    var creationRequest = {
+      comment: options.description,
+      dataDomainOwner: "mathias.kluba@gmail.com",
+      tags: [ "aaa" ]
+    };
+
+    return $http.put(url, creationRequest)
+      .then(function(){
+        var uploadUrl = url+"/data/"+options.format;
+
+        var data = {};
+        if(options.format == 'csv'){
+          data = options.csvOptions;
+        }
+        else if(options.format == 'excel'){
+          data = options.excelOptions;
+        }
+        data.file = options.file;
+
+        var upload = Upload.upload({
+          url: uploadUrl,
+          data: data
+        });
+
+        return upload
+          .then(vm.getServiceData)
+          .catch(vm.catchServiceException);
+      })
+      .catch(vm.catchServiceException);
+
     }
 
 
@@ -72,7 +110,8 @@
       getExcelData: getExcelData,
       getCsvData: getCsvData,
       getRawData: getRawData,
-      getExcelWorksheets: getExcelWorksheets
+      getExcelWorksheets: getExcelWorksheets,
+      save: save
     };
 
     return service;

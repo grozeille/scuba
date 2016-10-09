@@ -29,7 +29,7 @@
 
 
     function getTables() {
-      return $http.get(vm.apiHost + '/hive/')
+      return $http.get(vm.apiHost + '/hive/tables')
                   .then(vm.getServiceData)
                   .catch(vm.catchServiceException);
     }
@@ -40,7 +40,7 @@
       var cancel = function(reason){
           canceller.resolve(reason);
       };
-      var promise = $http.post(vm.apiHost + '/hive/data?max='+max, dataSetConf, { timeout: canceller.promise})
+      var promise = $http.post(vm.apiHost + '/hive/data/dataset?max='+max, dataSetConf, { timeout: canceller.promise})
                   .then(vm.getServiceData)
                   .catch(vm.catchServiceException);
 

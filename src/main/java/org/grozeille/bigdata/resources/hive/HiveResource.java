@@ -1,22 +1,26 @@
 package org.grozeille.bigdata.resources.hive;
 
+import io.swagger.annotations.ApiParam;
 import org.grozeille.bigdata.resources.dataset.model.DataSetConf;
-import org.grozeille.bigdata.resources.hive.model.HiveData;
-import org.grozeille.bigdata.resources.hive.model.HiveTable;
-import org.grozeille.bigdata.services.CsvParserService;
-import org.grozeille.bigdata.services.ExcelParserService;
-import org.grozeille.bigdata.services.HiveService;
-import org.grozeille.bigdata.services.HiveInvalidDataSetException;
+import org.grozeille.bigdata.resources.dataset.model.DataSetCreationResponse;
+import org.grozeille.bigdata.resources.hive.model.*;
+import org.grozeille.bigdata.services.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -34,20 +38,25 @@ public class HiveResource {
     @Autowired
     private CsvParserService csvParserService;
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @Autowired
+    private RawParserService rawParserService;
+
+    private static final Long MAX_LINES_PREVIEW = 5000l;
+
+    @RequestMapping(value = "/tables", method = RequestMethod.GET)
     public HiveTable[] tables() throws TException {
 
         return hiveService.findAllPublicTables();
 
     }
 
-    @RequestMapping(value = "/{database}/{table}", method = RequestMethod.GET)
+    @RequestMapping(value = "/tables/{database}/{table}", method = RequestMethod.GET)
     public HiveTable table(@PathVariable("database") String database, @PathVariable("table") String table) throws TException {
 
         return hiveService.findOne(database, table);
     }
 
-    @RequestMapping(value = "/data", method = RequestMethod.POST)
+    @RequestMapping(value = "/data/dataset", method = RequestMethod.POST)
     public HiveData data(
             @RequestBody DataSetConf dataSetConf,
             @RequestParam(value = "max", required = false, defaultValue = "10000") long max) throws Exception {
@@ -66,45 +75,149 @@ public class HiveResource {
         return hiveData;
     }
 
-    @RequestMapping(value = "/excel/sheets", method = RequestMethod.POST)
+    @RequestMapping(value = "/data/excel/sheets", method = RequestMethod.POST)
     public String[] sheets(@RequestParam("file") MultipartFile file) throws Exception {
         return this.excelParserService.sheets(file);
     }
 
-    @RequestMapping(value = "/excel/data", method = RequestMethod.POST)
+    @RequestMapping(value = "/data/excel", method = RequestMethod.POST)
     public HiveData data(@RequestParam("file") MultipartFile file,
                          @RequestParam(value = "sheet", required = true) String sheet,
                          @RequestParam(value = "firstLineHeader", required = true, defaultValue = "false") boolean firstLineHeader) throws Exception {
 
-        return this.excelParserService.data(file, sheet, firstLineHeader, 5000l);
+        return this.excelParserService.data(file, sheet, firstLineHeader, MAX_LINES_PREVIEW);
     }
 
-    @RequestMapping(value = "/csv/data", method = RequestMethod.POST)
+    @RequestMapping(value = "/data/csv", method = RequestMethod.POST)
     public HiveData data(@RequestParam("file") MultipartFile file,
                          @RequestParam(value = "separator", required = true) Character separator,
                          @RequestParam(value = "textQualifier", required = true, defaultValue = "") Character textQualifier,
                          @RequestParam(value = "firstLineHeader", required = true, defaultValue = "false") boolean firstLineHeader) throws Exception {
 
-        return this.csvParserService.data(file, separator, textQualifier, firstLineHeader, 5000l);
+        return this.csvParserService.data(file, separator, textQualifier, firstLineHeader, MAX_LINES_PREVIEW);
     }
 
-    @RequestMapping(value = "/raw/data", method = RequestMethod.POST)
+    @RequestMapping(value = "/data/raw", method = RequestMethod.POST)
     public HiveData data(@RequestParam("file") MultipartFile file) throws Exception {
 
-        HiveData result = new HiveData();
-        result.setData(new ArrayList<>());
-        final String column = "raw";
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                Map<String, Object> row = new HashMap<>(1);
-                row.put(column, line);
-                result.getData().add(row);
-            }
-        }
-
-        return result;
+        return this.rawParserService.data(file, MAX_LINES_PREVIEW);
     }
 
+    @RequestMapping(value = "/tables/{database}/{table}", method = RequestMethod.PUT)
+    @Transactional(readOnly = false)
+    public void save(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestBody HiveTableCreationRequest creationRequest) throws Exception {
+
+        // check if exists
+        HiveDatabase hiveDB = hiveService.findOneDatabase(database);
+        if(hiveDB == null){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Database '"+database+"' does not exist");
+        }
+
+        HiveColumn hiveDummyColumn = new HiveColumn();
+        hiveDummyColumn.setName("dummy");
+        hiveDummyColumn.setType("STRING");
+
+        HiveTable hiveTable = new HiveTable();
+        hiveTable.setDatabase(database);
+        hiveTable.setTable(table);
+        hiveTable.setFormat("orc");
+        hiveTable.setPath(hiveDB.getPath()+"/"+table);
+        hiveTable.setDataDomainOwner(creationRequest.getDataDomainOwner());
+        hiveTable.setComment(creationRequest.getComment());
+        hiveTable.setTags(creationRequest.getTags());
+        hiveTable.setColumns(new HiveColumn[]{ hiveDummyColumn });
+
+        this.hiveService.createOrcTable(hiveTable);
+    }
+
+    @RequestMapping(value = "/tables/{database}/{table}/data/csv", method = RequestMethod.POST)
+    @Transactional(readOnly = false)
+    public void uploadCsv(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = true) Character separator,
+            @RequestParam(required = true) Character textQualifier,
+            @RequestParam boolean firstLineHeader) throws Exception {
+
+        // check if exists
+        HiveTable hiveTable = hiveService.findOne(database, table);
+        if(hiveTable == null){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
+        }
+
+        String[] columns = this.csvParserService.write(
+                file,
+                separator,
+                textQualifier,
+                firstLineHeader,
+                hiveTable.getPath());
+
+        List<HiveColumn> hiveColumns = new ArrayList<>();
+        for(String c : columns){
+            hiveColumns.add(new HiveColumn(c, "STRING", "", new HiveColumnStatistics()));
+        }
+        hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
+        this.hiveService.createOrcTable(hiveTable);
+
+    }
+
+    @RequestMapping(value = "/tables/{database}/{table}/data/excel", method = RequestMethod.POST)
+    @Transactional(readOnly = false)
+    public void uploadExcel(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam String sheet,
+            @RequestParam boolean firstLineHeader) throws Exception {
+
+        // check if exists
+        HiveTable hiveTable = hiveService.findOne(database, table);
+        if(hiveTable == null){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
+        }
+
+        String[] columns = this.excelParserService.write(
+                file,
+                sheet,
+                firstLineHeader,
+                hiveTable.getPath());
+
+        List<HiveColumn> hiveColumns = new ArrayList<>();
+        for(String c : columns){
+            hiveColumns.add(new HiveColumn(c, "STRING", "", new HiveColumnStatistics()));
+        }
+        hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
+        this.hiveService.createOrcTable(hiveTable);
+
+    }
+
+    @RequestMapping(value = "/tables/{database}/{table}/data/raw", method = RequestMethod.POST)
+    @Transactional(readOnly = false)
+    public void uploadRaw(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestPart("file") MultipartFile file) throws Exception {
+
+        // check if exists
+        HiveTable hiveTable = hiveService.findOne(database, table);
+        if(hiveTable == null){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
+        }
+
+        String[] columns = this.rawParserService.write(
+                file,
+                hiveTable.getPath());
+
+        List<HiveColumn> hiveColumns = new ArrayList<>();
+        for(String c : columns){
+            hiveColumns.add(new HiveColumn(c, "STRING", "", new HiveColumnStatistics()));
+        }
+        hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
+        this.hiveService.createOrcTable(hiveTable);
+
+    }
 }
