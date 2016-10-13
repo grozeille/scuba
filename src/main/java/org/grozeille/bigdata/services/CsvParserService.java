@@ -19,13 +19,14 @@ import org.grozeille.bigdata.resources.hive.model.HiveData;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
 @Service
 public class CsvParserService {
 
-    public HiveData data(MultipartFile file, Character separator, Character textQualifier, boolean firstLineHeader, Long limit) throws Exception {
+    public HiveData data(InputStream inputStream, Character separator, Character textQualifier, boolean firstLineHeader, Long limit) throws Exception {
         CsvParserSettings settings = new CsvParserSettings();
         if(textQualifier != null) {
             settings.getFormat().setQuote(textQualifier);
@@ -36,7 +37,7 @@ public class CsvParserService {
         settings.getFormat().setDelimiter(separator);
 
         CsvParser parser = new CsvParser(settings);
-        parser.beginParsing(new InputStreamReader(file.getInputStream()));
+        parser.beginParsing(new InputStreamReader(inputStream));
 
         if(limit == null){
             limit = 0l;
@@ -89,7 +90,7 @@ public class CsvParserService {
         return result;
     }
 
-    public String[] write(MultipartFile file, Character separator, Character textQualifier, boolean firstLineHeader, String path) throws Exception {
+    public String[] write(InputStream inputStream, Character separator, Character textQualifier, boolean firstLineHeader, String path) throws Exception {
 
         List<String> columns = new ArrayList<>();
 
@@ -110,7 +111,7 @@ public class CsvParserService {
         settings.getFormat().setDelimiter(separator);
 
         CsvParser parser = new CsvParser(settings);
-        parser.beginParsing(new InputStreamReader(file.getInputStream()));
+        parser.beginParsing(new InputStreamReader(inputStream));
 
         Writer writer = null;
 

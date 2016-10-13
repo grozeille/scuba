@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -41,12 +42,12 @@ import java.util.*;
 @Service
 public class ExcelParserService {
 
-    public String[] sheets(MultipartFile file) throws Exception {
+    public String[] sheets(InputStream inputStream, String fileName) throws Exception {
 
         String[] result = new String[0];
 
-        if(file.getOriginalFilename().endsWith("xlsx") || file.getOriginalFilename().endsWith("xlsm") || file.getOriginalFilename().endsWith("xlsb")){
-            OPCPackage pkg = OPCPackage.open(file.getInputStream());
+        if(fileName.endsWith("xlsx") || fileName.endsWith("xlsm") || fileName.endsWith("xlsb")){
+            OPCPackage pkg = OPCPackage.open(inputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
             int nbOfSheets = workbook.getNumberOfSheets();
             result = new String[nbOfSheets];
@@ -54,8 +55,8 @@ public class ExcelParserService {
                 result[cpt] = workbook.getSheetName(cpt);
             }
         }
-        else if(file.getOriginalFilename().endsWith("xls")){
-            HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
+        else if(fileName.endsWith("xls")){
+            HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
             int nbOfSheets = workbook.getNumberOfSheets();
             result = new String[nbOfSheets];
             for(int cpt = 0; cpt < nbOfSheets; cpt++){
@@ -66,7 +67,7 @@ public class ExcelParserService {
         return result;
     }
 
-    public HiveData data(MultipartFile file, String sheet, Boolean firstLineHeader, Long limit) throws Exception {
+    public HiveData data(InputStream inputStream, String fileName,  String sheet, Boolean firstLineHeader, Long limit) throws Exception {
 
         if(limit == null){
             limit = 0l;
@@ -77,16 +78,16 @@ public class ExcelParserService {
 
         Sheet excelSheet = null;
 
-        if(file.getOriginalFilename().endsWith("xlsx") || file.getOriginalFilename().endsWith("xlsm") || file.getOriginalFilename().endsWith("xlsb")){
-            OPCPackage pkg = OPCPackage.open(file.getInputStream());
+        if(fileName.endsWith("xlsx") || fileName.endsWith("xlsm") || fileName.endsWith("xlsb")){
+            OPCPackage pkg = OPCPackage.open(inputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
             excelSheet = workbook.getSheet(sheet);
             if(excelSheet == null){
                 excelSheet = workbook.getSheetAt(0);
             }
         }
-        else if(file.getOriginalFilename().endsWith("xls")){
-            HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
+        else if(fileName.endsWith("xls")){
+            HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
             excelSheet = workbook.getSheet(sheet);
             if(excelSheet == null){
                 excelSheet = workbook.getSheetAt(0);
@@ -130,7 +131,7 @@ public class ExcelParserService {
         return result;
     }
 
-    public String[] write(MultipartFile file, String sheet, boolean firstLineHeader, String path) throws Exception {
+    public String[] write(InputStream inputStream, String fileName, String sheet, boolean firstLineHeader, String path) throws Exception {
         List<String> columns = new ArrayList<>();
 
         Configuration conf = new Configuration();
@@ -144,16 +145,16 @@ public class ExcelParserService {
 
         Sheet excelSheet = null;
 
-        if(file.getOriginalFilename().endsWith("xlsx") || file.getOriginalFilename().endsWith("xlsm") || file.getOriginalFilename().endsWith("xlsb")){
-            OPCPackage pkg = OPCPackage.open(file.getInputStream());
+        if(fileName.endsWith("xlsx") || fileName.endsWith("xlsm") || fileName.endsWith("xlsb")){
+            OPCPackage pkg = OPCPackage.open(inputStream);
             XSSFWorkbook workbook = new XSSFWorkbook(pkg);
             excelSheet = workbook.getSheet(sheet);
             if(excelSheet == null){
                 excelSheet = workbook.getSheetAt(0);
             }
         }
-        else if(file.getOriginalFilename().endsWith("xls")){
-            HSSFWorkbook workbook = new HSSFWorkbook(file.getInputStream());
+        else if(fileName.endsWith("xls")){
+            HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
             excelSheet = workbook.getSheet(sheet);
             if(excelSheet == null){
                 excelSheet = workbook.getSheetAt(0);

@@ -56,6 +56,8 @@ public class HiveService {
 
     public static final String TEMP_TABLE_PREFIX = "_datalaketoolbox_cache";
 
+    public static final String TEMP_FOLDER = ".datalake-toolbox";
+
     @Autowired
     private HiveMetaStoreClient hiveMetaStoreClient;
 
@@ -235,6 +237,7 @@ public class HiveService {
                 "LOCATION '"+table.getPath()+"'\n"+
                 "TBLPROPERTIES (" +
                 "\"format\" = \""+table.getFormat()+"\"," +
+                "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
                 "\"datalakeItemType\" = \"user_file\"" +
                 ")";
@@ -450,7 +453,7 @@ public class HiveService {
         }
 
         // search for the cached table and check the hash
-        String cacheTableName = TEMP_TABLE_PREFIX + dataSetConf.getTable().toLowerCase();
+        String cacheTableName = TEMP_TABLE_PREFIX +"_"+ dataSetConf.getTable().toLowerCase();
         Table cacheHiveTable = null;
         try {
             cacheHiveTable = hiveMetaStoreClient.getTable(dataSetConf.getDatabase(), cacheTableName);
@@ -478,7 +481,7 @@ public class HiveService {
 
         if (!cacheUpToDate) {
             // create the cache, build the query without the cast/rename/formula, with all columns & links
-            Path cacheParentPath = new Path(fs.getHomeDirectory(), ".datalake-toolbox");
+            Path cacheParentPath = new Path(fs.getHomeDirectory(), TEMP_FOLDER);
             Path cacheTablePath = new Path(cacheParentPath, cacheTableName);
             try {
                 if (!fs.exists(cacheParentPath)) {
@@ -707,6 +710,7 @@ public class HiveService {
         hiveTable.setDataDomainOwner(table.getOwner());
         hiveTable.setFormat(table.getParameters().getOrDefault("format", ""));
         hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", ""));
+        hiveTable.setOriginalFile(table.getParameters().getOrDefault("originalFile", ""));
         // TODO detect format ?
         String tagsJson = table.getParameters().getOrDefault("tags", "[]");
         String[] tags = new String[0];

@@ -1,6 +1,7 @@
 package org.grozeille.bigdata.resources.hive;
 
 import io.swagger.annotations.ApiParam;
+import org.apache.hadoop.fs.Path;
 import org.grozeille.bigdata.resources.dataset.model.DataSetConf;
 import org.grozeille.bigdata.resources.dataset.model.DataSetCreationResponse;
 import org.grozeille.bigdata.resources.hive.model.*;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +42,9 @@ public class HiveResource {
 
     @Autowired
     private RawParserService rawParserService;
+
+    @Autowired
+    private HdfsService hdfsService;
 
     private static final Long MAX_LINES_PREVIEW = 5000l;
 
@@ -77,7 +82,7 @@ public class HiveResource {
 
     @RequestMapping(value = "/data/excel/sheets", method = RequestMethod.POST)
     public String[] sheets(@RequestParam("file") MultipartFile file) throws Exception {
-        return this.excelParserService.sheets(file);
+        return this.excelParserService.sheets(file.getInputStream(), file.getOriginalFilename());
     }
 
     @RequestMapping(value = "/data/excel", method = RequestMethod.POST)
@@ -85,7 +90,7 @@ public class HiveResource {
                          @RequestParam(value = "sheet", required = true) String sheet,
                          @RequestParam(value = "firstLineHeader", required = true, defaultValue = "false") boolean firstLineHeader) throws Exception {
 
-        return this.excelParserService.data(file, sheet, firstLineHeader, MAX_LINES_PREVIEW);
+        return this.excelParserService.data(file.getInputStream(), file.getOriginalFilename(), sheet, firstLineHeader, MAX_LINES_PREVIEW);
     }
 
     @RequestMapping(value = "/data/csv", method = RequestMethod.POST)
@@ -94,13 +99,13 @@ public class HiveResource {
                          @RequestParam(value = "textQualifier", required = true, defaultValue = "") Character textQualifier,
                          @RequestParam(value = "firstLineHeader", required = true, defaultValue = "false") boolean firstLineHeader) throws Exception {
 
-        return this.csvParserService.data(file, separator, textQualifier, firstLineHeader, MAX_LINES_PREVIEW);
+        return this.csvParserService.data(file.getInputStream(), separator, textQualifier, firstLineHeader, MAX_LINES_PREVIEW);
     }
 
     @RequestMapping(value = "/data/raw", method = RequestMethod.POST)
     public HiveData data(@RequestParam("file") MultipartFile file) throws Exception {
 
-        return this.rawParserService.data(file, MAX_LINES_PREVIEW);
+        return this.rawParserService.data(file.getInputStream(), MAX_LINES_PREVIEW);
     }
 
     @RequestMapping(value = "/tables/{database}/{table}", method = RequestMethod.PUT)
@@ -149,8 +154,13 @@ public class HiveResource {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
         }
 
+        String originalFilePath = hdfsService.write(file.getInputStream(), file.getOriginalFilename(), hiveTable.getPath());
+        file.getInputStream().close();
+        InputStream in = hdfsService.read(originalFilePath);
+        hiveTable.setOriginalFile(originalFilePath);
+
         String[] columns = this.csvParserService.write(
-                file,
+                in,
                 separator,
                 textQualifier,
                 firstLineHeader,
@@ -180,8 +190,14 @@ public class HiveResource {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
         }
 
+        String originalFilePath = hdfsService.write(file.getInputStream(), file.getOriginalFilename(), hiveTable.getPath());
+        file.getInputStream().close();
+        InputStream in = hdfsService.read(originalFilePath);
+        hiveTable.setOriginalFile(originalFilePath);
+
         String[] columns = this.excelParserService.write(
-                file,
+                in,
+                file.getOriginalFilename(),
                 sheet,
                 firstLineHeader,
                 hiveTable.getPath());
@@ -208,8 +224,13 @@ public class HiveResource {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Table '"+database+"."+table+"' does not exist");
         }
 
+        String originalFilePath = hdfsService.write(file.getInputStream(), file.getOriginalFilename(), hiveTable.getPath());
+        file.getInputStream().close();
+        InputStream in = hdfsService.read(originalFilePath);
+        hiveTable.setOriginalFile(originalFilePath);
+
         String[] columns = this.rawParserService.write(
-                file,
+                in,
                 hiveTable.getPath());
 
         List<HiveColumn> hiveColumns = new ArrayList<>();

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +24,12 @@ import java.util.Map;
 
 @Service
 public class RawParserService {
-    public HiveData data(MultipartFile file, Long limit) throws Exception {
+    public HiveData data(InputStream inputStream, Long limit) throws Exception {
         HiveData result = new HiveData();
         result.setData(new ArrayList<>());
         final String column = "raw";
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 Map<String, Object> row = new HashMap<>(1);
@@ -39,7 +40,7 @@ public class RawParserService {
         return result;
     }
 
-    public String[] write(MultipartFile file, String path) throws Exception {
+    public String[] write(InputStream inputStream, String path) throws Exception {
         List<String> columns = new ArrayList<>();
 
         Configuration conf = new Configuration();
@@ -59,7 +60,7 @@ public class RawParserService {
         ObjectInspector inspector = TypeInfoUtils.getStandardJavaObjectInspectorFromTypeInfo(typeInfo);
         Writer writer = OrcFile.createWriter(orcPath, OrcFile.writerOptions(conf).inspector(inspector).stripeSize(100000).bufferSize(10000));
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 writer.addRow(line);

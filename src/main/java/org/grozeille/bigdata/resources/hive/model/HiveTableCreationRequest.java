@@ -8,5 +8,7 @@ public class HiveTableCreationRequest {
 
     private String comment;
 
+    private String originalFile;
+
     private String[] tags;
 }
