@@ -1,4 +1,4 @@
-package org.grozeille.bigdata.repositories;
+package org.grozeille.bigdata.repositories.jpa;
 
 import org.grozeille.bigdata.resources.dataset.model.DataSet;
 import org.springframework.data.repository.CrudRepository;

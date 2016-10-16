@@ -1,5 +1,6 @@
 package org.grozeille.bigdata.configurations;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.grozeille.bigdata.ClusterConfiguration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -10,11 +11,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.solr.core.SolrOperations;
+import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.repository.config.EnableSolrRepositories;
+import org.springframework.data.solr.server.support.EmbeddedSolrServerFactory;
+import org.springframework.data.solr.server.support.EmbeddedSolrServerFactoryBean;
 import org.springframework.web.client.RestTemplate;
+import org.xml.sax.SAXException;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 
+@EnableSolrRepositories(basePackages = "org.grozeille.bigdata.repositories.solr")
+@EnableJpaRepositories(basePackages = "org.grozeille.bigdata.repositories.jpa")
 @Configuration
 public class ApplicationConfiguration {
 
@@ -79,19 +91,14 @@ public class ApplicationConfiguration {
     }*/
 
 
-    /*
     @Bean
-    public EmbeddedSolrServerFactoryBean solrServerFactoryBean() {
-        EmbeddedSolrServerFactoryBean factory = new EmbeddedSolrServerFactoryBean();
-
-        factory.setSolrHome(environment.getRequiredProperty("solr.solr.home"));
-
-        return factory;
+    public SolrClient solrServer() throws IOException, SAXException, ParserConfigurationException {
+        EmbeddedSolrServerFactory factory = new EmbeddedSolrServerFactory("classpath:org/grozeille/bigdata/solr");
+        return factory.getSolrClient();
     }
 
     @Bean
-    public SolrTemplate solrTemplate() throws Exception {
-        return new SolrTemplate(solrServerFactoryBean().getObject());
+    public SolrOperations solrTemplate() throws ParserConfigurationException, SAXException, IOException {
+        return new SolrTemplate(solrServer());
     }
-    */
 }

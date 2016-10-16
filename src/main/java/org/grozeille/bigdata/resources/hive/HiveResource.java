@@ -1,5 +1,6 @@
 package org.grozeille.bigdata.resources.hive;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.ApiParam;
 import org.apache.hadoop.fs.Path;
 import org.grozeille.bigdata.resources.dataset.model.DataSetConf;
@@ -9,6 +10,7 @@ import org.grozeille.bigdata.services.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.solr.core.SolrOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,13 @@ public class HiveResource {
     private HdfsService hdfsService;
 
     private static final Long MAX_LINES_PREVIEW = 5000l;
+
+    @RequestMapping(value = "/tables/refresh", method = RequestMethod.POST)
+    public void tablesRefresh() throws TException, JsonProcessingException {
+
+        hiveService.updateTables();
+
+    }
 
     @RequestMapping(value = "/tables", method = RequestMethod.GET)
     public HiveTable[] tables() throws TException {

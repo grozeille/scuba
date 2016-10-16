@@ -3,7 +3,7 @@ package org.grozeille.bigdata.resources.dataset;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import org.grozeille.bigdata.repositories.DataSetRepository;
+import org.grozeille.bigdata.repositories.jpa.DataSetRepository;
 import org.grozeille.bigdata.resources.dataset.model.DataSet;
 import org.grozeille.bigdata.resources.dataset.model.DataSetConf;
 import org.grozeille.bigdata.resources.dataset.model.DataSetCreationResponse;

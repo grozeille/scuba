@@ -3,11 +3,9 @@ package org.grozeille.bigdata.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
+import org.grozeille.bigdata.repositories.solr.HiveTableSearchRepository;
 import org.grozeille.bigdata.resources.dataset.model.*;
-import org.grozeille.bigdata.resources.hive.model.HiveColumn;
-import org.grozeille.bigdata.resources.hive.model.HiveColumnStatistics;
-import org.grozeille.bigdata.resources.hive.model.HiveDatabase;
-import org.grozeille.bigdata.resources.hive.model.HiveTable;
+import org.grozeille.bigdata.resources.hive.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.conf.Configuration;
@@ -19,6 +17,7 @@ import org.apache.thrift.TException;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.solr.core.SolrOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +29,7 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
@@ -57,6 +57,12 @@ public class HiveService {
     public static final String TEMP_TABLE_PREFIX = "_datalaketoolbox_cache";
 
     public static final String TEMP_FOLDER = ".datalake-toolbox";
+
+    @Autowired
+    private SolrOperations solrOperations;
+
+    @Autowired
+    private HiveTableSearchRepository hiveTableSearchRepository;
 
     @Autowired
     private HiveMetaStoreClient hiveMetaStoreClient;
@@ -112,27 +118,21 @@ public class HiveService {
 
     public HiveTable[] findAllPublicTables() throws TException {
 
-        List<HiveTable> result = new ArrayList<>();
+        Iterable<HiveTableSearch> searchResult = hiveTableSearchRepository.findAll();
 
-        List<String> databases = hiveMetaStoreClient.getAllDatabases();
-        for(String db : databases){
-
-            Database database = hiveMetaStoreClient.getDatabase(db);
-
-            List<String> tables = hiveMetaStoreClient.getAllTables(db);
-            for(String t : tables){
-
-                if(!t.startsWith(TEMP_TABLE_PREFIX)) {
-                    Table table = hiveMetaStoreClient.getTable(db, t);
-
-                    HiveTable hiveTable = buildHiveTable(table);
-
-                    result.add(hiveTable);
-                }
-            }
-
-        }
-        return result.toArray(new HiveTable[0]);
+        return StreamSupport
+                .stream(searchResult.spliterator(), false)
+                .map(s -> {
+                    try {
+                        HiveTable table = objectMapper.readValue(s.getHiveTable(), HiveTable.class);
+                        return table;
+                    } catch (IOException e) {
+                        log.error("Unable to deserialize table from json", e);
+                        return null;
+                    }
+                })
+                .filter(t -> t != null)
+                .toArray(HiveTable[]::new);
     }
 
     public HiveTable findOne(String database, String table) throws TException {
@@ -855,6 +855,44 @@ public class HiveService {
         hiveTable.setColumns(columns.toArray(new HiveColumn[0]));
 
         return hiveTable;
+    }
+
+    public void updateTables() throws TException, JsonProcessingException {
+
+        List<String> databases = hiveMetaStoreClient.getAllDatabases();
+        for(String db : databases){
+
+            Database database = hiveMetaStoreClient.getDatabase(db);
+
+            List<String> tables = hiveMetaStoreClient.getAllTables(db);
+            for(String t : tables){
+
+                if(!t.startsWith(TEMP_TABLE_PREFIX)) {
+                    Table table = hiveMetaStoreClient.getTable(db, t);
+
+                    HiveTable hiveTable = buildHiveTable(table);
+
+                    HiveTableSearch hiveTableSearch = new HiveTableSearch();
+                    hiveTableSearch.setId(hiveTable.getDatabase()+"."+hiveTable.getTable());
+                    hiveTableSearch.setComment(hiveTable.getComment());
+                    hiveTableSearch.setDatabase(hiveTable.getDatabase());
+                    hiveTableSearch.setTable(hiveTable.getTable());
+                    hiveTableSearch.setDataDomainOwner(hiveTable.getDataDomainOwner());
+                    hiveTableSearch.setFormat(hiveTable.getFormat());
+                    hiveTableSearch.setPath(hiveTable.getPath());
+                    hiveTableSearch.setTags(hiveTable.getTags());
+
+                    hiveTableSearch.setColumns(Arrays.stream(hiveTable.getColumns()).map(c -> c.getName()).toArray(String[]::new));
+                    hiveTableSearch.setColumnsComment(Arrays.stream(hiveTable.getColumns()).map(c -> c.getDescription()).toArray(String[]::new));
+
+                    hiveTableSearch.setHiveTable(objectMapper.writeValueAsString(hiveTable));
+
+                    hiveTableSearchRepository.save(hiveTableSearch);
+                }
+            }
+
+        }
+
     }
 
 
