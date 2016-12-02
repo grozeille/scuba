@@ -11,6 +11,10 @@ var catalogController = require('./controllers/catalog/catalog.controller');
 var chooseTableController = require('./controllers/chooseTable/chooseTable.controller');
 var tableEditorController = require('./controllers/tableEditor/tableEditor.controller');
 
+/*var fileread = require('./components/fileread/fileread.directive.js')
+var fillHeight = require('./components/fillHeight/fillHeight.directive.js')
+var queryBuilder = require('./components/queryBuilder/queryBuilder.directive.js')*/
+
 var datalakeToolboxModule = 'datalakeToolbox';
 
 module.exports = datalakeToolboxModule;
@@ -39,4 +43,7 @@ angular
   .component('viewEditorLinksControllerComponent', viewEditorLinksController)
   .component('chooseTableControllerComponent', chooseTableController)
   .component('catalogControllerComponent', catalogController)
-  .component('tableEditorControllerComponent', tableEditorController);
+  .component('tableEditorControllerComponent', tableEditorController)
+  /*.component('fileread', fileread)
+  .component('fillHeight', fillHeight)
+  .component('queryBuilder', queryBuilder)*/;
