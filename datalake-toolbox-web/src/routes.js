@@ -17,13 +17,6 @@ function routesConfig($stateProvider, $urlRouterProvider, $locationProvider) {
         scrollTo: 'body'
       }
     })
-    .state('viewEditor.links', {
-      parent: 'viewEditor',
-      url: '/links/:database/:table',
-      modal: true,
-      size: 'lg',
-      component: 'viewEditorLinksControllerComponent'
-    })
     .state('chooseTable', {
       url: '/chooseTable',
       component: 'chooseTableControllerComponent'

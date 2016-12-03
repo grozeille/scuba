@@ -6,14 +6,14 @@ module.exports = {
 
 
 /** @ngInject */
-function LinksController($timeout, $log, $location, $filter, $uibModalInstance, $state, $stateParams, preparationService) {
+function LinksController($timeout, $log, $location, $filter, $uibModalInstance, $state, database, table, preparationService) {
   var vm = this;
 
   vm.leftTable = {
-    database: $stateParams.database,
-    table: $stateParams.table,
-    id: $stateParams.database+"."+$stateParams.table,
-    label: $stateParams.database+"."+$stateParams.table
+    database: database,
+    table: table,
+    id: database+"."+table,
+    label: database+"."+table
   };
 
   vm.rightTableList = [];

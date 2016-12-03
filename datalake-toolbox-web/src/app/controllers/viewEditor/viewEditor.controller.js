@@ -75,6 +75,8 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     $log.info('Refreshed after changes at: ' + new Date());
   });
 
+  var savedModal = require('./saved/saved.controller');
+
   vm.save = function(){
     preparationService.setName(vm.name);
     preparationService.setComment(vm.description);
@@ -82,22 +84,13 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     preparationService.saveView();
     $log.info('Save at: ' + new Date());
 
-    var modalInstance = $uibModal.open({
-      templateUrl: 'saved.html',
-      controllerAs: "save",
-      controller: function($uibModalInstance, viewName){
-        var vm = this;
-        vm.viewName = viewName;
-        vm.ok = function(){
-          $uibModalInstance.close();
-        };
-      },
-      resolve: {
-        viewName: function () {
-          return vm.name;
-        }
+    savedModal.resolve = {
+      viewName: function () {
+        return vm.name;
       }
-    });
+    };
+
+    var modalInstance = $uibModal.open(savedModal);
 
   };
 
@@ -140,7 +133,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
             enableHiding: false,
             minWidth: 70,
             width: 100,
-            headerCellTemplate: 'app/viewEditor/header-cell-template.html',
+            headerCellTemplate: 'app/controllers/viewEditor/header-cell-template.html',
             hive: {
               database: table.database,
               table: table.table,
@@ -160,7 +153,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
         minWidth: 70,
         width: 100,
         enableColumnResizing: true,
-        headerCellTemplate: 'app/viewEditor/header-cell-template.html',
+        headerCellTemplate: 'app/controllers/viewEditor/header-cell-template.html',
         hive: {
           database: "",
           table: "",
@@ -184,36 +177,34 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     };
   };
 
-  vm.removeTable = function(table){
-    var modalInstance = $uibModal.open({
-      templateUrl: 'deleteTable.html',
-      controllerAs: "deleteTable",
-      controller: function($timeout, $log, $location, $filter, $uibModalInstance, $state, database, table, preparationService) {
-        var vm = this;
-        vm.table = preparationService.getTable(database, table);
+  var linksModal = require('./links/links.controller');
 
-        vm.ok = function(){
-          $log.info('Modal OK at: ' + new Date());
-
-          preparationService.removeTable(vm.table.database, vm.table.table);
-
-          $uibModalInstance.close();
-        };
-
-        vm.cancel = function(){
-          $log.info('Modal dismissed at: ' + new Date());
-          $uibModalInstance.dismiss();
-        };
+  vm.links = function(table) {
+    linksModal.size = 'lg';
+    linksModal.resolve = {
+      database: function () {
+        return table.database;
       },
-      resolve: {
-        database: function () {
-          return table.database;
-        },
-        table: function() {
-          return table.table;
-        }
+      table: function() {
+        return table.table;
       }
-    });
+    };
+    var modalInstance = $uibModal.open(linksModal);
+  };
+
+  var deleteTableModal = require('./deleteTable/deleteTable.controller');
+
+  vm.removeTable = function(table){
+    deleteTableModal.resolve = {
+      database: function () {
+        return table.database;
+      },
+      table: function() {
+        return table.table;
+      }
+    };
+
+    var modalInstance = $uibModal.open(deleteTableModal);
   };
 
   vm.getData = function(){
@@ -315,36 +306,18 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     }
   };
 
+  var deleteCalculatedModal = require('./deleteCalculated/deleteCalculated.controller');
+
   vm.removeCalculatedColumn = function($event, column) {
 
     $event.preventDefault();
 
-    var modalInstance = $uibModal.open({
-      templateUrl: 'deleteCalculated.html',
-      controllerAs: "deleteCalculated",
-      controller: function($timeout, $log, $location, $filter, $uibModalInstance, $state, columnName, preparationService) {
-        var vm = this;
-        vm.column = preparationService.getCalculatedColumn(columnName);
-
-        vm.ok = function(){
-          $log.info('Modal OK at: ' + new Date());
-
-          preparationService.removeCalculatedColumn(vm.column.name);
-
-          $uibModalInstance.close();
-        };
-
-        vm.cancel = function(){
-          $log.info('Modal dismissed at: ' + new Date());
-          $uibModalInstance.dismiss();
-        };
-      },
-      resolve: {
-        columnName: function() {
-          return column.name;
-        }
+    deleteCalculatedModal.resolve = {
+      columnName: function() {
+        return column.name;
       }
-    });
+    };
+    var modalInstance = $uibModal.open(deleteCalculatedModal);
   };
 
   function activate(){
