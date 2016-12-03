@@ -29,6 +29,7 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -859,6 +860,14 @@ public class HiveService {
 
     public void updateTables() throws TException, JsonProcessingException {
 
+        // get all tables from DB
+        Iterable<HiveTableSearch> hiveTableSearches = hiveTableSearchRepository.findAll();
+        Set<String> tableKeys = StreamSupport
+                .stream(hiveTableSearches.spliterator(), false)
+                .map(h -> h.getId())
+                .collect(Collectors.toSet());
+
+        // get all tables from Hive
         List<String> databases = hiveMetaStoreClient.getAllDatabases();
         for(String db : databases){
 
@@ -873,7 +882,7 @@ public class HiveService {
                     HiveTable hiveTable = buildHiveTable(table);
 
                     HiveTableSearch hiveTableSearch = new HiveTableSearch();
-                    hiveTableSearch.setId(hiveTable.getDatabase()+"."+hiveTable.getTable());
+                    hiveTableSearch.setId("`"+hiveTable.getDatabase()+"`.`"+hiveTable.getTable()+"`");
                     hiveTableSearch.setComment(hiveTable.getComment());
                     hiveTableSearch.setDatabase(hiveTable.getDatabase());
                     hiveTableSearch.setTable(hiveTable.getTable());
@@ -888,9 +897,16 @@ public class HiveService {
                     hiveTableSearch.setHiveTable(objectMapper.writeValueAsString(hiveTable));
 
                     hiveTableSearchRepository.save(hiveTableSearch);
+
+                    tableKeys.remove(hiveTableSearch.getId());
                 }
             }
 
+        }
+
+        // delete missing tables
+        for(String key : tableKeys){
+            hiveTableSearchRepository.delete(key);
         }
 
     }
