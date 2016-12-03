@@ -164,7 +164,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
 
 
 
-    vm.gridSampleOptions = {
+    vm.gridOptions = {
       enableSorting: false,
       enableColumnMenus: false,
       enableColumnResizing: true,
@@ -211,7 +211,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     vm.isLoading = true;
     return preparationService.getData(vm.maxRows).then(function(data){
       if(data != null){
-        vm.gridSampleOptions.data = data.data;
+        vm.gridOptions.data = data.data;
       }
       vm.isLoading = false;
     }).catch(function(error) {
@@ -301,7 +301,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
 
 
       // TODO select the new column
-      //vm.gridSampleOptions.columnDefs
+      //vm.gridOptions.columnDefs
       //vm.selectColumn
     }
   };
