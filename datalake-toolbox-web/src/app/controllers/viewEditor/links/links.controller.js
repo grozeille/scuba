@@ -244,6 +244,10 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     }
   };
 
+  vm.loadLinkImage = function(type){
+    return require('../../../assets/images/arrow_'+type+'.png');
+  };
+
   activate();
 
   function activate(){

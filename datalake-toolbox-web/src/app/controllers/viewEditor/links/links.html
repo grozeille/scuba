@@ -1,5 +1,5 @@
 <div class="modal-header" style="margin-bottom:30px;">
-  <h3 class="modal-title">Manage links <img src="/img/link-help.png" class="pull-right"/></h3>
+  <h3 class="modal-title">Manage links <img src="../../../assets/images/link-help.png" class="pull-right"/></h3>
   <p>Connect your table with others, from left to right.<br/>
   Link type: could be <b>inner</b> or <b>outer</b>.
   <ul>
@@ -44,7 +44,7 @@
           <option>outer</option>
         </select>
       </p>
-      <p style="margin-right:-12px;margin-left:-12px;margin-bottom: 4px;"><img ng-if="link.type" src="/img/arrow_{{link.type}}.png" style="width:100%;"></p>
+      <p style="margin-right:-12px;margin-left:-12px;margin-bottom: 4px;"><img ng-if="link.type" ng-src="{{links.loadLinkImage(link.type)}}" style="width:100%;"></p>
       <p ng-repeat="column in link.columns" style="height:34px;">
         <button type="button" class="btn btn-success" style="width:100%;" ng-click="links.addColumn($parent.$parent.$index)" ng-if="$last" ng-disabled="links.isAddDisabled($parent.$parent.$index)" >
           <span class="glyphicon glyphicon-plus" aria-hidden="true" ></span> Add
