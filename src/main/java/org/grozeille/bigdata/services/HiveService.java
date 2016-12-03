@@ -158,8 +158,6 @@ public class HiveService {
 
         String sqlQuery = buildSqlQuery(denormalizedSqlQuery, dataSetConf);
 
-        log.info("Executing sql: "+sqlQuery);
-
         return getData(sqlQuery);
     }
 
@@ -178,7 +176,14 @@ public class HiveService {
             return map;
         }).collect();*/
 
-        return hiveJdbcTemplate.queryForList(sql);
+        log.info("Executing SQL: " + sql);
+        long startTime = System.currentTimeMillis();
+
+        List<Map<String, Object>> result = hiveJdbcTemplate.queryForList(sql);
+
+        log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+
+        return result;
     }
 
     public void createDataSet(DataSetConf dataSetConf) throws HiveQueryException {
@@ -210,7 +215,9 @@ public class HiveService {
 
         try {
             hiveJdbcTemplate.execute("DROP VIEW IF EXISTS `"+dataSetConf.getDatabase() + "`.`" + dataSetConf.getTable() + "`");
+            long startTime = System.currentTimeMillis();
             hiveJdbcTemplate.execute(createViewSql);
+            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
         }catch(Exception e){
             throw new HiveQueryException("Unable to create view: "+sqlQuery, e);
         }
@@ -248,7 +255,9 @@ public class HiveService {
 
         try {
             hiveJdbcTemplate.execute(dropSql);
+            long startTime = System.currentTimeMillis();
             hiveJdbcTemplate.execute(createSql);
+            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
         }catch(Exception e){
             throw new HiveQueryException("Unable to create table: "+createSql, e);
         }
@@ -503,9 +512,14 @@ public class HiveService {
                     "TBLPROPERTIES ('" + linkHashKey + "'='" + hash + "')\n" +
                     "AS " + selectStatement;
 
-            log.info("Create cache table: " + createCacheTableSql);
+            log.info("Creating cache table: " + createCacheTableSql);
+
+            long startTime = System.currentTimeMillis();
 
             hiveJdbcTemplate.execute(createCacheTableSql);
+
+            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+
             //sparkHiveContext.sql(createCacheTableSql).collect();
         }
 
