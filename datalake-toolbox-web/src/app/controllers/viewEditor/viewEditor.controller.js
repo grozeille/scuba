@@ -8,7 +8,7 @@ module.exports = {
 
 
 /** @ngInject */
-function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, $sce, preparationService, hiveService) {
+function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService, hiveService) {
   var vm = this;
   vm.maxRows = 10000;
   vm.selectedColumn = null;
@@ -67,7 +67,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
   }
 
   vm.computedGroup = function(){
-    return $sce.trustAsHtml("<b>Filter:</b> "+computed(vm.queryGroup));
+    return "<b>Filter:</b> "+computed(vm.queryGroup);
   }
 
   preparationService.subscribeOnChange($scope, function(){

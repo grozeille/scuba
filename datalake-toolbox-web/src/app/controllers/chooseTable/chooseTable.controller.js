@@ -8,7 +8,7 @@ module.exports = {
 
 
 /** @ngInject */
-function ChooseTableController($timeout, $log, $location, $filter, $sce, preparationService, hiveService) {
+function ChooseTableController($timeout, $log, $location, $filter, preparationService, hiveService) {
   var vm = this;
   vm.sourceFilter = "";
 
@@ -27,9 +27,6 @@ function ChooseTableController($timeout, $log, $location, $filter, $sce, prepara
   function activate(){
     hiveService.getTables().then(function(tables){
       vm.tables = tables;
-      for(var i = 0; i < vm.tables.length; i++){
-        vm.tables[i].comment = $sce.trustAsHtml(vm.tables[i].comment);
-      }
     });
 
   }

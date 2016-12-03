@@ -1,15 +1,15 @@
 var angular = require('angular');
 
-var datalakeToolboxModule = require('./app/index');
+var datalakeToolboxModule = require('./app');
 
 require('angular-ui-router');
 
 var routesConfig = require('./routes');
 
-require('bootstrap/dist/css/bootstrap.min.css');
 require('./index.css');
 
 angular
   .module('app', [datalakeToolboxModule,
-    'ui.router'])
+    'ui.router',
+    'ui.router.modal'])
   .config(routesConfig);

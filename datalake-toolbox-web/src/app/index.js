@@ -1,49 +1,26 @@
 var angular = require('angular');
 
-var hiveService = require('./services/hive/hive.service');
-var preparationService = require('./services/preparation/preparation.service');
-var prepareTableService = require('./services/prepareTable/prepareTable.service');
-
-var viewController = require('./controllers/view/view.controller');
-var viewEditorController = require('./controllers/viewEditor/viewEditor.controller');
-var viewEditorLinksController = require('./controllers/viewEditor/links/links.controller');
-var catalogController = require('./controllers/catalog/catalog.controller');
-var chooseTableController = require('./controllers/chooseTable/chooseTable.controller');
-var tableEditorController = require('./controllers/tableEditor/tableEditor.controller');
-
-/*var fileread = require('./components/fileread/fileread.directive.js')
-var fillHeight = require('./components/fillHeight/fillHeight.directive.js')
-var queryBuilder = require('./components/queryBuilder/queryBuilder.directive.js')*/
-
-var datalakeToolboxModule = 'datalakeToolbox';
-
-module.exports = datalakeToolboxModule;
-
-
 require('angular-ui-bootstrap');
+require('bootstrap/dist/css/bootstrap.min.css');
 require('angular-ui-grid');
-//require('angular-ui-select');
+require('ui-select');
+require('ui-select/dist/select.css');
 require('ng-file-upload');
 require('ng-tags-input');
-
 require('angular-ui-router');
 require('angular-ui-router-uib-modal');
+require('angular-sanitize');
 
 angular
-  .module(datalakeToolboxModule, [
-    'ui.router',
+  .module('datalakeToolbox', [
     'ui.bootstrap',
     'ui.bootstrap.modal',
-    'ui.router.modal',])
-  .service('hiveService', hiveService)
-  .service('preparationService', preparationService)
-  .service('prepareTableService', prepareTableService)
-  .component('viewControllerComponent', viewController)
-  .component('viewEditorControllerComponent', viewEditorController)
-  .component('viewEditorLinksControllerComponent', viewEditorLinksController)
-  .component('chooseTableControllerComponent', chooseTableController)
-  .component('catalogControllerComponent', catalogController)
-  .component('tableEditorControllerComponent', tableEditorController)
-  /*.component('fileread', fileread)
-  .component('fillHeight', fillHeight)
-  .component('queryBuilder', queryBuilder)*/;
+    'ui.select',
+    'ngSanitize']);
+
+
+require('./directives');
+require('./services');
+require('./controllers');
+
+module.exports = 'datalakeToolbox';
