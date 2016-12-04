@@ -24,7 +24,7 @@ spring:
         password:
         driver-class-name: org.h2.Driver
     hive:
-        url: jdbc:hive2://lenovo02.localdomain:10000/default
+        url: jdbc:hive2://localhost:10000/default
         username: mathias
         driver-class-name: org.apache.hive.jdbc.HiveDriver
         maximumPoolSize: 1
