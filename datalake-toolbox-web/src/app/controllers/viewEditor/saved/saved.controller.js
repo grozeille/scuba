@@ -4,12 +4,11 @@ module.exports = {
   template: require('./saved.html')
 };
 
-
 /** @ngInject */
-function SavedController($uibModalInstance, viewName){
+function SavedController($uibModalInstance, viewName) {
   var vm = this;
   vm.viewName = viewName;
-  vm.ok = function(){
+  vm.ok = function() {
     $uibModalInstance.close();
   };
 }

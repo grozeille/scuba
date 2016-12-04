@@ -13,19 +13,19 @@ function ViewController($timeout, $log, $location, $filter, $uibModal, preparati
 
   vm.views = [];
 
-  vm.createNewView = function(){
-    preparationService.loadView().then(function(){
-      $location.path( "/editor" );
+  vm.createNewView = function() {
+    preparationService.loadView().then(function() {
+      $location.path("/editor");
     });
   };
 
-  vm.loadView = function(id){
-    preparationService.loadView(id).then(function(){
-      $location.path( "/editor" );
+  vm.loadView = function(id) {
+    preparationService.loadView(id).then(function() {
+      $location.path("/editor");
     });
   };
 
-  vm.deleteView = function(id){
+  vm.deleteView = function(id) {
     preparationService.loadView(id);
     var viewName = preparationService.getName();
     preparationService.loadView();
@@ -33,16 +33,16 @@ function ViewController($timeout, $log, $location, $filter, $uibModal, preparati
     $uibModal.open({
       templateUrl: 'delete.html',
       controllerAs: "delete",
-      controller: function($uibModalInstance, viewName, parent){
+      controller: function($uibModalInstance, viewName, parent) {
         var vm = this;
         vm.viewName = viewName;
-        vm.ok = function(){
-          preparationService.deleteView(id).then(function(){
+        vm.ok = function() {
+          preparationService.deleteView(id).then(function() {
             $uibModalInstance.close();
             parent.loadViews();
           });
         };
-        vm.cancel = function(){
+        vm.cancel = function() {
           $uibModalInstance.dismiss('cancel');
         };
       },
@@ -55,25 +55,23 @@ function ViewController($timeout, $log, $location, $filter, $uibModal, preparati
         }
       }
     });
-
   };
 
-  vm.cloneView = function(id){
-    preparationService.cloneView(id).then(function(){
+  vm.cloneView = function(id) {
+    preparationService.cloneView(id).then(function() {
       $location.path("/editor");
     });
   };
 
   vm.loadViews = function() {
-    preparationService.getViews().then(function(views){
+    preparationService.getViews().then(function(views) {
       vm.views = views;
     });
-  }
+  };
 
   activate();
 
-  function activate(){
+  function activate() {
     vm.loadViews();
   }
 }
-

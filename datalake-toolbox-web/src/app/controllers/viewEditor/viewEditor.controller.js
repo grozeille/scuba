@@ -6,7 +6,6 @@ module.exports = {
   template: require('./viewEditor.html')
 };
 
-
 /** @ngInject */
 function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService, hiveService) {
   var vm = this;
@@ -34,30 +33,36 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
   vm.description = preparationService.getComment();
 
   vm.queryGroup = preparationService.getFilter();
-  vm.queryFields = [ ];
+  vm.queryFields = [];
 
   function htmlEntities(str) {
     return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function computed(group) {
-    if (!group) return "";
-    if(!group.rules) return "";
+    if(!group) {
+      return "";
+    }
 
-    for (var str = "(", i = 0; i < group.rules.length; i++) {
-      i > 0 && (str += " <strong>" + group.operator + "</strong> ");
+    if(!group.rules) {
+      return "";
+    }
 
-      if(group.rules[i].group){
-        str += computed(group.rules[i].group);
+    var str = '(';
+
+    for (var i = 0; i < group.rules.length; i++) {
+      if(i > 0) {
+        str += " <strong>" + group.operator + "</strong> ";
       }
-      else {
-        if(group.rules[i].condition.localeCompare('IS NULL') == 0 || group.rules[i].condition.localeCompare('IS NOT NULL') == 0){
+
+      if(group.rules[i].group) {
+        str += computed(group.rules[i].group);
+      } else {
+        if(group.rules[i].condition.localeCompare('IS NULL') === 0 || group.rules[i].condition.localeCompare('IS NOT NULL') === 0) {
           str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition);
-        }
-        else if(group.rules[i].condition.localeCompare('IN') == 0 || group.rules[i].condition.localeCompare('NOT IN') == 0){
-          str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition) + " [" + group.rules[i].data+"]";
-        }
-        else {
+        } else if(group.rules[i].condition.localeCompare('IN') === 0 || group.rules[i].condition.localeCompare('NOT IN') === 0) {
+          str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition) + " [" + group.rules[i].data + "]";
+        } else {
           str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition) + " " + group.rules[i].data;
         }
       }
@@ -66,18 +71,18 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     return str + ")";
   }
 
-  vm.computedGroup = function(){
-    return "<b>Filter:</b> "+computed(vm.queryGroup);
-  }
+  vm.computedGroup = function() {
+    return "<b>Filter:</b> " + computed(vm.queryGroup);
+  };
 
-  preparationService.subscribeOnChange($scope, function(){
+  preparationService.subscribeOnChange($scope, function() {
     vm.refreshTables();
     $log.info('Refreshed after changes at: ' + new Date());
   });
 
   var savedModal = require('./saved/saved.controller');
 
-  vm.save = function(){
+  vm.save = function() {
     preparationService.setName(vm.name);
     preparationService.setComment(vm.description);
     preparationService.setFilter(vm.queryGroup);
@@ -91,10 +96,9 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     };
 
     var modalInstance = $uibModal.open(savedModal);
-
   };
 
-  vm.refreshTables = function(){
+  vm.refreshTables = function() {
     vm.selectedColumn = null;
     vm.selectedDatabase = null;
     vm.selectedTable = null;
@@ -105,23 +109,23 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     vm.calculatedColumns = preparationService.getCalculatedColumns();
     var links = preparationService.getLinks();
     vm.isColumnLinked = { };
-    for(var l = 0; l < links.length; l++){
+    for(var l = 0; l < links.length; l++) {
       var link = links[l];
-      vm.isColumnLinked[link.left.database+"."+link.left.table+"."+link.left.column] = true;
-      //vm.isColumnLinked[link.right.database+"."+link.right.table+"."+link.right.column] = true;
+      vm.isColumnLinked[link.left.database + "." + link.left.table + "." + link.left.column] = true;
+      // vm.isColumnLinked[link.right.database+"."+link.right.table+"."+link.right.column] = true;
     }
 
     var columnDefs = [];
 
-    for(var t = 0; t < vm.tables.length; t++){
+    for(var t = 0; t < vm.tables.length; t++) {
       var table = vm.tables[t];
 
-      for(var c = 0; c < table.columns.length; c++){
+      for(var c = 0; c < table.columns.length; c++) {
         var column = table.columns[c];
 
         vm.queryFields.push({
-          name: table.database+"."+table.table+"."+column.newName,
-          groupName: table.database+"."+table.table,
+          name: table.database + "." + table.table + "." + column.newName,
+          groupName: table.database + "." + table.table,
           database: table.database,
           table: table.table,
           column: column.name
@@ -144,11 +148,11 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
       }
     }
 
-    for(var c = 0; c < vm.calculatedColumns.length; c++){
-      var column = vm.calculatedColumns[c];
+    for(var cc = 0; cc < vm.calculatedColumns.length; cc++) {
+      var calculatedColumn = vm.calculatedColumns[cc];
 
       columnDefs.push({
-        field: column.newName.toLowerCase(),
+        field: calculatedColumn.newName.toLowerCase(),
         enableHiding: false,
         minWidth: 70,
         width: 100,
@@ -157,12 +161,10 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
         hive: {
           database: "",
           table: "",
-          column: column
+          column: calculatedColumn
         }
       });
     }
-
-
 
     vm.gridOptions = {
       enableSorting: false,
@@ -170,8 +172,8 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
       enableColumnResizing: true,
       appScopeProvider: vm,
       columnDefs: columnDefs,
-      data : [ ],
-      onRegisterApi: function( gridApi ) {
+      data: [],
+      onRegisterApi: function(gridApi) {
         vm.gridSampleApi = gridApi;
       }
     };
@@ -194,7 +196,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
 
   var deleteTableModal = require('./deleteTable/deleteTable.controller');
 
-  vm.removeTable = function(table){
+  vm.removeTable = function(table) {
     deleteTableModal.resolve = {
       database: function () {
         return table.database;
@@ -207,10 +209,10 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     var modalInstance = $uibModal.open(deleteTableModal);
   };
 
-  vm.getData = function(){
+  vm.getData = function() {
     vm.isLoading = true;
-    return preparationService.getData(vm.maxRows).then(function(data){
-      if(data != null){
+    return preparationService.getData(vm.maxRows).then(function(data) {
+      if(data !== null) {
         vm.gridOptions.data = data.data;
       }
       vm.isLoading = false;
@@ -219,12 +221,12 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     });
   };
 
-  vm.cancelGetData = function(){
+  vm.cancelGetData = function() {
     preparationService.cancelGetData("user cancel");
   };
 
-  vm.rename = function(){
-    if(angular.isDefined(vm.selectedColumn)){
+  vm.rename = function() {
+    if(angular.isDefined(vm.selectedColumn)) {
       vm.selectedColumn.newName = vm.renameField;
       vm.selectedColumn.newDescription = vm.renameDescription;
       vm.selectedColumn.newType = vm.changeType;
@@ -233,7 +235,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     }
   };
 
-  vm.makeTablePrimary = function(database, table){
+  vm.makeTablePrimary = function(database, table) {
     preparationService.makeTablePrimary(database, table);
   };
 
@@ -243,38 +245,35 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
       vm.selectedTable === col.colDef.hive.table;
   };
 
-  vm.selectColumn = function(col){
+  vm.selectColumn = function(col) {
     // if it's the same, unselect it
-    if( angular.isDefined(vm.selectedColumn) && vm.selectedColumn != null &&
-        col.colDef.hive.column.name.localeCompare(vm.selectedColumn.name) == 0 &&
-        col.colDef.hive.database.localeCompare(vm.selectedDatabase) == 0 &&
-        col.colDef.hive.table.localeCompare(vm.selectedTable) == 0) {
-
+    if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null &&
+        col.colDef.hive.column.name.localeCompare(vm.selectedColumn.name) === 0 &&
+        col.colDef.hive.database.localeCompare(vm.selectedDatabase) === 0 &&
+        col.colDef.hive.table.localeCompare(vm.selectedTable) === 0) {
       vm.unSelectColumn();
       return;
-    };
+    }
 
     vm.selectedColumn = col.colDef.hive.column;
     vm.selectedDatabase = col.colDef.hive.database;
     vm.selectedTable = col.colDef.hive.table;
     vm.selectedColumnIsCalculated = col.colDef.hive.column.isCalculated;
 
-    if(angular.isDefined(vm.selectedColumn)  && vm.selectedColumn != null){
+    if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null) {
       vm.renameField = vm.selectedColumn.newName;
       vm.renameDescription = vm.selectedColumn.newDescription;
       vm.changeType = vm.selectedColumn.newType;
     }
 
-    if(vm.selectedColumnIsCalculated){
+    if(vm.selectedColumnIsCalculated) {
       vm.activeTab = 3;
-    }
-    else {
+    } else {
       vm.activeTab = 2;
     }
-
   };
 
-  vm.unSelectColumn = function(){
+  vm.unSelectColumn = function() {
     vm.selectedColumn = null;
     vm.selectedDatabase = null;
     vm.selectedTable = null;
@@ -285,31 +284,28 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
 
   vm.onColumnSelectionChange = function(column) {
     preparationService.notifyOnChange();
-  }
+  };
 
-
-  vm.createCalculated = function(){
-    if(angular.isDefined(vm.selectedColumn)  && vm.selectedColumn != null){
+  vm.createCalculated = function() {
+    if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null) {
       var calculatedColumn = {
-        name: "calculated_"+preparationService.getNextCalculatedColumnSequence(),
-        newName: vm.selectedColumn.newName+" calculated",
+        name: "calculated_" + preparationService.getNextCalculatedColumnSequence(),
+        newName: vm.selectedColumn.newName + " calculated",
         newDescription: "",
-        formula: "`"+vm.selectedColumn.newName+"`",
+        formula: "`" + vm.selectedColumn.newName + "`",
         isCalculated: true
       };
       preparationService.addCalculatedColumn(calculatedColumn);
 
-
       // TODO select the new column
-      //vm.gridOptions.columnDefs
-      //vm.selectColumn
+      // vm.gridOptions.columnDefs
+      // vm.selectColumn
     }
   };
 
   var deleteCalculatedModal = require('./deleteCalculated/deleteCalculated.controller');
 
   vm.removeCalculatedColumn = function($event, column) {
-
     $event.preventDefault();
 
     deleteCalculatedModal.resolve = {
@@ -320,12 +316,9 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
     var modalInstance = $uibModal.open(deleteCalculatedModal);
   };
 
-  function activate(){
-
+  function activate() {
     vm.refreshTables();
   }
 
   activate();
-
-
-};
+}

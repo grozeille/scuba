@@ -3,9 +3,8 @@ module.exports = hiveService;
 /** @ngInject */
 function hiveService($log, $http, $location, $filter, $q) {
   var vm = this;
-  vm.apiHost = $location.protocol() +"://"+$location.host() +":"+$location.port()+"/api";
-  //vm.apiHost = "http://localhost:8000/api";
-
+  vm.apiHost = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api";
+  // vm.apiHost = "http://localhost:8000/api";
 
   vm.getServiceData = function(response) {
     return response.data;
@@ -23,7 +22,6 @@ function hiveService($log, $http, $location, $filter, $q) {
 
   return service;
 
-
   function getTables() {
     return $http.get(vm.apiHost + '/hive/tables')
                 .then(vm.getServiceData)
@@ -31,18 +29,17 @@ function hiveService($log, $http, $location, $filter, $q) {
   }
 
   function getTable(database, table) {
-    return $http.get(vm.apiHost + '/hive/tables/'+database+"/"+table)
+    return $http.get(vm.apiHost + '/hive/tables/' + database + "/" + table)
                 .then(vm.getServiceData)
                 .catch(vm.catchServiceException);
   }
 
-  function getData(dataSetConf, max){
-
+  function getData(dataSetConf, max) {
     var canceller = $q.defer();
-    var cancel = function(reason){
-        canceller.resolve(reason);
+    var cancel = function(reason) {
+      canceller.resolve(reason);
     };
-    var promise = $http.post(vm.apiHost + '/hive/data/dataset?max='+max, dataSetConf, { timeout: canceller.promise})
+    var promise = $http.post(vm.apiHost + '/hive/data/dataset?max=' + max, dataSetConf, {timeout: canceller.promise})
                 .then(vm.getServiceData)
                 .catch(vm.catchServiceException);
 
@@ -51,5 +48,4 @@ function hiveService($log, $http, $location, $filter, $q) {
       cancel: cancel
     };
   }
-
 }

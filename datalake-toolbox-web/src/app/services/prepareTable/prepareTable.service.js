@@ -1,10 +1,9 @@
 module.exports = prepareTableService;
 
 /** @ngInject */
-function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hiveService/*, Upload*/) {
-
+function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
   var vm = this;
-  vm.apiHost = $location.protocol() +"://"+$location.host() +":"+$location.port()+"/api";
+  vm.apiHost = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api";
 
   vm.getServiceData = function(response) {
     return response.data;
@@ -14,10 +13,10 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hi
     $log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
   };
 
-  function getRawData(file){
+  function getRawData(file) {
     var upload = Upload.upload({
-      url: vm.apiHost+"/hive/data/raw",
-      data: { file: file}
+      url: vm.apiHost + "/hive/data/raw",
+      data: {file: file}
     });
 
     return upload
@@ -25,9 +24,9 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hi
       .catch(vm.catchServiceException);
   }
 
-  function getCsvData(data){
+  function getCsvData(data) {
     var upload = Upload.upload({
-      url: vm.apiHost+"/hive/data/csv",
+      url: vm.apiHost + "/hive/data/csv",
       data: data
     });
 
@@ -36,10 +35,9 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hi
       .catch(vm.catchServiceException);
   }
 
-  function getExcelData(data){
-
+  function getExcelData(data) {
     var upload = Upload.upload({
-      url: vm.apiHost+"/hive/data/excel",
+      url: vm.apiHost + "/hive/data/excel",
       data: data
     });
 
@@ -48,56 +46,53 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hi
       .catch(vm.catchServiceException);
   }
 
-  function getExcelWorksheets(file){
-
+  function getExcelWorksheets(file) {
     var upload = Upload.upload({
-      url: vm.apiHost+"/hive/data/excel/sheets",
-      data: { file: file}
+      url: vm.apiHost + "/hive/data/excel/sheets",
+      data: {file: file}
     });
 
     return upload
       .catch(vm.catchServiceException);
   }
 
-  function upload(options){
+  function upload(options) {
   }
 
-  function save(options){
+  function save(options) {
+    var baseName = "app_aaa";
+    var url = vm.apiHost + "/hive/tables/" + baseName + "/" + options.name;
 
-  var url = vm.apiHost+"/hive/tables/"+"app_aaa/"+options.name;
+    var creationRequest = {
+      comment: options.description,
+      dataDomainOwner: "mathias.kluba@gmail.com",
+      tags: ["aaa"]
+    };
 
-  var creationRequest = {
-    comment: options.description,
-    dataDomainOwner: "mathias.kluba@gmail.com",
-    tags: [ "aaa" ]
-  };
+    return $http.put(url, creationRequest)
+      .then(function() {
+        var uploadUrl = url + "/data/" + options.format;
 
-  return $http.put(url, creationRequest)
-    .then(function(){
-      var uploadUrl = url+"/data/"+options.format;
+        var data = {};
+        if(options.format === 'csv') {
+          data = options.csvOptions;
+        }
+        else if(options.format === 'excel') {
+          data = options.excelOptions;
+        }
+        data.file = options.file;
 
-      var data = {};
-      if(options.format == 'csv'){
-        data = options.csvOptions;
-      }
-      else if(options.format == 'excel'){
-        data = options.excelOptions;
-      }
-      data.file = options.file;
+        var upload = Upload.upload({
+          url: uploadUrl,
+          data: data
+        });
 
-      var upload = Upload.upload({
-        url: uploadUrl,
-        data: data
-      });
-
-      return upload
-        .then(vm.getServiceData)
-        .catch(vm.catchServiceException);
-    })
-    .catch(vm.catchServiceException);
-
+        return upload
+          .then(vm.getServiceData)
+          .catch(vm.catchServiceException);
+      })
+      .catch(vm.catchServiceException);
   }
-
 
   var service = {
     getExcelData: getExcelData,
@@ -108,5 +103,4 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope, hi
   };
 
   return service;
-
-};
+}

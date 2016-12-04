@@ -14,7 +14,6 @@ require('angular-ui-router');
 require('angular-ui-router-uib-modal');
 require('angular-sanitize');
 
-
 angular
   .module('datalakeToolbox', [
     'ui.bootstrap',
@@ -24,7 +23,6 @@ angular
     'ui.grid.resizeColumns',
     'ui.grid.autoResize',
     'ngSanitize']);
-
 
 require('./directives');
 require('./services');

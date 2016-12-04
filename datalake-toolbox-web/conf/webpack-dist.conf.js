@@ -45,10 +45,14 @@ module.exports = {
         ]
       },
       {
-        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+        test: /\.(png|jpg|gif|woff|woff2|eot|ttf|svg)$/,
         loader: [
           'file-loader'
         ]
+      },
+      {
+        test: /jquery/,
+        loader: 'expose?$!expose?jQuery'
       }
     ]
   },
@@ -58,6 +62,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: conf.path.src('index.html'),
       inject: true
+    }),
+    new webpack.ProvidePlugin({
+        $: "jquery",
+        jQuery: "jquery"
     }),
     new webpack.optimize.UglifyJsPlugin({
       compress: {unused: true, dead_code: true} // eslint-disable-line camelcase

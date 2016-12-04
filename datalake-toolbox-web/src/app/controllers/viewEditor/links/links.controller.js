@@ -4,7 +4,6 @@ module.exports = {
   template: require('./links.html')
 };
 
-
 /** @ngInject */
 function LinksController($timeout, $log, $location, $filter, $uibModalInstance, $state, database, table, preparationService) {
   var vm = this;
@@ -12,29 +11,29 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
   vm.leftTable = {
     database: database,
     table: table,
-    id: database+"."+table,
-    label: database+"."+table
+    id: database + "." + table,
+    label: database + "." + table
   };
 
   vm.rightTableList = [];
 
   vm.links = [];
 
-  vm.manageLinksOK = function(){
+  vm.manageLinksOK = function() {
     $log.info('Modal OK at: ' + new Date());
 
     // update links, only for selected left database.table.column
     var links = preparationService.getLinks();
     var newLinks = [];
-    for(var l = 0; l < links.length; l++){
+    for(var l = 0; l < links.length; l++) {
       var link = links[l];
 
-      if(link.left.database.localeCompare(vm.leftTable.database) != 0 || link.left.table.localeCompare(vm.leftTable.table) != 0){
+      if(link.left.database.localeCompare(vm.leftTable.database) !== 0 || link.left.table.localeCompare(vm.leftTable.table) !== 0) {
         newLinks.push(link);
       }
     }
 
-    for(var ll = 0; ll < vm.links.length; ll++){
+    for(var ll = 0; ll < vm.links.length; ll++) {
       var controllerLink = vm.links[ll];
       var newLink = {
         left: {
@@ -49,9 +48,9 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
         columns: []
       };
 
-      for(var c = 0; c < controllerLink.columns.length; c++){
+      for(var c = 0; c < controllerLink.columns.length; c++) {
         var controllerColumn = controllerLink.columns[c];
-        if(controllerColumn.left && controllerColumn.right){
+        if(controllerColumn.left && controllerColumn.right) {
           var newColumn = {
             left: controllerColumn.left.name,
             right: controllerColumn.right.name
@@ -60,7 +59,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
         }
       }
 
-      if(newLink.columns.length > 0){
+      if(newLink.columns.length > 0) {
         newLinks.push(newLink);
       }
     }
@@ -71,14 +70,14 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     $uibModalInstance.close();
   };
 
-  vm.manageLinksCancel = function(){
+  vm.manageLinksCancel = function() {
     $log.info('Modal dismissed at: ' + new Date());
     $uibModalInstance.dismiss();
   };
 
-  vm.addLink = function(){
+  vm.addLink = function() {
     vm.links.push({
-      table : {
+      table: {
         left: vm.leftTable,
         right: {
           database: "",
@@ -92,53 +91,52 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     });
   };
 
-  vm.refreshColumns = function(index){
+  vm.refreshColumns = function(index) {
     vm.links[index].columns = [{
       left: "",
       right: ""
     }];
   };
 
-  vm.addColumn = function(index){
+  vm.addColumn = function(index) {
     vm.links[index].columns.push({
       left: "",
       right: ""
     });
   };
 
-  vm.removeColumn = function(linkIndex, columnIndex){
+  vm.removeColumn = function(linkIndex, columnIndex) {
     vm.links[linkIndex].columns.splice(columnIndex, 1);
-    if(vm.links[linkIndex].columns.length == 0){
+    if(vm.links[linkIndex].columns.length === 0) {
       vm.addColumn(linkIndex);
     }
   };
 
-  vm.isAddDisabled = function(index){
+  vm.isAddDisabled = function(index) {
     var columns = vm.links[index].columns;
-    return !columns[columns.length-1].left || !columns[columns.length-1].right;
+    return !columns[columns.length - 1].left || !columns[columns.length - 1].right;
   };
 
-  vm.removeLink = function(index){
+  vm.removeLink = function(index) {
     vm.links.splice(index, 1);
   };
 
-  vm.refreshLinks = function(){
-
+  vm.refreshLinks = function() {
     vm.refreshRightTableList();
 
     var links = preparationService.getLinks();
 
-    for(var l = 0; l < links.length; l++){
+    for(var l = 0; l < links.length; l++) {
       var link = links[l];
 
-      var isInLeft = link.left.database.localeCompare(vm.leftTable.database) == 0 &&
-        link.left.table.localeCompare(vm.leftTable.table) == 0;
+      var isInLeft = link.left.database.localeCompare(vm.leftTable.database) === 0 &&
+        link.left.table.localeCompare(vm.leftTable.table) === 0;
 
       if(isInLeft) {
         var rightTable = vm.getRightTable(link.right.database, link.right.table);
 
         var linkItem = {
-          table : {
+          table: {
             left: vm.leftTable,
             right: rightTable
           },
@@ -146,7 +144,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
           type: link.type
         };
 
-        for(var c = 0; c < link.columns.length; c++){
+        for(var c = 0; c < link.columns.length; c++) {
           var columnLink = link.columns[c];
 
           var rightColumn = vm.getColumn(rightTable, columnLink.right);
@@ -156,24 +154,21 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
             left: leftColumn,
             right: rightColumn
           });
-
         }
 
         vm.links.push(linkItem);
       }
     }
 
-    if(vm.links.length == 0){
+    if(vm.links.length === 0) {
       vm.addLink();
     }
-
-
   };
 
-  vm.getRightTable = function(database, table){
-    for(var t = 0; t < vm.rightTableList.length; t++){
+  vm.getRightTable = function(database, table) {
+    for(var t = 0; t < vm.rightTableList.length; t++) {
       var currentTable = vm.rightTableList[t];
-      if(currentTable.database.localeCompare(database) == 0 && currentTable.table.localeCompare(table) == 0){
+      if(currentTable.database.localeCompare(database) === 0 && currentTable.table.localeCompare(table) === 0) {
         return currentTable;
       }
     }
@@ -181,10 +176,10 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     return null;
   };
 
-  vm.getColumn = function(table, column){
-    for(var c = 0; c < table.columns.length; c++){
+  vm.getColumn = function(table, column) {
+    for(var c = 0; c < table.columns.length; c++) {
       var currentColumn = table.columns[c];
-      if(currentColumn.name.localeCompare(column) == 0){
+      if(currentColumn.name.localeCompare(column) === 0) {
         return currentColumn;
       }
     }
@@ -192,30 +187,30 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     return null;
   };
 
-  vm.refreshRightTableList = function(){
+  vm.refreshRightTableList = function() {
     vm.rightTableList = [];
 
     // TODO: don't include tables linked in the left side to avoid loop
 
     var tables = preparationService.getTables();
-    for(var t = 0; t < tables.length; t++){
+    for(var t = 0; t < tables.length; t++) {
       var table = tables[t];
       var tableItem = {
         database: table.database,
         table: table.table,
-        id: table.database+"."+table.table,
-        label: table.database+"."+table.table,
+        id: table.database + "." + table.table,
+        label: table.database + "." + table.table,
         columns: []
       };
 
       // don't include table if selected as left table
-      if(tableItem.id.localeCompare(vm.leftTable.id) == 0){
+      if(tableItem.id.localeCompare(vm.leftTable.id) === 0) {
         continue;
       }
 
       vm.rightTableList.push(tableItem);
 
-      for(var c = 0; c < table.columns.length; c++){
+      for(var c = 0; c < table.columns.length; c++) {
         var column = table.columns[c];
         tableItem.columns.push({
           name: column.name,
@@ -225,15 +220,13 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
         });
       }
     }
-
   };
 
-  vm.refreshLeftTable = function(){
-
+  vm.refreshLeftTable = function() {
     var table = preparationService.getTable(vm.leftTable.database, vm.leftTable.table);
     vm.leftTable.columns = [];
 
-    for(var c = 0; c < table.columns.length; c++){
+    for(var c = 0; c < table.columns.length; c++) {
       var column = table.columns[c];
       vm.leftTable.columns.push({
         name: column.name,
@@ -244,14 +237,14 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     }
   };
 
-  vm.loadLinkImage = function(type){
-    return require('../../../assets/images/arrow_'+type+'.png');
+  vm.loadLinkImage = function(type) {
+    return require('../../../assets/images/arrow_' + type + '.png');
   };
 
   activate();
 
-  function activate(){
+  function activate() {
     vm.refreshLeftTable();
     vm.refreshLinks();
   }
-};
+}

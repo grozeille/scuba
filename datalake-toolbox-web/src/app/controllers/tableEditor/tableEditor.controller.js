@@ -14,7 +14,7 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
 
   vm.database = $stateParams.database;
   vm.table = $stateParams.table;
-  if(angular.isDefined(vm.table) && vm.table !== ""){
+  if(angular.isDefined(vm.table) && vm.table !== "") {
     // TODO load existing table
   }
 
@@ -34,7 +34,7 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
     edit: true,
     texts: {
       inputPlaceHolder: "Type text here"
-    },
+    }
   };
 
   vm.gridOptions = {
@@ -43,25 +43,25 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
     enableColumnResizing: true,
     appScopeProvider: vm,
     columnDefs: [],
-    data : [ ],
-    onRegisterApi: function( gridApi ) {
+    data: [],
+    onRegisterApi: function(gridApi) {
       vm.gridSampleApi = gridApi;
     }
   };
 
-  $scope.$watch(function(scope){
+  $scope.$watch(function(scope) {
     return(vm.fileInfo);
-  }, function( newValue, oldValue ) {
-    if(newValue == null || angular.isUndefined(newValue.name)){
+  }, function(newValue, oldValue) {
+    if(newValue === null || angular.isUndefined(newValue.name)) {
       return;
     }
 
     var extension = newValue.name.split(".").pop();
     var extensionStart = extension.substr(0, 3);
-    if(extensionStart.localeCompare("xls") == 0){
+    if(extensionStart.localeCompare("xls") === 0) {
       vm.dataType = "excel";
     }
-    else if(extension.localeCompare("csv") == 0 || extension.localeCompare("tsv") == 0 || extension.localeCompare("txt") == 0){
+    else if(extension.localeCompare("csv") === 0 || extension.localeCompare("tsv") === 0 || extension.localeCompare("txt") === 0) {
       vm.dataType = "csv";
     }
     else {
@@ -69,94 +69,87 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
     }
   });
 
-
-  vm.getWorksheet = function(){
-    prepareTableService.getExcelWorksheets(vm.fileInfo).then(function(data){
+  vm.getWorksheet = function() {
+    prepareTableService.getExcelWorksheets(vm.fileInfo).then(function(data) {
       vm.excelSheets = data;
-      if(vm.excelSheets.length > 0){
+      if(vm.excelSheets.length > 0) {
         vm.excelSource = vm.excelSheets[0];
       }
     });
-
   };
 
-  function getSeparator(){
-
+  function getSeparator() {
     var separator = "";
-    if(vm.csvSeparator == 'semicolon'){
+    if(vm.csvSeparator === 'semicolon') {
       separator = ';';
-    } else if(vm.csvSeparator == 'comma'){
+    } else if(vm.csvSeparator === 'comma') {
       separator = ',';
-    } else if(vm.csvSeparator == 'tab'){
+    } else if(vm.csvSeparator === 'tab') {
       separator = '\t';
-    } else if(vm.csvSeparator == 'space'){
+    } else if(vm.csvSeparator === 'space') {
       separator = ' ';
-    } else if(vm.csvSeparator == 'custom'){
+    } else if(vm.csvSeparator === 'custom') {
       separator = vm.csvSeparatorCustom;
     }
 
     return separator;
   }
 
-  function getTextQualifier(){
+  function getTextQualifier() {
     var textQualifier = "";
-    if(vm.csvTextQualifier == 'doublequote'){
+    if(vm.csvTextQualifier === 'doublequote') {
       textQualifier = '"';
-    } else if(vm.csvTextQualifier == 'simplequote'){
+    } else if(vm.csvTextQualifier === 'simplequote') {
       textQualifier = '\'';
     }
     return textQualifier;
   }
 
-
-  vm.getData = function(){
+  vm.getData = function() {
     vm.isLoading = true;
     vm.gridOptions.columnDefs = [];
-    vm.gridOptions.data = [ ];
+    vm.gridOptions.data = [];
 
-
-    var loadData = function(data){
-      if(data != null){
-
+    var loadData = function(data) {
+      if(data !== null) {
         vm.gridOptions.data = data.data;
       }
     };
 
-    var stopLoading = function(){
+    var stopLoading = function() {
       vm.isLoading = false;
     };
 
-    if(vm.dataType == 'excel'){
-      var options = {
+    if(vm.dataType === 'excel') {
+      var excelOptions = {
         file: vm.fileInfo,
         sheet: vm.excelSource,
         firstLineHeader: vm.excelFirstLineHeader
       };
 
-      return prepareTableService.getExcelData(options)
+      return prepareTableService.getExcelData(excelOptions)
         .then(loadData)
         .then(stopLoading)
         .catch(stopLoading);
     }
-    if(vm.dataType == 'csv'){
-
+    if(vm.dataType === 'csv') {
       var separator = getSeparator();
 
       var textQualifier = getTextQualifier();
 
-      var options = {
+      var csvOptions = {
         file: vm.fileInfo,
         separator: separator,
         textQualifier: textQualifier,
         firstLineHeader: vm.csvFirstLineHeader
       };
 
-      return prepareTableService.getCsvData(options)
+      return prepareTableService.getCsvData(csvOptions)
         .then(loadData)
         .then(stopLoading)
         .catch(stopLoading);
     }
-    if(vm.dataType == 'raw'){
+    if(vm.dataType === 'raw') {
       return prepareTableService.getRawData(vm.fileInfo)
         .then(loadData)
         .then(stopLoading)
@@ -164,8 +157,7 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
     }
   };
 
-  vm.save = function(){
-
+  vm.save = function() {
     var options = {
       file: vm.fileInfo,
       name: vm.name,
@@ -173,14 +165,14 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
       format: vm.dataType
     };
 
-    if(vm.dataType == 'csv'){
+    if(vm.dataType === 'csv') {
       options.csvOptions = {
         separator: getSeparator(),
         textQualifier: getTextQualifier(),
         firstLineHeader: vm.csvFirstLineHeader
       };
     }
-    else if(vm.dataType == 'excel'){
+    else if(vm.dataType === 'excel') {
       options.excelOptions = {
         sheet: vm.excelSource,
         firstLineHeader: vm.excelFirstLineHeader
@@ -188,16 +180,14 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
     }
 
     return prepareTableService.save(options)
-        .then(function(){
-          $location.path( "/catalog" );
+        .then(function() {
+          $location.path("/catalog");
         });
   };
 
   activate();
 
-  function activate(){
-
+  function activate() {
     $(":file").filestyle();
-
   }
-};
+}

@@ -13,20 +13,18 @@ function CatalogController($timeout, $log, $location, $filter, hiveService) {
 
   vm.tables = [];
 
-  vm.delete = function(database, table){
+  vm.delete = function(database, table) {
   };
 
-  vm.edit = function(database, table){
-    $location.path( "/tableEditor/"+database+"/"+table );
+  vm.edit = function(database, table) {
+    $location.path("/tableEditor/" + database + "/" + table);
   };
-
 
   activate();
 
-  function activate(){
-    hiveService.getTables().then(function(tables){
+  function activate() {
+    hiveService.getTables().then(function(tables) {
       vm.tables = tables;
     });
-
   }
-};
+}

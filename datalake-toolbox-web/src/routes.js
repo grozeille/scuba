@@ -7,8 +7,8 @@ function routesConfig($stateProvider, $urlRouterProvider, $locationProvider) {
 
   $stateProvider
     .state('view', {
-       url: '/',
-       component: 'viewControllerComponent',
+      url: '/',
+      component: 'viewControllerComponent'
     })
     .state('viewEditor', {
       url: '/editor',
