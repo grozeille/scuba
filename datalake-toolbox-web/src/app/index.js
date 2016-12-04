@@ -2,7 +2,6 @@ var angular = require('angular');
 
 require('angular-ui-bootstrap');
 require('bootstrap/dist/css/bootstrap.min.css');
-require('font-awesome/css/font-awesome.min.css');
 
 require('angular-ui-grid/ui-grid');
 require('angular-ui-grid/ui-grid.css');

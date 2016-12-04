@@ -1,11 +1,14 @@
 package org.grozeille.bigdata.configurations;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.grozeille.bigdata.ClusterConfiguration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +20,7 @@ import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 import org.springframework.data.solr.server.support.EmbeddedSolrServerFactory;
 import org.springframework.data.solr.server.support.EmbeddedSolrServerFactoryBean;
+//import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
 import org.springframework.web.client.RestTemplate;
 import org.xml.sax.SAXException;
 
@@ -93,12 +97,24 @@ public class ApplicationConfiguration {
 
     @Bean
     public SolrClient solrServer() throws IOException, SAXException, ParserConfigurationException {
-        EmbeddedSolrServerFactory factory = new EmbeddedSolrServerFactory("classpath:org/grozeille/bigdata/solr");
-        return factory.getSolrClient();
+        ClusterConfiguration configuration = clusterConfiguration();
+        if(configuration.getSolr().isEmbedded()) {
+            EmbeddedSolrServerFactory factory = new EmbeddedSolrServerFactory(configuration.getSolr().getHome());
+            return factory.getSolrClient();
+        }
+        else {
+            return new CloudSolrClient(configuration.getSolr().getZkUrl());
+        }
     }
 
     @Bean
     public SolrOperations solrTemplate() throws ParserConfigurationException, SAXException, IOException {
         return new SolrTemplate(solrServer());
     }
+
+    /*@Bean
+    public OAuth2SsoProperties oAuth2SsoProperties(){
+        return new OAuth2SsoProperties();
+    }*/
+
 }

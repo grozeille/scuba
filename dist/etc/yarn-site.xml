@@ -2,7 +2,7 @@
 
     <property>
         <name>yarn.resourcemanager.address</name>
-        <value>hadoop:8050</value>
+        <value>localhost:8050</value>
     </property>
 
 </configuration>

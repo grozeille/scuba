@@ -2,7 +2,7 @@
 
       <property>
           <name>hive.metastore.uris</name>
-          <value>thrift://hadoop:9083</value>
+          <value>thrift://localhost:9083</value>
       </property>
 
   </configuration>
