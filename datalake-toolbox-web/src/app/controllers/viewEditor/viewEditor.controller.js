@@ -137,7 +137,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
             enableHiding: false,
             minWidth: 70,
             width: 100,
-            headerCellTemplate: 'app/controllers/viewEditor/header-cell-template.html',
+            headerCellTemplate: require('./header-cell-template.html'),
             hive: {
               database: table.database,
               table: table.table,
@@ -157,7 +157,7 @@ function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $
         minWidth: 70,
         width: 100,
         enableColumnResizing: true,
-        headerCellTemplate: 'app/controllers/viewEditor/header-cell-template.html',
+        headerCellTemplate: require('./header-cell-template.html'),
         hive: {
           database: "",
           table: "",

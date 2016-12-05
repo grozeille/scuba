@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: 8000
 
 logging.level.org.hibernate.SQL: debug
 logging.level.org.apache.hadoop.yarn.util.RackResolver: warn
