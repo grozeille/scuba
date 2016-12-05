@@ -379,7 +379,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/dist.xml</descriptor>
-                    <finalName>datalake-toolbox-${pom.version}</finalName>
+                    <finalName>datalake-toolbox-${project.version}</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -480,7 +480,7 @@
                         <executions>
                             <execution>
                                 <id>copy-resources</id>
-                                <phase>generate-resources</phase>
+                                <phase>compile</phase>
                                 <goals>
                                     <goal>copy-resources</goal>
                                 </goals>
@@ -500,6 +500,37 @@
 
             </build>
         </profile>
+
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <hive.hiveserver2>localhost:10000</hive.hiveserver2>
+                <hive.hiveserver2.login>hive</hive.hiveserver2.login>
+                <hive.metastore>localhost:9083</hive.metastore>
+                <hadoop.namenode>localhost:8020</hadoop.namenode>
+                <hadoop.resourcemanager>localhost:8050</hadoop.resourcemanager>
+            </properties>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/profiles/dev</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                    <resource>
+                        <directory>dist</directory>
+                        <filtering>false</filtering>
+                        <includes>
+                            <include>solr-home/**</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+
     </profiles>
 
 </project>

@@ -25,7 +25,7 @@ spring:
         driver-class-name: org.h2.Driver
     hive:
         url: jdbc:hive2://localhost:10000/default
-        username: mathias
+        username: hive
         driver-class-name: org.apache.hive.jdbc.HiveDriver
         maximumPoolSize: 1
 
@@ -33,21 +33,21 @@ datalake:
   toolbox:
     solr:
       embedded: true
-      home: ./solr-home
+      home: ./target/solr-home
       zkUrl:
 
 
-#security:
-#  oauth2:
-#    sso:
-#      loginPath: /login
-#    client:
-#      clientId: e033f4f194da5c694fbf
-#      clientSecret: 338add3c473502b1e4a8bc270ae1d88ba3d0e80e
-#      accessTokenUri: https://github.com/login/oauth/access_token
-#      userAuthorizationUri: https://github.com/login/oauth/authorize
-#      tokenName: oauth_token
-#      authenticationScheme: query
-#      clientAuthenticationScheme: form
-#    resource:
-#      userInfoUri: https://api.github.com/user
+security:
+  oauth2:
+    sso:
+      loginPath: /login
+    client:
+      clientId:
+      clientSecret:
+      accessTokenUri: https://github.com/login/oauth/access_token
+      userAuthorizationUri: https://github.com/login/oauth/authorize
+      tokenName: oauth_token
+      authenticationScheme: query
+      clientAuthenticationScheme: form
+    resource:
+      userInfoUri: https://api.github.com/user
