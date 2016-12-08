@@ -111,10 +111,4 @@ public class ApplicationConfiguration {
     public SolrOperations solrTemplate() throws ParserConfigurationException, SAXException, IOException {
         return new SolrTemplate(solrServer());
     }
-
-    /*@Bean
-    public OAuth2SsoProperties oAuth2SsoProperties(){
-        return new OAuth2SsoProperties();
-    }*/
-
 }

@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.3.3.RELEASE</version>
+		<version>1.4.0.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -24,7 +24,12 @@
         <hdp.version>2.4.2.0-258</hdp.version>
         <hive.version>1.2.1000</hive.version>
         <spark.version>1.6.1</spark.version>
-	</properties>
+        <jackson.version>2.8.1</jackson.version>
+        <!-- fix compatibility of SpringBoot with Spark -->
+        <!--<jackson.version>2.4.4</jackson.version>-->
+        <hibernate.version>5.1.0.Final</hibernate.version>
+        <springfox-swagger.version>2.5.0</springfox-swagger.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -77,7 +82,6 @@
             <artifactId>spring-boot-starter-data-solr</artifactId>
         </dependency>-->
 
-        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -86,61 +90,48 @@
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
         </dependency>
-        -->
 
         <!-- override hibernate version but add current bug:  https://github.com/spring-projects/spring-boot/issues/2763 -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>5.1.0.Final</version>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.1.0.Final</version>
+            <version>${hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-java8</artifactId>
-            <version>5.1.0.Final</version>
+            <version>${hibernate.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-        <!--<dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.7.3</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.7.3</version>
-        </dependency>-->
-
-        <!-- fix compatibility of SpringBoot with Spark -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.4.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.4.4</version>
+            <version>${jackson.version}</version>
         </dependency>
 
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
-			<version>2.5.0</version>
+			<version>${springfox-swagger.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.5.0</version>
+			<version>${springfox-swagger.version}</version>
 		</dependency>
 
         <dependency>
@@ -516,6 +507,10 @@
             </properties>
             <build>
                 <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>true</filtering>
+                    </resource>
                     <resource>
                         <directory>src/main/profiles/dev</directory>
                         <filtering>true</filtering>

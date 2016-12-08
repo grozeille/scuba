@@ -39,8 +39,8 @@ datalake:
 
 security:
   oauth2:
-    sso:
-      loginPath: /login
+    #sso:
+    #  loginPath: /login
     client:
       clientId: e033f4f194da5c694fbf
       clientSecret: 338add3c473502b1e4a8bc270ae1d88ba3d0e80e
