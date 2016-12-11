@@ -1,13 +1,13 @@
-require('./viewEditor.css');
+require('./datasetEditor.css');
 
 module.exports = {
-  controller: ViewEditorController,
-  controllerAs: 'viewEditor',
-  template: require('./viewEditor.html')
+  controller: DatasetEditorController,
+  controllerAs: 'datasetEditor',
+  template: require('./datasetEditor.html')
 };
 
 /** @ngInject */
-function ViewEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService, hiveService) {
+function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService, hiveService) {
   var vm = this;
   vm.maxRows = 10000;
   vm.selectedColumn = null;

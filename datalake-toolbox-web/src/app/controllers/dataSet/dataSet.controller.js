@@ -1,13 +1,13 @@
-require('./view.css');
+require('./dataset.css');
 
 module.exports = {
-  controller: ViewController,
-  controllerAs: 'view',
-  template: require('./view.html')
+  controller: DatasetController,
+  controllerAs: 'dataset',
+  template: require('./dataset.html')
 };
 
 /** @ngInject */
-function ViewController($timeout, $log, $location, $filter, $uibModal, preparationService) {
+function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, preparationService) {
   var vm = this;
   vm.sourceFilter = "";
 
@@ -15,13 +15,13 @@ function ViewController($timeout, $log, $location, $filter, $uibModal, preparati
 
   vm.createNewView = function() {
     preparationService.loadView().then(function() {
-      $location.path("/editor");
+      $state.go("datasetEditor");
     });
   };
 
   vm.loadView = function(id) {
     preparationService.loadView(id).then(function() {
-      $location.path("/editor");
+      $state.go("datasetEditor");
     });
   };
 
@@ -59,7 +59,7 @@ function ViewController($timeout, $log, $location, $filter, $uibModal, preparati
 
   vm.cloneView = function(id) {
     preparationService.cloneView(id).then(function() {
-      $location.path("/editor");
+      $state.go("datasetEditor");
     });
   };
 

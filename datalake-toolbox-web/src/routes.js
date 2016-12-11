@@ -2,23 +2,22 @@ module.exports = routesConfig;
 
 /** @ngInject */
 function routesConfig($stateProvider, $urlRouterProvider, $locationProvider) {
-  $locationProvider.html5Mode(true).hashPrefix('!');
-  $urlRouterProvider.otherwise('/');
+  // $locationProvider.html5Mode(true).hashPrefix('!');
 
   $stateProvider
-    .state('view', {
-      url: '/',
-      component: 'viewControllerComponent'
+    .state('dataset', {
+      url: '/dataset',
+      component: 'datasetControllerComponent'
     })
-    .state('viewEditor', {
-      url: '/editor',
-      component: 'viewEditorControllerComponent',
+    .state('datasetEditor', {
+      url: '/dataset/editor',
+      component: 'datasetEditorControllerComponent',
       params: {
         scrollTo: 'body'
       }
     })
     .state('chooseTable', {
-      url: '/chooseTable',
+      url: '/dataset/chooseTable',
       component: 'chooseTableControllerComponent'
     })
     .state('catalog', {
@@ -29,12 +28,12 @@ function routesConfig($stateProvider, $urlRouterProvider, $locationProvider) {
       }
     })
     .state('tableEditor', {
-      url: '/tableEditor/:database/:table',
+      url: '/catalog/tableEditor/:database/:table',
       component: 'tableEditorControllerComponent',
       params: {
         scrollTo: 'body'
       }
     });
 
-  $urlRouterProvider.otherwise('/');
+  $urlRouterProvider.otherwise('/dataset');
 }
