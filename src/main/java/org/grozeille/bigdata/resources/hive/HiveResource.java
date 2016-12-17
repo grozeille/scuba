@@ -1,31 +1,21 @@
 package org.grozeille.bigdata.resources.hive;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.annotations.ApiParam;
-import org.apache.hadoop.fs.Path;
-import org.grozeille.bigdata.resources.dataset.model.DataSetConf;
-import org.grozeille.bigdata.resources.dataset.model.DataSetCreationResponse;
+import org.grozeille.bigdata.resources.userdataset.model.UserDataSetConf;
 import org.grozeille.bigdata.resources.hive.model.*;
 import org.grozeille.bigdata.services.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.solr.core.SolrOperations;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.ws.rs.core.MediaType;
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @RestController
@@ -50,35 +40,25 @@ public class HiveResource {
 
     private static final Long MAX_LINES_PREVIEW = 5000l;
 
-    @RequestMapping(value = "/tables/refresh", method = RequestMethod.POST)
-    public void tablesRefresh() throws TException, JsonProcessingException {
-
-        hiveService.updateTables();
-
-    }
-
     @RequestMapping(value = "/tables", method = RequestMethod.GET)
     public HiveTable[] tables() throws TException {
-
-        return hiveService.findAllPublicTables();
-
+        return hiveService.findAllPublicTables().toArray(HiveTable[]::new);
     }
 
     @RequestMapping(value = "/tables/{database}/{table}", method = RequestMethod.GET)
     public HiveTable table(@PathVariable("database") String database, @PathVariable("table") String table) throws TException {
-
         return hiveService.findOne(database, table);
     }
 
     @RequestMapping(value = "/data/dataset", method = RequestMethod.POST)
     public HiveData data(
-            @RequestBody DataSetConf dataSetConf,
+            @RequestBody UserDataSetConf userDataSetConf,
             @RequestParam(value = "max", required = false, defaultValue = "10000") long max) throws Exception {
 
         HiveData hiveData = new HiveData();
 
         try {
-            hiveData.setData(hiveService.getData(dataSetConf, max));
+            hiveData.setData(hiveService.getData(userDataSetConf, max));
         } catch (HiveInvalidDataSetException e) {
             throw e;
         } catch (Exception e) {

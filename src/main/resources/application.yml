@@ -31,6 +31,7 @@ spring:
 
 datalake:
   toolbox:
+    workingPath: /apps/datalakeToolbox
     solr:
       embedded: true
       home: ./target/solr-home
@@ -38,9 +39,8 @@ datalake:
 
 
 security:
+  enabled: false
   oauth2:
-    sso:
-      loginPath: /login
     client:
       clientId:
       clientSecret:

@@ -1,9 +1,9 @@
-package org.grozeille.bigdata.resources.dataset.model;
+package org.grozeille.bigdata.resources.userdataset.model;
 
 import lombok.Data;
 
 @Data
-public class DataSetConf {
+public class UserDataSetConf {
 
     private String id;
 
@@ -21,11 +21,11 @@ public class DataSetConf {
 
     private String format = "view";
 
-    private DataSetConfTable[] tables;
+    private UserDataSetConfTable[] tables;
 
-    private DataSetConfLink[] links;
+    private UserDataSetConfLink[] links;
 
-    private DataSetConfColumn[] calculatedColumns;
+    private UserDataSetConfColumn[] calculatedColumns;
 
-    private DataSetFilterGroup filter;
+    private UserDataSetFilterGroup filter;
 }

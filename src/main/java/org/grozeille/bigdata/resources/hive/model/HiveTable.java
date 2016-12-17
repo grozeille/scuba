@@ -22,5 +22,7 @@ public class HiveTable {
 
     private String originalFile;
 
+    private String datsetConfiguration;
+
     private HiveColumn[] columns;
 }

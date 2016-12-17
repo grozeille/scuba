@@ -7,4 +7,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "datalake.toolbox")
 public class ClusterConfiguration {
     private ClusterSolrConfiguration solr;
+    private String workingPath;
 }

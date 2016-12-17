@@ -131,8 +131,18 @@
     <field name="tags" type="string" indexed="true" stored="false" multiValued="true"/>
     <field name="columns" type="string" indexed="true" stored="false" multiValued="true"/>
     <field name="columnsComment" type="string" indexed="true" stored="false" multiValued="true"/>
-    <field name="hiveTable" type="string" indexed="false" stored="true" multiValued="false"/>
-    <copyField source="*" dest="text"/>
+    <field name="datalakeItemType" type="string" indexed="true" stored="false" multiValued="false"/>
+
+    <field name="jsonData" type="string" indexed="false" stored="true" multiValued="false"/>
+
+    <copyField source="database" dest="text"/>
+    <copyField source="table" dest="text"/>
+    <copyField source="path" dest="text"/>
+    <copyField source="comment" dest="text"/>
+    <copyField source="dataDomainOwner" dest="text"/>
+    <copyField source="tags" dest="text"/>
+    <copyField source="columns" dest="text"/>
+    <copyField source="columnsComment" dest="text"/>
 
 
     <!-- Dynamic field definitions allow using convention over configuration

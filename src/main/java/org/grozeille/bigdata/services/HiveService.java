@@ -3,8 +3,10 @@ package org.grozeille.bigdata.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
-import org.grozeille.bigdata.repositories.solr.HiveTableSearchRepository;
-import org.grozeille.bigdata.resources.dataset.model.*;
+import org.apache.hadoop.hive.metastore.TableType;
+import org.grozeille.bigdata.resources.dataset.model.DataSet;
+import org.grozeille.bigdata.repositories.solr.DataSetRepository;
+import org.grozeille.bigdata.resources.userdataset.model.*;
 import org.grozeille.bigdata.resources.hive.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
@@ -30,6 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -59,11 +62,11 @@ public class HiveService {
 
     public static final String TEMP_FOLDER = ".datalake-toolbox";
 
-    @Autowired
-    private SolrOperations solrOperations;
+    public static final String DATALAKE_ITEM_TYPE_TABLE = "table";
 
-    @Autowired
-    private HiveTableSearchRepository hiveTableSearchRepository;
+    public static final String DATALAKE_ITEM_TYPE_USER_DATASET = "user_dataset";
+
+    public static final String DATALAKE_ITEM_TYPE_USER_FILE = "user_file";
 
     @Autowired
     private HiveMetaStoreClient hiveMetaStoreClient;
@@ -117,23 +120,45 @@ public class HiveService {
         }
     }
 
-    public HiveTable[] findAllPublicTables() throws TException {
+    public Stream<HiveTable> findAllPublicTables() throws TException {
 
-        Iterable<HiveTableSearch> searchResult = hiveTableSearchRepository.findAll();
 
-        return StreamSupport
-                .stream(searchResult.spliterator(), false)
-                .map(s -> {
-                    try {
-                        HiveTable table = objectMapper.readValue(s.getHiveTable(), HiveTable.class);
-                        return table;
-                    } catch (IOException e) {
-                        log.error("Unable to deserialize table from json", e);
+        List<HiveTable> result = new ArrayList<>();
+
+        // get all tables from Hive
+        List<String> databases = hiveMetaStoreClient.getAllDatabases();
+        Stream<HiveTable> tableStream = databases.stream().flatMap(db -> {
+            try {
+                List<String> tables = hiveMetaStoreClient.getAllTables(db);
+
+                return tables.stream().map(t -> {
+                    if(!t.startsWith(TEMP_TABLE_PREFIX)) {
+                        Table table = null;
+                        try {
+                            table = hiveMetaStoreClient.getTable(db, t);
+                            HiveTable hiveTable = buildHiveTable(table);
+                            return hiveTable;
+                        } catch (TException e) {
+                            log.error("Unable to get details for table: "+db+"."+t);
+                            HiveTable hiveTable = new HiveTable();
+                            hiveTable.setDatabase(db);
+                            hiveTable.setTable(t);
+                            return hiveTable;
+                        }
+                    }
+                    else {
                         return null;
                     }
-                })
-                .filter(t -> t != null)
-                .toArray(HiveTable[]::new);
+                });
+
+            } catch (MetaException e) {
+                log.error("Unable to get tables for db: "+db);
+                return new ArrayList<HiveTable>().stream();
+            }
+
+        }).filter(Objects::nonNull);
+
+        return tableStream;
     }
 
     public HiveTable findOne(String database, String table) throws TException {
@@ -150,13 +175,13 @@ public class HiveService {
         return getData("select * from `"+database+"`.`"+table+"` limit "+max);
     }
 
-    public List<Map<String, Object>> getData(DataSetConf dataSetConf, long max) throws HiveQueryException {
+    public List<Map<String, Object>> getData(UserDataSetConf userDataSetConf, long max) throws HiveQueryException {
 
-        verifyDataSet(dataSetConf);
+        verifyDataSet(userDataSetConf);
 
-        String denormalizedSqlQuery = buildDenormalizedSqlQuery(dataSetConf, max, true);
+        String denormalizedSqlQuery = buildDenormalizedSqlQuery(userDataSetConf, max, true);
 
-        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, dataSetConf);
+        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, userDataSetConf);
 
         return getData(sqlQuery);
     }
@@ -186,35 +211,36 @@ public class HiveService {
         return result;
     }
 
-    public void createDataSet(DataSetConf dataSetConf) throws HiveQueryException {
+    public void createDataSet(UserDataSetConf userDataSetConf) throws HiveQueryException {
 
-        verifyDataSet(dataSetConf);
+        verifyDataSet(userDataSetConf);
 
-        String denormalizedSqlQuery = buildDenormalizedSqlQuery(dataSetConf);
+        String denormalizedSqlQuery = buildDenormalizedSqlQuery(userDataSetConf);
 
-        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, dataSetConf);
+        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, userDataSetConf);
 
         String jsonTags = "[]";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            jsonTags = objectMapper.writeValueAsString(dataSetConf.getTags());
+            jsonTags = objectMapper.writeValueAsString(userDataSetConf.getTags());
         } catch (JsonProcessingException e) {
             log.warn("Unable to serialize tags", e);
         }
 
-        String createViewSql = "CREATE VIEW `" + dataSetConf.getDatabase() + "`.`" + dataSetConf.getTable() + "`\n" +
-                "COMMENT '"+dataSetConf.getComment()+"'\n"+
+        String createViewSql = "CREATE VIEW `" + userDataSetConf.getDatabase() + "`.`" + userDataSetConf.getTable() + "`\n" +
+                "COMMENT '"+ userDataSetConf.getComment()+"'\n"+
                 "TBLPROPERTIES (" +
-                "\"format\" = \""+dataSetConf.getFormat()+"\"," +
+                "\"format\" = \""+ userDataSetConf.getFormat()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
-                "\"datalakeItemType\" = \"user_dataset\"" +
+                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_USER_DATASET + "\"" +
+                "\"datsetConfiguration\" = \""+ userDataSetConf.getId()+"\"" +
                 ")\n"+
                 "AS "+sqlQuery;
 
         log.info("Create dataSet: " + createViewSql);
 
         try {
-            hiveJdbcTemplate.execute("DROP VIEW IF EXISTS `"+dataSetConf.getDatabase() + "`.`" + dataSetConf.getTable() + "`");
+            hiveJdbcTemplate.execute("DROP VIEW IF EXISTS `"+ userDataSetConf.getDatabase() + "`.`" + userDataSetConf.getTable() + "`");
             long startTime = System.currentTimeMillis();
             hiveJdbcTemplate.execute(createViewSql);
             log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
@@ -247,7 +273,7 @@ public class HiveService {
                 "\"format\" = \""+table.getFormat()+"\"," +
                 "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
-                "\"datalakeItemType\" = \"user_file\"" +
+                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_USER_FILE + "\"" +
                 ")";
 
         log.info("Drop table: " + dropSql);
@@ -263,15 +289,15 @@ public class HiveService {
         }
     }
 
-    private String buildDenormalizedSqlQuery(DataSetConf dataSetConf) throws HiveQueryException {
-        return buildDenormalizedSqlQuery(dataSetConf, Long.MAX_VALUE, false);
+    private String buildDenormalizedSqlQuery(UserDataSetConf userDataSetConf) throws HiveQueryException {
+        return buildDenormalizedSqlQuery(userDataSetConf, Long.MAX_VALUE, false);
     }
 
-    private void verifyDataSet(DataSetConf dataSetConf) throws HiveInvalidDataSetException {
+    private void verifyDataSet(UserDataSetConf userDataSetConf) throws HiveInvalidDataSetException {
         // verify that column names are unique
         Set<String> columns = new HashSet<>();
-        for(DataSetConfTable table : dataSetConf.getTables()){
-            for(DataSetConfColumn col : table.getColumns()) {
+        for(UserDataSetConfTable table : userDataSetConf.getTables()){
+            for(UserDataSetConfColumn col : table.getColumns()) {
                 if (col.getSelected()) {
                     if(columns.contains(col.getNewName().toLowerCase())){
                         throw new HiveInvalidDataSetException("Column '"+col.getNewName()+"' is duplicated");
@@ -282,19 +308,19 @@ public class HiveService {
         }
     }
 
-    private String buildSqlQuery(String denormalizedSqlQuery, DataSetConf dataSetConf) throws HiveInvalidDataSetException {
+    private String buildSqlQuery(String denormalizedSqlQuery, UserDataSetConf userDataSetConf) throws HiveInvalidDataSetException {
 
         // get the primary table, and the others
-        DataSetConfTable primaryTable = Arrays.stream(dataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
+        UserDataSetConfTable primaryTable = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
 
         // get all tables with links
-        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), dataSetConf.getLinks());
+        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), userDataSetConf.getLinks());
 
         // compute the select path
         List<String> selectFirstLevelPartList = new ArrayList<>();
         List<String> selectSecondLevelPartList = new ArrayList<>();
 
-        for(DataSetConfTable table : dataSetConf.getTables()){
+        for(UserDataSetConfTable table : userDataSetConf.getTables()){
 
             // ignore columns of table not included
             String tableName = formatTableName(table.getDatabase(), table.getTable());
@@ -302,7 +328,7 @@ public class HiveService {
                 continue;
             }
 
-            for(DataSetConfColumn col : table.getColumns()){
+            for(UserDataSetConfColumn col : table.getColumns()){
 
                 // ignore unselected columns
                 if(!col.getSelected()){
@@ -329,7 +355,7 @@ public class HiveService {
         }
 
 
-        for(DataSetConfColumn col : dataSetConf.getCalculatedColumns()){
+        for(UserDataSetConfColumn col : userDataSetConf.getCalculatedColumns()){
             String formula = col.getFormula().toLowerCase();
             selectFirstLevelPartList.add(formula+" as `"+col.getNewName().toLowerCase()+"`");
         }
@@ -340,18 +366,18 @@ public class HiveService {
         return sqlQuery;
     }
 
-    private String buildDenormalizedSqlQuery(DataSetConf dataSetConf, long max, boolean buildCache) throws HiveQueryException {
+    private String buildDenormalizedSqlQuery(UserDataSetConf userDataSetConf, long max, boolean buildCache) throws HiveQueryException {
         // get the primary table, and the others
-        DataSetConfTable primaryTable = Arrays.stream(dataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
+        UserDataSetConfTable primaryTable = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
         String primaryTableName = formatTableName(primaryTable.getDatabase(), primaryTable.getTable());
 
 
         // compute a unique alias for each tables, excludes tables not in joins
         int tableCpt = 0;
         Map<String, String> tableAliases = new HashMap<>();
-        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), dataSetConf.getLinks());
+        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), userDataSetConf.getLinks());
 
-        for(DataSetConfTable ds : dataSetConf.getTables()){
+        for(UserDataSetConfTable ds : userDataSetConf.getTables()){
             String tableName = formatTableName(ds.getDatabase(), ds.getTable());
             if(tables.contains(tableName)) {
                 tableAliases.put(tableName, "T" + (tableCpt++));
@@ -366,7 +392,7 @@ public class HiveService {
         // compute the select path
         List<String> selectPartList = new ArrayList<>();
 
-        for(DataSetConfTable table : dataSetConf.getTables()){
+        for(UserDataSetConfTable table : userDataSetConf.getTables()){
 
             String tableName = formatTableName(table.getDatabase(), table.getTable());
             String tableAlias = tableAliases.get(tableName);
@@ -376,7 +402,7 @@ public class HiveService {
                 continue;
             }
 
-            for(DataSetConfColumn col : table.getColumns()){
+            for(UserDataSetConfColumn col : table.getColumns()){
 
                 String columnName = tableAlias+".`"+col.getName()+"`";
                 String columnAlias = computeColumnAlias(table.getDatabase(), table.getTable(), col.getName());
@@ -390,7 +416,7 @@ public class HiveService {
 
         // compute the join part
         List<String> joinPartList = new ArrayList<>();
-        for(DataSetConfLink link : dataSetConf.getLinks()){
+        for(UserDataSetConfLink link : userDataSetConf.getLinks()){
             String rightTableName = formatTableName(link.getRight().getDatabase(), link.getRight().getTable());
             String rightTableAlias = tableAliases.get(rightTableName);
 
@@ -404,7 +430,7 @@ public class HiveService {
 
             String join = joinType+" JOIN `" + link.getRight().getDatabase()+"`.`"+link.getRight().getTable()+"` AS "+rightTableAlias+" ON ";
             List<String> joinConditions = new ArrayList<>();
-            for(DataSetConfLinkColumn lc : link.getColumns()){
+            for(UserDataSetConfLinkColumn lc : link.getColumns()){
                 joinConditions.add(leftTableAlias+".`"+lc.getLeft()+"` = "+rightTableAlias+".`"+lc.getRight()+"`");
             }
             join += String.join(" AND ", joinConditions);
@@ -415,8 +441,8 @@ public class HiveService {
         String joinPart = String.join("\n", joinPartList);
 
         String wherePart = "";
-        if(dataSetConf.getFilter().getConditions().length > 0 || dataSetConf.getFilter().getGroups().length > 0){
-            wherePart = "WHERE "+computeFilter(dataSetConf, tableAliases, dataSetConf.getFilter());
+        if(userDataSetConf.getFilter().getConditions().length > 0 || userDataSetConf.getFilter().getGroups().length > 0){
+            wherePart = "WHERE "+computeFilter(userDataSetConf, tableAliases, userDataSetConf.getFilter());
         }
 
         String selectStatement = selectPart+"\n"+fromPart+"\n"+joinPart+"\n"+wherePart;
@@ -426,13 +452,13 @@ public class HiveService {
         }
 
         if(buildCache) {
-            selectStatement = buildCache(dataSetConf, tableAliases, selectStatement);
+            selectStatement = buildCache(userDataSetConf, tableAliases, selectStatement);
         }
 
         return selectStatement;
     }
 
-    private String buildCache(DataSetConf dataSetConf, Map<String, String> tableAliases, String selectStatement) throws HiveQueryException {
+    private String buildCache(UserDataSetConf userDataSetConf, Map<String, String> tableAliases, String selectStatement) throws HiveQueryException {
         // try to get data from cache
         Configuration conf = new Configuration();
         FileSystem fs = null;
@@ -463,10 +489,10 @@ public class HiveService {
         }
 
         // search for the cached table and check the hash
-        String cacheTableName = TEMP_TABLE_PREFIX +"_"+ dataSetConf.getTable().toLowerCase();
+        String cacheTableName = TEMP_TABLE_PREFIX +"_"+ userDataSetConf.getTable().toLowerCase();
         Table cacheHiveTable = null;
         try {
-            cacheHiveTable = hiveMetaStoreClient.getTable(dataSetConf.getDatabase(), cacheTableName);
+            cacheHiveTable = hiveMetaStoreClient.getTable(userDataSetConf.getDatabase(), cacheTableName);
         } catch (NoSuchObjectException nsoe) {
             log.debug("Table not found: " + cacheTableName, nsoe);
         } catch (MetaException e) {
@@ -483,7 +509,7 @@ public class HiveService {
 
             if (!hash.equalsIgnoreCase(cacheHash)) {
                 // cache is not up to date, delete it
-                hiveJdbcTemplate.execute("DROP TABLE `" + dataSetConf.getDatabase() + "`.`" + cacheTableName + "`");
+                hiveJdbcTemplate.execute("DROP TABLE `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`");
             } else {
                 cacheUpToDate = true;
             }
@@ -506,7 +532,7 @@ public class HiveService {
 
 
 
-            String createCacheTableSql = "CREATE TABLE `" + dataSetConf.getDatabase() + "`.`" + cacheTableName + "`\n" +
+            String createCacheTableSql = "CREATE TABLE `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`\n" +
                     "STORED AS ORC\n" +
                     "LOCATION '" + cacheTablePath.toString() + "'\n" +
                     "TBLPROPERTIES ('" + linkHashKey + "'='" + hash + "')\n" +
@@ -525,7 +551,7 @@ public class HiveService {
 
         List<String> selectCachePartList = new ArrayList<>();
 
-        for(DataSetConfTable table : dataSetConf.getTables()){
+        for(UserDataSetConfTable table : userDataSetConf.getTables()){
 
             String tableName = formatTableName(table.getDatabase(), table.getTable());
             String tableAlias = tableAliases.get(tableName);
@@ -535,7 +561,7 @@ public class HiveService {
                 continue;
             }
 
-            for(DataSetConfColumn col : table.getColumns()){
+            for(UserDataSetConfColumn col : table.getColumns()){
 
                 String columnAlias = computeColumnAlias(table.getDatabase(), table.getTable(), col.getName());
 
@@ -546,15 +572,15 @@ public class HiveService {
         String selectCachePart = "SELECT "+String.join(" , ", selectCachePartList);
 
         // now the select statement is a simple select on the cache table
-        selectStatement = selectCachePart + "\nFROM `" + dataSetConf.getDatabase() + "`.`" + cacheTableName + "`";
+        selectStatement = selectCachePart + "\nFROM `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`";
         return selectStatement;
     }
 
-    private Set<String> getLinkedTables(String database, String table, DataSetConfLink[] links){
+    private Set<String> getLinkedTables(String database, String table, UserDataSetConfLink[] links){
         Set<String> result = new HashSet<>();
         result.add(formatTableName(database, table));
 
-        for(DataSetConfLink link : links){
+        for(UserDataSetConfLink link : links){
             if(link.getLeft().getDatabase().equalsIgnoreCase(database) && link.getLeft().getTable().equalsIgnoreCase(table)){
                 result.addAll(getLinkedTables(link.getRight().getDatabase(), link.getRight().getTable(), links));
             }
@@ -586,22 +612,22 @@ public class HiveService {
         throw new HiveInvalidDataSetException("Unknown type "+dataSetType);
     }
 
-    private String computeFilter(DataSetConf dataSetConf, Map<String, String> tableAliases, DataSetFilterGroup group) throws HiveInvalidDataSetException {
+    private String computeFilter(UserDataSetConf userDataSetConf, Map<String, String> tableAliases, UserDataSetFilterGroup group) throws HiveInvalidDataSetException {
         String operator = group.getOperator();
 
         List<String> conditions = new ArrayList<>();
-        for(DataSetFilterCondition c : group.getConditions()){
+        for(UserDataSetFilterCondition c : group.getConditions()){
 
             String columnName = "";
             String columnType = "";
 
             // search for database
-            DataSetConfTable table = Arrays.stream(dataSetConf.getTables()).filter(dataSetConfTable ->
+            UserDataSetConfTable table = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable ->
                     dataSetConfTable.getDatabase().equalsIgnoreCase(c.getDatabase()) && dataSetConfTable.getTable().equalsIgnoreCase(c.getTable())
             ).findFirst().get();
 
             // search for table
-            DataSetConfColumn column = Arrays.stream(table.getColumns()).filter(dataSetConfColumn ->
+            UserDataSetConfColumn column = Arrays.stream(table.getColumns()).filter(dataSetConfColumn ->
                     dataSetConfColumn.getName().equalsIgnoreCase(c.getColumn())
             ).findFirst().get();
 
@@ -701,8 +727,8 @@ public class HiveService {
 
         }
 
-        for(DataSetFilterGroup g : group.getGroups()) {
-            conditions.add(computeFilter(dataSetConf, tableAliases, g));
+        for(UserDataSetFilterGroup g : group.getGroups()) {
+            conditions.add(computeFilter(userDataSetConf, tableAliases, g));
         }
 
         String result = "("+String.join(" "+operator+" ", conditions)+")";
@@ -724,7 +750,12 @@ public class HiveService {
         hiveTable.setComment(table.getParameters().getOrDefault("comment", ""));
         hiveTable.setDataDomainOwner(table.getOwner());
         hiveTable.setFormat(table.getParameters().getOrDefault("format", ""));
-        hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", ""));
+        hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", DATALAKE_ITEM_TYPE_TABLE));
+
+        //table.getTableType() == TableType.VIRTUAL_VIEW.name()
+        log.error("AAAAA "+table.getTableType());
+
+        hiveTable.setDatsetConfiguration(table.getParameters().getOrDefault("datsetConfiguration", ""));
         hiveTable.setOriginalFile(table.getParameters().getOrDefault("originalFile", ""));
         // TODO detect format ?
         String tagsJson = table.getParameters().getOrDefault("tags", "[]");
@@ -870,59 +901,6 @@ public class HiveService {
         hiveTable.setColumns(columns.toArray(new HiveColumn[0]));
 
         return hiveTable;
-    }
-
-    public void updateTables() throws TException, JsonProcessingException {
-
-        // get all tables from DB
-        Iterable<HiveTableSearch> hiveTableSearches = hiveTableSearchRepository.findAll();
-        Set<String> tableKeys = StreamSupport
-                .stream(hiveTableSearches.spliterator(), false)
-                .map(h -> h.getId())
-                .collect(Collectors.toSet());
-
-        // get all tables from Hive
-        List<String> databases = hiveMetaStoreClient.getAllDatabases();
-        for(String db : databases){
-
-            Database database = hiveMetaStoreClient.getDatabase(db);
-
-            List<String> tables = hiveMetaStoreClient.getAllTables(db);
-            for(String t : tables){
-
-                if(!t.startsWith(TEMP_TABLE_PREFIX)) {
-                    Table table = hiveMetaStoreClient.getTable(db, t);
-
-                    HiveTable hiveTable = buildHiveTable(table);
-
-                    HiveTableSearch hiveTableSearch = new HiveTableSearch();
-                    hiveTableSearch.setId("`"+hiveTable.getDatabase()+"`.`"+hiveTable.getTable()+"`");
-                    hiveTableSearch.setComment(hiveTable.getComment());
-                    hiveTableSearch.setDatabase(hiveTable.getDatabase());
-                    hiveTableSearch.setTable(hiveTable.getTable());
-                    hiveTableSearch.setDataDomainOwner(hiveTable.getDataDomainOwner());
-                    hiveTableSearch.setFormat(hiveTable.getFormat());
-                    hiveTableSearch.setPath(hiveTable.getPath());
-                    hiveTableSearch.setTags(hiveTable.getTags());
-
-                    hiveTableSearch.setColumns(Arrays.stream(hiveTable.getColumns()).map(c -> c.getName()).toArray(String[]::new));
-                    hiveTableSearch.setColumnsComment(Arrays.stream(hiveTable.getColumns()).map(c -> c.getDescription()).toArray(String[]::new));
-
-                    hiveTableSearch.setHiveTable(objectMapper.writeValueAsString(hiveTable));
-
-                    hiveTableSearchRepository.save(hiveTableSearch);
-
-                    tableKeys.remove(hiveTableSearch.getId());
-                }
-            }
-
-        }
-
-        // delete missing tables
-        for(String key : tableKeys){
-            hiveTableSearchRepository.delete(key);
-        }
-
     }
 
 

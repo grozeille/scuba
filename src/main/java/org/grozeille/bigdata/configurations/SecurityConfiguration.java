@@ -1,6 +1,7 @@
 package org.grozeille.bigdata.configurations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
@@ -28,8 +29,10 @@ import javax.servlet.Filter;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    OAuth2ClientContext oauth2ClientContext;
+    private OAuth2ClientContext oauth2ClientContext;
 
+    @Value("${security.enabled}")
+    private boolean securityEnabled;
 
     @Bean
     public OAuth2SsoProperties oAuth2SsoProperties(){
@@ -76,20 +79,26 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/**").authorizeRequests()
-                .antMatchers("/").authenticated()
-                .antMatchers(
-                "/login**",
-                "/health**",
-                "/info**",
-                "/metrics**"
-                ).permitAll().anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
-                .and()
-                .logout().logoutSuccessUrl("/").permitAll().and()
-                //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrf().disable()
-                .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+        if(securityEnabled) {
+            http.antMatcher("/**").authorizeRequests()
+                    .antMatchers("/").authenticated()
+                    .antMatchers(
+                            "/login**",
+                            "/health**",
+                            "/info**",
+                            "/metrics**",
+                            "/api/profile/user"
+                    ).permitAll().anyRequest().authenticated()
+                    .and()
+                    .exceptionHandling().authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+                    .and()
+                    .logout().logoutSuccessUrl("/").permitAll().and()
+                    //.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrf().disable()
+                    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+        }
+        else {
+            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+        }
     }
 }
