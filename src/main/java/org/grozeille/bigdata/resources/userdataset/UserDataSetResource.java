@@ -3,10 +3,10 @@ package org.grozeille.bigdata.resources.userdataset;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import org.grozeille.bigdata.repositories.jpa.DataSetRepository;
-import org.grozeille.bigdata.resources.userdataset.model.DataSet;
-import org.grozeille.bigdata.resources.userdataset.model.DataSetConf;
-import org.grozeille.bigdata.resources.userdataset.model.DataSetCreationResponse;
+import org.grozeille.bigdata.repositories.jpa.UserDataSetRepository;
+import org.grozeille.bigdata.resources.userdataset.model.UserDataSet;
+import org.grozeille.bigdata.resources.userdataset.model.UserDataSetConf;
+import org.grozeille.bigdata.resources.userdataset.model.UserDataSetCreationResponse;
 import org.grozeille.bigdata.services.HiveQueryException;
 import org.grozeille.bigdata.services.HiveService;
 import io.swagger.annotations.ApiOperation;
@@ -25,11 +25,11 @@ import java.util.UUID;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/dataset")
+@RequestMapping("/api/userdataset")
 public class UserDataSetResource {
 
     @Autowired
-    private DataSetRepository dataSetRepository;
+    private UserDataSetRepository userDataSetRepository;
 
     @Autowired
     private HiveService hiveService;
@@ -38,107 +38,107 @@ public class UserDataSetResource {
 
     @ApiOperation(value = "", notes = "retrieve all datasets")
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public DataSetConf[] dataset(){
+    public UserDataSetConf[] dataset(){
 
-        List<DataSetConf> result = new ArrayList<>();
-        for(DataSet dataSet : dataSetRepository.findAll()){
+        List<UserDataSetConf> result = new ArrayList<>();
+        for(UserDataSet userDataSet : userDataSetRepository.findAll()){
 
-            DataSetConf dataSetConf = readDataSet(dataSet);
-            if(dataSetConf != null) {
-                result.add(dataSetConf);
+            UserDataSetConf userDataSetConf = readDataSet(userDataSet);
+            if(userDataSetConf != null) {
+                result.add(userDataSetConf);
             }
         }
 
-        return result.toArray(new DataSetConf[0]);
+        return result.toArray(new UserDataSetConf[0]);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public DataSetConf dataset(@PathVariable("id") String id){
+    public UserDataSetConf dataset(@PathVariable("id") String id){
 
-        DataSet dataSet = dataSetRepository.findOne(id);
+        UserDataSet userDataSet = userDataSetRepository.findOne(id);
 
-        if(dataSet == null) {
+        if(userDataSet == null) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
 
-        return readDataSet(dataSet);
+        return readDataSet(userDataSet);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public DataSetCreationResponse dataset(@PathVariable("id") String id, @RequestBody DataSetConf dataSetConf) throws HiveQueryException {
+    public UserDataSetCreationResponse dataset(@PathVariable("id") String id, @RequestBody UserDataSetConf userDataSetConf) throws HiveQueryException {
 
-        if(!id.equalsIgnoreCase(dataSetConf.getId())){
+        if(!id.equalsIgnoreCase(userDataSetConf.getId())){
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "The ID of DataSet is not the same as in URL");
         }
 
         // TODO: verify that the name doesn't already exist
 
-        DataSet dataSet = dataSetRepository.findOne(id);
+        UserDataSet userDataSet = userDataSetRepository.findOne(id);
 
-        if(dataSet == null) {
+        if(userDataSet == null) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
 
         try {
-            dataSet.setJsonConf(mapper.writeValueAsString(dataSetConf));
+            userDataSet.setJsonConf(mapper.writeValueAsString(userDataSetConf));
         } catch (JsonProcessingException e) {
             log.error("Unable to parse JSON");
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Unable to parse JSON");
         }
 
-        dataSetRepository.save(dataSet);
+        userDataSetRepository.save(userDataSet);
 
-        hiveService.createDataSet(dataSetConf);
+        hiveService.createDataSet(userDataSetConf);
 
-        return new DataSetCreationResponse(id);
+        return new UserDataSetCreationResponse(id);
     }
 
     @RequestMapping(value = "", method = RequestMethod.PUT)
     @Transactional(readOnly = false)
-    public DataSetCreationResponse dataset(@RequestBody DataSetConf dataSetConf) throws HiveQueryException {
+    public UserDataSetCreationResponse dataset(@RequestBody UserDataSetConf userDataSetConf) throws HiveQueryException {
 
-        if(!Strings.isNullOrEmpty(dataSetConf.getId())){
+        if(!Strings.isNullOrEmpty(userDataSetConf.getId())){
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "The ID should be empty for creation");
         }
 
         // TODO: verify that the name doesn't already exist
 
         String id = UUID.randomUUID().toString();
-        DataSet dataSet = new DataSet();
-        dataSet.setId(id);
-        dataSetConf.setId(id);
+        UserDataSet userDataSet = new UserDataSet();
+        userDataSet.setId(id);
+        userDataSetConf.setId(id);
 
         try {
-            dataSet.setJsonConf(mapper.writeValueAsString(dataSetConf));
+            userDataSet.setJsonConf(mapper.writeValueAsString(userDataSetConf));
         } catch (JsonProcessingException e) {
             log.error("Unable to parse JSON");
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Unable to parse JSON");
         }
 
-        dataSetRepository.save(dataSet);
+        userDataSetRepository.save(userDataSet);
 
-        hiveService.createDataSet(dataSetConf);
+        hiveService.createDataSet(userDataSetConf);
 
-        return new DataSetCreationResponse(id);
+        return new UserDataSetCreationResponse(id);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public void deleteDataSet(@PathVariable("id") String id) {
 
-        DataSet dataSet = dataSetRepository.findOne(id);
+        UserDataSet userDataSet = userDataSetRepository.findOne(id);
 
-        if(dataSet == null) {
+        if(userDataSet == null) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND);
         }
 
-        dataSetRepository.delete(id);
+        userDataSetRepository.delete(id);
     }
 
-    private DataSetConf readDataSet(DataSet dataSet){
+    private UserDataSetConf readDataSet(UserDataSet userDataSet){
         try {
-            return mapper.readValue(dataSet.getJsonConf(), DataSetConf.class);
+            return mapper.readValue(userDataSet.getJsonConf(), UserDataSetConf.class);
         } catch (IOException e) {
-            log.error("Unable to read JSON conf from ID "+dataSet.getId(), e);
+            log.error("Unable to read JSON conf from ID "+ userDataSet.getId(), e);
         }
 
         return null;
