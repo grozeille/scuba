@@ -21,7 +21,7 @@ function fillHeight($window, $log) {
               };
             },
             function () {
-              $log.info(" Element resized! ");
+              $log.info(' Element resized! ');
               computeHeight(scope, elem, attrs);
             }, // listener
             true // deep watch
@@ -38,8 +38,8 @@ function fillHeight($window, $log) {
     // restrict: 'A',
     link: function (scope, elem, attrs) {
       var win = angular.element($window);
-      win.bind("resize", function(e) {
-        $log.info(" Window resized! ");
+      win.bind('resize', function(e) {
+        $log.info(' Window resized! ');
         computeHeight(scope, elem, attrs);
       });
 

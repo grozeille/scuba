@@ -37,7 +37,7 @@ function queryBuilder($window, $log, $compile) {
           scope.group.rules = [];
         }
 
-        var first = scope.fields.length > 0 ? scope.fields[0] : "";
+        var first = scope.fields.length > 0 ? scope.fields[0] : '';
         scope.group.rules.push({
           condition: '=',
           field: first,
@@ -63,7 +63,7 @@ function queryBuilder($window, $log, $compile) {
       };
 
       scope.removeGroup = function() {
-        if("group" in scope.$parent) {
+        if('group' in scope.$parent) {
           scope.$parent.group.rules.splice(scope.$parent.$index, 1);
         }
       };
@@ -87,7 +87,7 @@ function queryBuilder($window, $log, $compile) {
           }
         }
 
-        return "";
+        return '';
       };
 
       if(angular.isUndefined(directive)) {

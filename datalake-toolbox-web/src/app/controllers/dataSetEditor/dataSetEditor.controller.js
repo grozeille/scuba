@@ -15,8 +15,8 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   vm.selectedTable = null;
   vm.selectedColumnIsCalculated = null;
 
-  vm.name = "";
-  vm.description = "";
+  vm.name = '';
+  vm.description = '';
 
   vm.renameField = null;
   vm.renameDescription = null;
@@ -41,38 +41,38 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
 
   function computed(group) {
     if(!group) {
-      return "";
+      return '';
     }
 
     if(!group.rules) {
-      return "";
+      return '';
     }
 
     var str = '(';
 
     for (var i = 0; i < group.rules.length; i++) {
       if(i > 0) {
-        str += " <strong>" + group.operator + "</strong> ";
+        str += ' <strong>' + group.operator + '</strong> ';
       }
 
       if(group.rules[i].group) {
         str += computed(group.rules[i].group);
       } else {
         if(group.rules[i].condition.localeCompare('IS NULL') === 0 || group.rules[i].condition.localeCompare('IS NOT NULL') === 0) {
-          str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition);
+          str += group.rules[i].field.name + ' ' + htmlEntities(group.rules[i].condition);
         } else if(group.rules[i].condition.localeCompare('IN') === 0 || group.rules[i].condition.localeCompare('NOT IN') === 0) {
-          str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition) + " [" + group.rules[i].data + "]";
+          str += group.rules[i].field.name + ' ' + htmlEntities(group.rules[i].condition) + ' [' + group.rules[i].data + ']';
         } else {
-          str += group.rules[i].field.name + " " + htmlEntities(group.rules[i].condition) + " " + group.rules[i].data;
+          str += group.rules[i].field.name + ' ' + htmlEntities(group.rules[i].condition) + ' ' + group.rules[i].data;
         }
       }
     }
 
-    return str + ")";
+    return str + ')';
   }
 
   vm.computedGroup = function() {
-    return "<b>Filter:</b> " + computed(vm.queryGroup);
+    return '<b>Filter:</b> ' + computed(vm.queryGroup);
   };
 
   preparationService.subscribeOnChange($scope, function() {
@@ -111,8 +111,8 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
     vm.isColumnLinked = { };
     for(var l = 0; l < links.length; l++) {
       var link = links[l];
-      vm.isColumnLinked[link.left.database + "." + link.left.table + "." + link.left.column] = true;
-      // vm.isColumnLinked[link.right.database+"."+link.right.table+"."+link.right.column] = true;
+      vm.isColumnLinked[link.left.database + '.' + link.left.table + '.' + link.left.column] = true;
+      // vm.isColumnLinked[link.right.database+'.'+link.right.table+'.'+link.right.column] = true;
     }
 
     var columnDefs = [];
@@ -124,8 +124,8 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
         var column = table.columns[c];
 
         vm.queryFields.push({
-          name: table.database + "." + table.table + "." + column.newName,
-          groupName: table.database + "." + table.table,
+          name: table.database + '.' + table.table + '.' + column.newName,
+          groupName: table.database + '.' + table.table,
           database: table.database,
           table: table.table,
           column: column.name
@@ -159,8 +159,8 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
         enableColumnResizing: true,
         headerCellTemplate: require('./header-cell-template.html'),
         hive: {
-          database: "",
-          table: "",
+          database: '',
+          table: '',
           column: calculatedColumn
         }
       });
@@ -222,7 +222,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   };
 
   vm.cancelGetData = function() {
-    preparationService.cancelGetData("user cancel");
+    preparationService.cancelGetData('user cancel');
   };
 
   vm.rename = function() {
@@ -289,10 +289,10 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   vm.createCalculated = function() {
     if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null) {
       var calculatedColumn = {
-        name: "calculated_" + preparationService.getNextCalculatedColumnSequence(),
-        newName: vm.selectedColumn.newName + " calculated",
-        newDescription: "",
-        formula: "`" + vm.selectedColumn.newName + "`",
+        name: 'calculated_' + preparationService.getNextCalculatedColumnSequence(),
+        newName: vm.selectedColumn.newName + ' calculated',
+        newDescription: '',
+        formula: '`' + vm.selectedColumn.newName + '`',
         isCalculated: true
       };
       preparationService.addCalculatedColumn(calculatedColumn);

@@ -3,36 +3,44 @@ const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FailPlugin = require('webpack-fail-plugin');
 const autoprefixer = require('autoprefixer');
 
 module.exports = {
   module: {
     loaders: [
       {
-        test: /.json$/,
+        test: /\.json$/,
         loaders: [
-          'json'
+          'json-loader'
         ]
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'eslint-loader',
+        enforce: 'pre'
       },
       {
         test: /\.css$/,
         loaders: [
-          'style',
-          'css',
-          'postcss'
+          'style-loader',
+          'css-loader',
+          'postcss-loader'
         ]
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
         loaders: [
-          'ng-annotate'
+          'ng-annotate-loader',
+          'babel-loader'
         ]
       },
       {
-        test: /.html$/,
+        test: /\.html$/,
         loaders: [
-          'html'
+          'html-loader'
         ]
       },
       {
@@ -43,26 +51,29 @@ module.exports = {
       },
       {
         test: /jquery/,
-        loader: 'expose?$!expose?jQuery'
+        loader: 'expose-loader?$!expose-loader?jQuery'
       }
     ]
   },
   plugins: [
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
+    FailPlugin,
     new HtmlWebpackPlugin({
-      template: conf.path.src('index.html'),
-      inject: true
+      template: conf.path.src('index.html')
     }),
     new webpack.ProvidePlugin({
         $: "jquery",
         jQuery: "jquery"
+    }),
+    new webpack.LoaderOptionsPlugin({
+      options: {
+        postcss: () => [autoprefixer]
+      },
+      debug: true
     })
   ],
-  postcss: () => [autoprefixer],
-  debug: true,
-  devtool: 'inline-source-map',
-  /*devtool: 'cheap-module-eval-source-map',*/
+  devtool: 'source-map',
   output: {
     path: path.join(process.cwd(), conf.paths.tmp),
     filename: 'index.js'

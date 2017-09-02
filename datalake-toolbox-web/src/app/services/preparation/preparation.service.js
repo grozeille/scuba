@@ -3,16 +3,16 @@ module.exports = preparationService;
 /** @ngInject */
 function preparationService($log, $http, $location, $filter, $q, $rootScope, hiveService) {
   var vm = this;
-  vm.apiHost = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api";
-  // vm.apiHost = "http://localhost:8000/api";
+  vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
+  // vm.apiHost = 'http://localhost:8000/api';
 
-  vm.id = "";
-  vm.name = "";
-  vm.comment = "";
+  vm.id = '';
+  vm.name = '';
+  vm.comment = '';
   vm.tables = { };
   vm.calculatedColumns = [];
   vm.links = [];
-  vm.filter = {operator: "AND", rules: []};
+  vm.filter = {operator: 'AND', rules: []};
 
   vm.cancelCurrentGetData = null;
 
@@ -33,13 +33,13 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
   function loadView(id) {
     if(angular.isUndefined(id)) {
       // load new view
-      vm.id = "";
-      vm.name = "";
-      vm.comment = "";
+      vm.id = '';
+      vm.name = '';
+      vm.comment = '';
       vm.tables = { };
       vm.calculatedColumns = [];
       vm.links = [];
-      vm.filter = {operator: "AND", rules: []};
+      vm.filter = {operator: 'AND', rules: []};
 
       notifyOnChange();
 
@@ -83,8 +83,8 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
         vm.links = loadedView.links;
         vm.comment = loadedView.comment;
         vm.filter = parseDataSetFilterGroup(loadedView.filter);
-        vm.name = loadedView.table + " (cloned)";
-        vm.id = "";
+        vm.name = loadedView.table + ' (cloned)';
+        vm.id = '';
 
         notifyOnChange();
 
@@ -107,15 +107,15 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
           condition: rule.condition,
           data: rule.data,
           field: {
-            name: rule.database + "." + rule.table + "." + rule.column,
-            groupName: rule.database + "." + rule.table,
+            name: rule.database + '.' + rule.table + '.' + rule.column,
+            groupName: rule.database + '.' + rule.table,
             database: rule.database,
             table: rule.table,
             column: rule.column
           }
         };
 
-        parsedRule.field.name = rule.database + "." + rule.table + "." + getColumn(rule.database, rule.table, rule.column).newName;
+        parsedRule.field.name = rule.database + '.' + rule.table + '.' + getColumn(rule.database, rule.table, rule.column).newName;
 
         group.rules.push(parsedRule);
       }
@@ -162,13 +162,13 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
   function buildDataSetConf() {
     var dataSetConf = {
       id: vm.id,
-      database: "app_aaa",
+      database: 'app_aaa',
       table: vm.name,
-      path: "/app/aaa/" + vm.name,
+      path: '/app/aaa/' + vm.name,
       comment: vm.comment,
-      dataDomainOwner: "mathias.kluba@gmail.com",
-      tags: ["quotes", "yahoo", "referential"],
-      format: "view",
+      dataDomainOwner: 'mathias.kluba@gmail.com',
+      tags: ['quotes', 'yahoo', 'referential'],
+      format: 'view',
       tables: getTables(),
       calculatedColumns: vm.calculatedColumns,
       links: vm.links,
@@ -182,7 +182,7 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
     var dataSetConf = buildDataSetConf();
 
     var url = vm.apiHost + '/dataset';
-    if("".localeCompare(vm.id) !== 0) {
+    if(''.localeCompare(vm.id) !== 0) {
       url = url + '/' + vm.id;
     }
 
@@ -256,7 +256,7 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
     for (var key in vm.tables) {
       vm.tables[key].primary = false;
     }
-    vm.tables[database + "." + table].primary = true;
+    vm.tables[database + '.' + table].primary = true;
 
     notifyOnChange();
   }
@@ -286,7 +286,7 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
   }
 
   function getTable(database, table) {
-    var key = database + "." + table;
+    var key = database + '.' + table;
 
     return vm.tables[key];
   }
@@ -385,7 +385,7 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
 
   function getData(maxRows) {
     if(vm.cancelCurrentGetData !== null) {
-      vm.cancelCurrentGetData("new Get Data");
+      vm.cancelCurrentGetData('new Get Data');
     }
     vm.cancelCurrentGetData = null;
 
@@ -405,7 +405,7 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
 
   function cancelGetData() {
     if(vm.cancelCurrentGetData !== null) {
-      vm.cancelCurrentGetData("user cancellation");
+      vm.cancelCurrentGetData('user cancellation');
     }
     vm.cancelCurrentGetData = null;
   }

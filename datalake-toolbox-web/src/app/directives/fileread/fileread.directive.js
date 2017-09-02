@@ -4,10 +4,10 @@ module.exports = fileread;
 function fileread($window, $log) {
   var directive = {
     scope: {
-      fileread: "="
+      fileread: '='
     },
     link: function (scope, element, attributes) {
-      element.bind("change", function (changeEvent) {
+      element.bind('change', function (changeEvent) {
         /* var reader = new FileReader();
         reader.onload = function (loadEvent) {
           scope.$apply(function () {

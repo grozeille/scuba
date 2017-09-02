@@ -1,9 +1,8 @@
 module.exports = routesConfig;
 
 /** @ngInject */
-function routesConfig($stateProvider, $urlRouterProvider, $locationProvider) {
-  // $locationProvider.html5Mode(true).hashPrefix('!');
-
+function routesConfig($stateProvider, $urlRouterProvider) {
+  
   $stateProvider
     .state('dataset', {
       url: '/dataset',

@@ -7,18 +7,18 @@ function navbar($state) {
     template: require('./navbar.html'),
     controller: function($scope) {
       var vm = this;
-      vm.user = "";
+      vm.user = '';
       vm.authenticated = false;
 
       $scope.menu = [{
-        name: "Data Catalog",
-        state: "catalog"
+        name: 'Data Catalog',
+        state: 'catalog'
       }, {
-        name: "DataSets",
-        state: "dataset"
+        name: 'DataSets',
+        state: 'dataset'
       }/* , {
-        name: "Cubes",
-        state: ""
+        name: 'Cubes',
+        state: ''
       } */];
     }
   };

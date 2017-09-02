@@ -3,7 +3,7 @@ module.exports = prepareTableService;
 /** @ngInject */
 function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
   var vm = this;
-  vm.apiHost = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api";
+  vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
 
   vm.getServiceData = function(response) {
     return response.data;
@@ -15,7 +15,7 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
 
   function getRawData(file) {
     var upload = Upload.upload({
-      url: vm.apiHost + "/hive/data/raw",
+      url: vm.apiHost + '/hive/data/raw',
       data: {file: file}
     });
 
@@ -26,7 +26,7 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
 
   function getCsvData(data) {
     var upload = Upload.upload({
-      url: vm.apiHost + "/hive/data/csv",
+      url: vm.apiHost + '/hive/data/csv',
       data: data
     });
 
@@ -37,7 +37,7 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
 
   function getExcelData(data) {
     var upload = Upload.upload({
-      url: vm.apiHost + "/hive/data/excel",
+      url: vm.apiHost + '/hive/data/excel',
       data: data
     });
 
@@ -48,7 +48,7 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
 
   function getExcelWorksheets(file) {
     var upload = Upload.upload({
-      url: vm.apiHost + "/hive/data/excel/sheets",
+      url: vm.apiHost + '/hive/data/excel/sheets',
       data: {file: file}
     });
 
@@ -60,18 +60,18 @@ function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
   }
 
   function save(options) {
-    var baseName = "app_aaa";
-    var url = vm.apiHost + "/hive/tables/" + baseName + "/" + options.name;
+    var baseName = 'app_aaa';
+    var url = vm.apiHost + '/hive/tables/' + baseName + '/' + options.name;
 
     var creationRequest = {
       comment: options.description,
-      dataDomainOwner: "mathias.kluba@gmail.com",
-      tags: ["aaa"]
+      dataDomainOwner: 'mathias.kluba@gmail.com',
+      tags: ['aaa']
     };
 
     return $http.put(url, creationRequest)
       .then(function() {
-        var uploadUrl = url + "/data/" + options.format;
+        var uploadUrl = url + '/data/' + options.format;
 
         var data = {};
         if(options.format === 'csv') {

@@ -9,7 +9,7 @@ module.exports = {
 /** @ngInject */
 function CatalogController($timeout, $log, $location, $filter, hiveService) {
   var vm = this;
-  vm.sourceFilter = "";
+  vm.sourceFilter = '';
 
   vm.tables = [];
 
@@ -17,7 +17,7 @@ function CatalogController($timeout, $log, $location, $filter, hiveService) {
   };
 
   vm.edit = function(database, table) {
-    $location.path("/tableEditor/" + database + "/" + table);
+    $location.path('/tableEditor/' + database + '/' + table);
   };
 
   activate();

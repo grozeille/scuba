@@ -3,8 +3,8 @@ module.exports = hiveService;
 /** @ngInject */
 function hiveService($log, $http, $location, $filter, $q) {
   var vm = this;
-  vm.apiHost = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api";
-  // vm.apiHost = "http://localhost:8000/api";
+  vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
+  // vm.apiHost = 'http://localhost:8000/api';
 
   vm.getServiceData = function(response) {
     return response.data;
@@ -29,7 +29,7 @@ function hiveService($log, $http, $location, $filter, $q) {
   }
 
   function getTable(database, table) {
-    return $http.get(vm.apiHost + '/hive/tables/' + database + "/" + table)
+    return $http.get(vm.apiHost + '/hive/tables/' + database + '/' + table)
                 .then(vm.getServiceData)
                 .catch(vm.catchServiceException);
   }

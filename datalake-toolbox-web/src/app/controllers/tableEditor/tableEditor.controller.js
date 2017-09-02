@@ -1,5 +1,5 @@
 require('./tableEditor.css');
-require("bootstrap-filestyle");
+require('bootstrap-filestyle');
 
 module.exports = {
   controller: TableEditorController,
@@ -14,26 +14,26 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
 
   vm.database = $stateParams.database;
   vm.table = $stateParams.table;
-  if(angular.isDefined(vm.table) && vm.table !== "") {
+  if(angular.isDefined(vm.table) && vm.table !== '') {
     // TODO load existing table
   }
 
-  vm.name = "";
-  vm.description = "";
-  vm.dataType = "";
-  vm.csvSeparator = "comma";
-  vm.csvSeparatorCustom = "";
-  vm.csvTextQualifier = "doublequote";
-  vm.csvFirstLineHeader = "true";
+  vm.name = '';
+  vm.description = '';
+  vm.dataType = '';
+  vm.csvSeparator = 'comma';
+  vm.csvSeparatorCustom = '';
+  vm.csvTextQualifier = 'doublequote';
+  vm.csvFirstLineHeader = 'true';
   vm.fileInfo = {};
-  vm.excelSource = "";
+  vm.excelSource = '';
   vm.excelSheets = [];
-  vm.excelFirstLineHeader = "true";
+  vm.excelFirstLineHeader = 'true';
 
   vm.jsTags = {
     edit: true,
     texts: {
-      inputPlaceHolder: "Type text here"
+      inputPlaceHolder: 'Type text here'
     }
   };
 
@@ -56,16 +56,16 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
       return;
     }
 
-    var extension = newValue.name.split(".").pop();
+    var extension = newValue.name.split('.').pop();
     var extensionStart = extension.substr(0, 3);
-    if(extensionStart.localeCompare("xls") === 0) {
-      vm.dataType = "excel";
+    if(extensionStart.localeCompare('xls') === 0) {
+      vm.dataType = 'excel';
     }
-    else if(extension.localeCompare("csv") === 0 || extension.localeCompare("tsv") === 0 || extension.localeCompare("txt") === 0) {
-      vm.dataType = "csv";
+    else if(extension.localeCompare('csv') === 0 || extension.localeCompare('tsv') === 0 || extension.localeCompare('txt') === 0) {
+      vm.dataType = 'csv';
     }
     else {
-      vm.dataType = "raw";
+      vm.dataType = 'raw';
     }
   });
 
@@ -79,7 +79,7 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
   };
 
   function getSeparator() {
-    var separator = "";
+    var separator = '';
     if(vm.csvSeparator === 'semicolon') {
       separator = ';';
     } else if(vm.csvSeparator === 'comma') {
@@ -96,7 +96,7 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
   }
 
   function getTextQualifier() {
-    var textQualifier = "";
+    var textQualifier = '';
     if(vm.csvTextQualifier === 'doublequote') {
       textQualifier = '"';
     } else if(vm.csvTextQualifier === 'simplequote') {
@@ -181,13 +181,13 @@ function TableEditorController($timeout, $log, $location, $filter, $scope, $stat
 
     return prepareTableService.save(options)
         .then(function() {
-          $location.path("/catalog");
+          $location.path('/catalog');
         });
   };
 
   activate();
 
   function activate() {
-    $(":file").filestyle();
+    $(':file').filestyle();
   }
 }

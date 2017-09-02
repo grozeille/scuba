@@ -11,8 +11,8 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
   vm.leftTable = {
     database: database,
     table: table,
-    id: database + "." + table,
-    label: database + "." + table
+    id: database + '.' + table,
+    label: database + '.' + table
   };
 
   vm.rightTableList = [];
@@ -80,28 +80,28 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
       table: {
         left: vm.leftTable,
         right: {
-          database: "",
-          table: "",
-          id: "",
-          label: ""
+          database: '',
+          table: '',
+          id: '',
+          label: ''
         }
       },
       columns: [],
-      type: "outer"
+      type: 'outer'
     });
   };
 
   vm.refreshColumns = function(index) {
     vm.links[index].columns = [{
-      left: "",
-      right: ""
+      left: '',
+      right: ''
     }];
   };
 
   vm.addColumn = function(index) {
     vm.links[index].columns.push({
-      left: "",
-      right: ""
+      left: '',
+      right: ''
     });
   };
 
@@ -198,8 +198,8 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
       var tableItem = {
         database: table.database,
         table: table.table,
-        id: table.database + "." + table.table,
-        label: table.database + "." + table.table,
+        id: table.database + '.' + table.table,
+        label: table.database + '.' + table.table,
         columns: []
       };
 
