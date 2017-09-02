@@ -14,9 +14,7 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   vm.views = [];
 
   vm.createNewView = function() {
-    preparationService.loadView().then(function() {
-      $state.go('datasetEditor');
-    });
+    vm.chooseDataSetType();
   };
 
   vm.loadView = function(id) {
@@ -69,9 +67,15 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
     });
   };
 
-  activate();
+  var chooseDataSetTypeModal = require('./chooseDataSetType/chooseDataSetType.controller');
+
+  vm.chooseDataSetType = function() {
+    $uibModal.open(chooseDataSetTypeModal);
+  };
 
   function activate() {
     vm.loadViews();
   }
+
+  activate();
 }
