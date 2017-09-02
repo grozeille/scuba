@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService, hiveService) {
+function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService) {
   var vm = this;
   vm.maxRows = 10000;
   vm.selectedColumn = null;
@@ -95,7 +95,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
       }
     };
 
-    var modalInstance = $uibModal.open(savedModal);
+    $uibModal.open(savedModal);
   };
 
   vm.refreshTables = function() {
@@ -191,7 +191,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
         return table.table;
       }
     };
-    var modalInstance = $uibModal.open(linksModal);
+    $uibModal.open(linksModal);
   };
 
   var deleteTableModal = require('./deleteTable/deleteTable.controller');
@@ -206,7 +206,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
       }
     };
 
-    var modalInstance = $uibModal.open(deleteTableModal);
+    $uibModal.open(deleteTableModal);
   };
 
   vm.getData = function() {
@@ -217,6 +217,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
       }
       vm.isLoading = false;
     }).catch(function(error) {
+      $log.error(error);
       vm.isLoading = false;
     });
   };
@@ -282,7 +283,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
     vm.activeTab = 0;
   };
 
-  vm.onColumnSelectionChange = function(column) {
+  vm.onColumnSelectionChange = function() {
     preparationService.notifyOnChange();
   };
 
@@ -313,7 +314,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
         return column.name;
       }
     };
-    var modalInstance = $uibModal.open(deleteCalculatedModal);
+    $uibModal.open(deleteCalculatedModal);
   };
 
   function activate() {

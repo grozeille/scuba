@@ -21,7 +21,8 @@ angular
     'ui.grid',
     'ui.grid.resizeColumns',
     'ui.grid.autoResize',
-    'ngSanitize']);
+    'ngSanitize',
+    'ngFileUpload']);
 
 require('./directives');
 require('./services');

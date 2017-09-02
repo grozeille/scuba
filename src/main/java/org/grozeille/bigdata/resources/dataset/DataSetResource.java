@@ -23,7 +23,7 @@ public class DataSetResource {
     @Autowired
     private CatalogService catalogService;
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @RequestMapping(value = "", method = RequestMethod.GET)
     public Iterable<DataSet> dataset(Pageable pageable, @RequestParam(value = "filter", required = false, defaultValue = "") String filter) {
         if(Strings.isNullOrEmpty(filter)) {
             return dataSetRepository.findAll(pageable);

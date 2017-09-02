@@ -2,7 +2,6 @@ module.exports = routesConfig;
 
 /** @ngInject */
 function routesConfig($stateProvider, $urlRouterProvider) {
-  
   $stateProvider
     .state('dataset', {
       url: '/dataset',

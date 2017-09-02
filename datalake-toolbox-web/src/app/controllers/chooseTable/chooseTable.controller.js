@@ -15,7 +15,7 @@ function ChooseTableController($timeout, $log, $location, $filter, preparationSe
     var selectedTable = $filter('filter')(vm.tables, {database: database, table: table})[0];
 
     preparationService.addTable(selectedTable);
-    $location.path('/editor');
+    $location.path('/dataset/editor');
   };
 
   vm.tables = [];

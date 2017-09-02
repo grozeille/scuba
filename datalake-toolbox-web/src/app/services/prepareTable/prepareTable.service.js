@@ -1,7 +1,7 @@
 module.exports = prepareTableService;
 
 /** @ngInject */
-function prepareTableService($log, $http, $location, $filter, $q, $rootScope) {
+function prepareTableService($log, $http, $location, $filter, $q, $rootScope, Upload) {
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
 

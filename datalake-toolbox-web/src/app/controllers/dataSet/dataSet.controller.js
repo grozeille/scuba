@@ -64,8 +64,8 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   };
 
   vm.loadViews = function() {
-    preparationService.getViews().then(function(views) {
-      vm.views = views;
+    preparationService.getViews().then(function(data) {
+      vm.views = data.content;
     });
   };
 
