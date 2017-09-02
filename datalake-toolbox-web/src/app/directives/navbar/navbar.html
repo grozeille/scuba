@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default navbar-static-top" style="margin-bottom: 0px;" role="navigation">
+<nav class="navbar navbar-default navbar-static-top" style="margin-bottom: 0px;padding-right:20px;" role="navigation">
   <div class="navbar-header">
     <button type="button" class="navbar-toggle" ng-init="navCollapsed = true" ng-click="navCollapsed = !navCollapsed">
       <span class="sr-only">Toggle navigation</span>
@@ -12,7 +12,10 @@
   <div class="collapse navbar-collapse" ng-class="!navCollapsed && 'in'">
 
     <ul class="nav navbar-nav">
-      <li ng-repeat="item in menu track by $index" ui-sref-active="active" ><a ui-sref="{{item.state}}">{{item.name}}</a>
+      <li ng-repeat="item in menu.left track by $index" ui-sref-active="active" ><a ui-sref="{{item.state}}">{{item.name}}</a>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      <li ng-repeat="item in menu.right track by $index" ui-sref-active="active" ><a ui-sref="{{item.state}}">{{item.name}}</a>
     </ul>
   </div>
   <!-- /.navbar-collapse -->

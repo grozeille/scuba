@@ -8,5 +8,7 @@ angular.module('datalakeToolbox')
   .component('datasetEditorLinksControllerComponent', require('./datasetEditor/links/links.controller'))
   .component('chooseTableControllerComponent', require('./chooseTable/chooseTable.controller'))
   .component('catalogControllerComponent', require('./catalog/catalog.controller'))
-  .component('tableEditorControllerComponent', require('./tableEditor/tableEditor.controller'));
+  .component('tableEditorControllerComponent', require('./tableEditor/tableEditor.controller'))
+  .component('adminControllerComponent', require('./admin/admin.controller'))
+  .component('profileControllerComponent', require('./profile/profile.controller'));
 

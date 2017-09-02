@@ -31,7 +31,16 @@ function routesConfig($stateProvider, $urlRouterProvider) {
       params: {
         scrollTo: 'body'
       }
-    });
+    })
+    .state('admin', {
+      url: '/admin',
+      component: 'adminControllerComponent'
+    })
+    .state('profile', {
+      url: '/profile',
+      component: 'profileControllerComponent'
+    })
+    ;
 
   $urlRouterProvider.otherwise('/dataset');
 }
