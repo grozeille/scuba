@@ -97,6 +97,23 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        if(securityEnabled) {
+            super.configure(auth);
+        }
+        else {
+            auth.inMemoryAuthentication()
+                    .withUser("admin")
+                    .password("admin")
+                    .authorities("ROLE_USER", "ROLE_ADMIN")
+            .and()
+                    .withUser("user")
+                    .password("user")
+                    .authorities("ROLE_USER");
+        }
+    }
+
+    @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .antMatchers(
@@ -129,7 +146,22 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
         }
         else {
-            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+            //http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+
+            http
+                    .authorizeRequests()
+                    .antMatchers(
+                            "/login**",
+                            "/health**",
+                            "/info**",
+                            "/metrics**",
+                            "/api/profile/user"
+                    ).permitAll()
+                    .antMatchers("/").authenticated()
+                    .antMatchers("/**").hasRole("USER")
+                    .anyRequest().authenticated()
+                    .and()
+                    .httpBasic();
         }
     }
 }
