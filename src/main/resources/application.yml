@@ -31,6 +31,7 @@ spring:
 
 datalake:
   toolbox:
+    adminToken: 9af817ca00644a1a46f6abfd170d533d
     workingPath: /apps/datalakeToolbox
     solr:
       embedded: true

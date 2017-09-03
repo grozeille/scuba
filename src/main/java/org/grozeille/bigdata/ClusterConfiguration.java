@@ -8,4 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ClusterConfiguration {
     private ClusterSolrConfiguration solr;
     private String workingPath;
+
+    private String adminToken;
 }

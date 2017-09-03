@@ -17,3 +17,15 @@ databaseChangeLog:
                   type: varchar(MAX)
                   constraints:
                     nullable: false
+      id: 1.2
+      author: mathias.kluba
+      changes:
+        - createTable:
+            tableName: ADMIN
+            columns:
+              - column:
+                  name: LOGIN
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
