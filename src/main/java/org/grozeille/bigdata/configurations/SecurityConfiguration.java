@@ -140,7 +140,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .and()
                     .exceptionHandling().authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                     .and()
-                    .logout().logoutSuccessUrl("/").permitAll()
+                    .logout().logoutUrl("/logout").logoutSuccessUrl("/").permitAll()
                     .and()
                     .csrf().disable()
                     .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);

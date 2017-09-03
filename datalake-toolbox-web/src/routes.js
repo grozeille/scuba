@@ -40,6 +40,10 @@ function routesConfig($stateProvider, $urlRouterProvider) {
       url: '/profile',
       component: 'profileControllerComponent'
     })
+    .state('setup', {
+      url: '/setup',
+      component: 'setupControllerComponent'
+    })
     ;
 
   $urlRouterProvider.otherwise('/dataset');
