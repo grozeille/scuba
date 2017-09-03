@@ -22,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.security.RolesAllowed;
 import java.io.IOException;
 import java.security.Principal;
@@ -69,4 +70,5 @@ public class AdminResource {
     public void delete(@PathVariable("login") String login) {
         this.adminUserRepository.delete(new AdminUser(login));
     }
+
 }
