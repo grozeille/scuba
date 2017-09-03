@@ -23,8 +23,29 @@ function adminService($log, $http, $location, $filter, $q, $rootScope) {
     return $http.post(url, request);
   }
 
+  function getAllAdmins() {
+    var url = vm.apiHost + '/admin';
+
+    return $http.get(url);
+  }
+
+  function remove(login) {
+    var url = vm.apiHost + '/admin/' + login;
+
+    return $http.delete(url);
+  }
+
+  function add(login) {
+    var url = vm.apiHost + '/admin/' + login;
+
+    return $http.put(url);
+  }
+
   var service = {
-    setupFirstAdmin: setupFirstAdmin
+    setupFirstAdmin: setupFirstAdmin,
+    getAllAdmins: getAllAdmins,
+    add: add,
+    remove: remove
   };
 
   return service;
