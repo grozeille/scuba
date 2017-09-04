@@ -7,18 +7,26 @@ module.exports = {
 };
 
 /** @ngInject */
-function AdminController($log, $uibModal, adminService) {
+function AdminController($log, $uibModal, adminService, projectService) {
   var vm = this;
 
   vm.alerts = [];
+
   vm.adminUsers = [];
   vm.newLogin = '';
+
+  vm.projects = [];
+  vm.newProject = {
+    name: '',
+    hiveDatabase: '',
+    hdfsWorkingDirectory: ''
+  };
 
   vm.closeAlert = function(index) {
     vm.alerts.splice(index, 1);
   };
 
-  vm.refresh = function() {
+  vm.refreshAdmins = function() {
     adminService.getAllAdmins()
       .then(function(response) {
         vm.adminUsers = response.data;
@@ -29,9 +37,9 @@ function AdminController($log, $uibModal, adminService) {
       });
   };
 
-  vm.remove = function(login) {
+  vm.removeAdmin = function(login) {
     $uibModal.open({
-      templateUrl: 'delete.html',
+      templateUrl: 'deleteAdmin.html',
       controllerAs: 'delete',
       controller: function($uibModalInstance, login, parent) {
         var vm = this;
@@ -43,7 +51,7 @@ function AdminController($log, $uibModal, adminService) {
               throw error;
             })
             .then(function() {
-              parent.refresh();
+              parent.refreshAdmins();
             });
           $uibModalInstance.close();
         };
@@ -62,7 +70,7 @@ function AdminController($log, $uibModal, adminService) {
     });
   };
 
-  vm.add = function() {
+  vm.addAdmin = function() {
     adminService.add(vm.newLogin)
       .catch(function(error) {
         vm.alerts.push({msg: 'Unable to add new admin.', type: 'danger'});
@@ -70,12 +78,86 @@ function AdminController($log, $uibModal, adminService) {
       })
       .then(function() {
         vm.newLogin = '';
-        vm.refresh();
+        vm.refreshAdmins();
+      });
+  };
+
+  vm.refreshProjects = function() {
+    projectService.getAllProjects()
+      .then(function(response) {
+        vm.projects = response.data;
+      })
+      .catch(function(error) {
+        vm.alerts.push({msg: 'Unable to get projects.', type: 'danger'});
+        throw error;
+      });
+  };
+
+  vm.removeProject = function(id) {
+    var project = null;
+
+    // find the project thanks to the id
+    for(var index = 0; index < vm.projects.lenght; index++) {
+      if(vm.projects[index].id === id) {
+        project = vm.projects[index];
+        break;
+      }
+    }
+
+    if(project === null) {
+      vm.alerts.push({msg: 'Unknown project', type: 'danger'});
+      return;
+    }
+
+    $uibModal.open({
+      templateUrl: 'deleteProject.html',
+      controllerAs: 'delete',
+      controller: function($uibModalInstance, project, parent) {
+        var vm = this;
+        vm.project = project;
+        vm.ok = function() {
+          projectService.remove(project.id)
+            .catch(function(error) {
+              parent.alerts.push({msg: 'Unable to remove project.', type: 'danger'});
+              throw error;
+            })
+            .then(function() {
+              parent.refreshProjects();
+            });
+          $uibModalInstance.close();
+        };
+        vm.cancel = function() {
+          $uibModalInstance.dismiss('cancel');
+        };
+      },
+      resolve: {
+        project: function () {
+          return project;
+        },
+        parent: function() {
+          return vm;
+        }
+      }
+    });
+  };
+
+  vm.addProject = function() {
+    projectService.add(vm.newProject)
+      .catch(function(error) {
+        vm.alerts.push({msg: 'Unable to add new project.', type: 'danger'});
+        throw error;
+      })
+      .then(function() {
+        vm.newProject.name = '';
+        vm.newProject.hiveDatabase = '';
+        vm.newProject.hdfsWorkingDirectory = '';
+        vm.refreshProjects();
       });
   };
 
   function activate() {
-    vm.refresh();
+    vm.refreshAdmins();
+    vm.refreshProjects();
   }
 
   activate();

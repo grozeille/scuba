@@ -1,7 +1,10 @@
 package org.grozeille.bigdata.configurations;
 
 import org.grozeille.bigdata.repositories.jpa.AdminUserRepository;
+import org.grozeille.bigdata.repositories.jpa.UserRepository;
 import org.grozeille.bigdata.resources.admin.model.AdminUser;
+import org.grozeille.bigdata.resources.user.model.User;
+import org.grozeille.bigdata.services.InternalAuthoritiesExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
@@ -10,6 +13,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceS
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -29,6 +33,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,10 +45,13 @@ import java.util.Map;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private AdminUserRepository adminUserRepository;
+    private OAuth2ClientContext oauth2ClientContext;
 
     @Autowired
-    private OAuth2ClientContext oauth2ClientContext;
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    private InternalAuthoritiesExtractor internalAuthoritiesExtractor;
 
     @Value("${security.enabled}")
     private boolean securityEnabled;
@@ -74,25 +82,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private Filter ssoFilter() {
-        OAuth2RestTemplate template = new OAuth2RestTemplate(client(), oauth2ClientContext);
         OAuth2ClientAuthenticationProcessingFilter filter = new OAuth2ClientAuthenticationProcessingFilter("/login");
-        filter.setRestTemplate(template);
+
+        filter.setApplicationEventPublisher(this.applicationEventPublisher);
+
         UserInfoTokenServices userInfoTokenServices = new UserInfoTokenServices(resource().getUserInfoUri(), resource().getClientId());
-        userInfoTokenServices.setAuthoritiesExtractor(new AuthoritiesExtractor() {
-            @Override
-            public List<GrantedAuthority> extractAuthorities(Map<String, Object> map) {
-                List<GrantedAuthority> roles = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
-
-                AdminUser adminUser = adminUserRepository.findOne(map.get("login").toString());
-                if(adminUser != null) {
-                    roles = new ArrayList<GrantedAuthority>(roles);
-                    roles.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                }
-
-                return roles;
-            }
-        });
+        userInfoTokenServices.setAuthoritiesExtractor(internalAuthoritiesExtractor);
         filter.setTokenServices(userInfoTokenServices);
+
+        OAuth2RestTemplate template = new OAuth2RestTemplate(client(), oauth2ClientContext);
+        filter.setRestTemplate(template);
+
         return filter;
     }
 
@@ -129,9 +129,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .authorizeRequests()
                         .antMatchers(
                             "/login**",
+                            "/login",
                             "/health**",
                             "/info**",
                             "/metrics**",
+                            "/h2-console/**",
                             "/api/profile/user"
                         ).permitAll()
                         .antMatchers("/").authenticated()
@@ -141,6 +143,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .exceptionHandling().authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
                     .and()
                     .logout().logoutUrl("/logout").logoutSuccessUrl("/").permitAll()
+                    .and()
+                    .headers().frameOptions().disable()
                     .and()
                     .csrf().disable()
                     .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
@@ -152,14 +156,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .authorizeRequests()
                     .antMatchers(
                             "/login**",
+                            "/login",
                             "/health**",
                             "/info**",
                             "/metrics**",
+                            "/h2-console/**",
                             "/api/profile/user"
                     ).permitAll()
                     .antMatchers("/").authenticated()
                     .antMatchers("/**").hasRole("USER")
                     .anyRequest().authenticated()
+                    .and()
+                    .headers().frameOptions().disable()
                     .and()
                     .httpBasic();
         }

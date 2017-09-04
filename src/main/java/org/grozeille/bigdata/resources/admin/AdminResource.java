@@ -6,12 +6,14 @@ import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.grozeille.bigdata.ClusterConfiguration;
 import org.grozeille.bigdata.repositories.jpa.AdminUserRepository;
+import org.grozeille.bigdata.repositories.jpa.UserRepository;
 import org.grozeille.bigdata.repositories.solr.DataSetRepository;
 import org.grozeille.bigdata.resources.admin.model.AdminUser;
 import org.grozeille.bigdata.resources.admin.model.AdminWithTokenRequest;
 import org.grozeille.bigdata.resources.admin.model.AdminWithTokenResponse;
 import org.grozeille.bigdata.resources.dataset.model.DataSet;
 import org.grozeille.bigdata.resources.hive.model.HiveTable;
+import org.grozeille.bigdata.resources.user.model.User;
 import org.grozeille.bigdata.services.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,9 @@ public class AdminResource {
     private AdminUserRepository adminUserRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ClusterConfiguration clusterConfiguration;
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -46,8 +51,16 @@ public class AdminResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/{login}", method = RequestMethod.PUT)
-    public void add(@PathVariable("login") String login) {
+    public ResponseEntity<Void> add(@PathVariable("login") String login) {
+
+        User user = userRepository.findOne(login);
+        if(user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
         this.adminUserRepository.save(new AdminUser(login));
+
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = "/current-user", method = RequestMethod.POST)
@@ -67,8 +80,16 @@ public class AdminResource {
 
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/{login}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable("login") String login) {
-        this.adminUserRepository.delete(new AdminUser(login));
+    public ResponseEntity<Void> delete(@PathVariable("login") String login) {
+
+        AdminUser admin = this.adminUserRepository.findOne(login);
+        if(admin == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        this.adminUserRepository.delete(login);
+
+        return ResponseEntity.ok().build();
     }
 
 }

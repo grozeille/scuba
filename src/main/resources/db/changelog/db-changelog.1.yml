@@ -17,6 +17,7 @@ databaseChangeLog:
                   type: varchar(MAX)
                   constraints:
                     nullable: false
+  - changeSet:
       id: 1.2
       author: mathias.kluba
       changes:
@@ -25,6 +26,68 @@ databaseChangeLog:
             columns:
               - column:
                   name: LOGIN
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+  - changeSet:
+      id: 1.3
+      author: mathias.kluba
+      changes:
+        - createTable:
+            tableName: PROJECT
+            columns:
+              - column:
+                  name: ID
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: NAME
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: HIVE_DB
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: HDFS_WORKING_DIR
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: USER
+            columns:
+              - column:
+                  name: LOGIN
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: LAST_LOGIN
+                  type: DATETIME
+                  constraints:
+                    nullable: true
+              - column:
+                  name: LAST_PROJECT
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+        - createTable:
+            tableName: PROJECT_USER
+            columns:
+              - column:
+                  name: PROJECT_ID
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: USER_LOGIN
                   type: varchar(255)
                   constraints:
                     primaryKey: true

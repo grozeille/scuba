@@ -2,12 +2,25 @@
   <navbar/>
 </div>
 
-<script type="text/ng-template" id="delete.html">
+<script type="text/ng-template" id="deleteAdmin.html">
   <div class="modal-header">
     <h3 class="modal-title">Confirm delete ?</h3>
   </div>
   <div class="modal-body">
     <p>Are you sure to remove from administrators {{delete.login}} ?</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="button" ng-click="delete.ok()">OK</button>
+    <button class="btn btn-default" type="button" ng-click="delete.cancel()">Cancel</button>
+  </div>
+</script>
+
+<script type="text/ng-template" id="deleteProject.html">
+  <div class="modal-header">
+    <h3 class="modal-title">Confirm delete ?</h3>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure to delete the project {{delete.project.name}} ?</p>
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" type="button" ng-click="delete.ok()">OK</button>
@@ -43,35 +56,38 @@
                       </div>
                     </div>
 
-                    <div class="col-sm-4" style="padding-top:25px">
-                      <a id="save" type="button" class="btn btn-primary" ng-click="admin.add()">
-                        <span class="glyphicon glyphicon-plus"></span> Add
-                      </a>
-
-                    </div>
-
                   </div>
 
                   <div class="row">
                     <div class="col-sm-12">
-                      <table class="table table-hover ">
-                        <thead>
-                        <tr><th>Login</th><th></th></tr>
-                        </thead>
-                        <tbody>
-                          <tr ng-repeat="adminUser in admin.adminUsers">
-                            <td>{{adminUser.login}}</td>
-                            <td><a type="button" class="btn btn-danger" ng-click="admin.remove(adminUser.login)">
-                              <span class="glyphicon glyphicon-minus"></span> Remove
-                            </a></td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      <a id="saveNewAdmin" type="button" class="btn btn-primary" ng-click="admin.addAdmin()">
+                        <span class="glyphicon glyphicon-plus"></span> Add
+                      </a>
+
                     </div>
                   </div>
 
-
                 </form>
+
+                <div class="row" style="padding-top:25px">
+                  <div class="col-sm-12">
+                    <table class="table table-hover ">
+                      <thead>
+                      <tr><th>Login</th><th></th></tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="adminUser in admin.adminUsers">
+                          <td>{{adminUser.login}}</td>
+                          <td><a type="button" class="btn btn-danger" ng-click="admin.removeAdmin(adminUser.login)">
+                            <span class="glyphicon glyphicon-minus"></span> Remove
+                          </a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+
               </fieldset>
 
             </div>
@@ -84,7 +100,61 @@
           <div class="panel panel-default panel-editor-tab" style="min-height: 220px;">
             <div class="panel-body">
 
-              Projects
+              <fieldset>
+                <form style="padding: 0px;">
+
+
+                  <div class="row">
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="newProject" class="control-label">New project</label>
+                        <input class="form-control" id="newProject" placeholder="" ng-model="admin.newProject.name">
+                      </div>
+                    </div>
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="newProjectDatabase" class="control-label">Hive Database</label>
+                        <input class="form-control" id="newProjectDatabase" placeholder="" ng-model="admin.newProject.hiveDatabase">
+                      </div>
+                    </div>
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="newProjectHdfsPath" class="control-label">HDFS Working Directory</label>
+                        <input class="form-control" id="newProjectHdfsPath" placeholder="" ng-model="admin.newProject.hdfsWorkingDirectory">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-sm-12">
+                      <a id="saveProject" type="button" class="btn btn-primary" ng-click="admin.addProject()">
+                        <span class="glyphicon glyphicon-plus"></span> Add
+                      </a>
+                    </div>
+                  </div>
+
+                </form>
+
+                <div class="row" style="padding-top:25px">
+                  <div class="col-sm-12">
+                    <table class="table table-hover ">
+                      <thead>
+                      <tr><th>Projects</th><th></th></tr>
+                      </thead>
+                      <tbody>
+                      <tr ng-repeat="project in admin.projects">
+                        <td>{{project.name}}</td>
+                        <td><a type="button" class="btn btn-danger" ng-click="admin.removeProject(project.id)">
+                          <span class="glyphicon glyphicon-minus"></span> Remove
+                        </a></td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+
+              </fieldset>
 
             </div>
           </div>
