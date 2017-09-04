@@ -44,6 +44,10 @@ function routesConfig($stateProvider, $urlRouterProvider) {
       url: '/setup',
       component: 'setupControllerComponent'
     })
+    .state('project', {
+      url: '/project/:id',
+      component: 'projectControllerComponent'
+    })
     ;
 
   $urlRouterProvider.otherwise('/dataset');

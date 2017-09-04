@@ -32,5 +32,5 @@ public class Project {
             name="PROJECT_USER",
             joinColumns=@JoinColumn(name="PROJECT_ID", referencedColumnName="ID"),
             inverseJoinColumns=@JoinColumn(name="USER_LOGIN", referencedColumnName="LOGIN"))
-    private List<User> members;
+    private List<ProjectUser> members;
 }

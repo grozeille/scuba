@@ -97,7 +97,7 @@ function AdminController($log, $uibModal, adminService, projectService) {
     var project = null;
 
     // find the project thanks to the id
-    for(var index = 0; index < vm.projects.lenght; index++) {
+    for(var index = 0; index < vm.projects.length; index++) {
       if(vm.projects[index].id === id) {
         project = vm.projects[index];
         break;

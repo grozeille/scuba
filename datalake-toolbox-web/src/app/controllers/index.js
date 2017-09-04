@@ -11,5 +11,6 @@ angular.module('datalakeToolbox')
   .component('tableEditorControllerComponent', require('./tableEditor/tableEditor.controller'))
   .component('adminControllerComponent', require('./admin/admin.controller'))
   .component('profileControllerComponent', require('./profile/profile.controller'))
-  .component('setupControllerComponent', require('./setup/setup.controller'));
+  .component('setupControllerComponent', require('./setup/setup.controller'))
+  .component('projectControllerComponent', require('./project/project.controller'));
 

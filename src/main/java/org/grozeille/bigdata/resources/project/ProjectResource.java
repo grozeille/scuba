@@ -8,6 +8,7 @@ import org.grozeille.bigdata.resources.admin.model.AdminWithTokenRequest;
 import org.grozeille.bigdata.resources.project.model.Project;
 import org.grozeille.bigdata.resources.project.model.NewProjectRequest;
 import org.grozeille.bigdata.resources.project.model.NewProjectResponse;
+import org.grozeille.bigdata.resources.user.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,20 @@ public class ProjectResource {
     private ProjectRepository projectRepository;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public Iterable<Project> get() {
+    public Iterable<Project> getAll() {
         return this.projectRepository.findAll();
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public Project get(@PathVariable("id") String id) {
+        return this.projectRepository.findOne(id);
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<Void> put(@PathVariable("id") String id, @RequestBody Project project) {
+        this.projectRepository.save(project);
+
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST)

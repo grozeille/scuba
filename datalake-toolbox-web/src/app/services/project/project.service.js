@@ -19,6 +19,18 @@ function projectService($log, $http, $location, $filter, $q, $rootScope) {
     return $http.get(url);
   }
 
+  function getById(id) {
+    var url = vm.apiHost + '/project/' + id;
+
+    return $http.get(url);
+  }
+
+  function save(project) {
+    var url = vm.apiHost + '/project/' + project.id;
+
+    return $http.put(url, project);
+  }
+
   function remove(id) {
     var url = vm.apiHost + '/project/' + id;
 
@@ -33,8 +45,10 @@ function projectService($log, $http, $location, $filter, $q, $rootScope) {
 
   var service = {
     getAllProjects: getAllProjects,
+    getById: getById,
     add: add,
-    remove: remove
+    remove: remove,
+    save: save
   };
 
   return service;
