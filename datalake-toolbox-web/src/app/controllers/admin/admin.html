@@ -34,8 +34,40 @@
     <div uib-alert ng-repeat="alert in admin.alerts" ng-class="'alert-' + (alert.type || 'warning')" close="admin.closeAlert($index)">{{alert.msg}}</div>
   </div>
 
+  <div class="row" style="margin-bottom:20px;" ng-show="!admin.showPage">
 
-  <div class="row" style="margin-bottom:20px;">
+    <div class="col-sm-12">
+
+
+      <div class="row fill-height-substract">
+
+        <div class="col-sm-12">
+          <div class="panel panel-default panel-editor-tab" style="height: auto;">
+            <div class="panel-body">
+
+              <fieldset>
+
+                  <div class="row">
+                    <div class="col-sm-12">
+
+                      <div class="alert alert-info" role="alert">
+                        You are not administrator.
+                      </div>
+                    </div>
+                  </div>
+
+              </fieldset>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="row" style="margin-bottom:20px;" ng-show="admin.showPage">
 
     <div class="col-sm-12">
       <uib-tabset active="0">

@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function AdminController($log, $uibModal, adminService, projectService) {
+function AdminController($log, $uibModal, adminService, userService, projectService) {
   var vm = this;
 
   vm.alerts = [];
@@ -22,8 +22,21 @@ function AdminController($log, $uibModal, adminService, projectService) {
     hdfsWorkingDirectory: ''
   };
 
+  vm.showPage = false;
+
   vm.closeAlert = function(index) {
     vm.alerts.splice(index, 1);
+  };
+
+  vm.refreshPage = function() {
+    userService.isCurrentAdmin().then(function(isAdmin) {
+      vm.showPage = isAdmin;
+
+      if(isAdmin) {
+        vm.refreshAdmins();
+        vm.refreshProjects();
+      }
+    });
   };
 
   vm.refreshAdmins = function() {
@@ -156,8 +169,7 @@ function AdminController($log, $uibModal, adminService, projectService) {
   };
 
   function activate() {
-    vm.refreshAdmins();
-    vm.refreshProjects();
+    vm.refreshPage();
   }
 
   activate();

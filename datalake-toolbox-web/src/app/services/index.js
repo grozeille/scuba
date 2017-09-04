@@ -7,4 +7,5 @@ angular.module('datalakeToolbox')
   .service('preparationService', require('./preparation/preparation.service'))
   .service('prepareTableService', require('./prepareTable/prepareTable.service'))
   .service('adminService', require('./admin/admin.service'))
-  .service('projectService', require('./project/project.service'));
+  .service('projectService', require('./project/project.service'))
+  .service('userService', require('./user/user.service'));

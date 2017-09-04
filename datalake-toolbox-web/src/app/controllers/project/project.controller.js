@@ -58,7 +58,6 @@ function ProjectController($log, $uibModal, $stateParams, projectService) {
   vm.save = function() {
     projectService.save(vm.project)
       .then(function(response) {
-        $log.info('saved');
         vm.alerts.push({msg: 'Project saved.', type: 'info'});
       })
       .catch(function(error) {
