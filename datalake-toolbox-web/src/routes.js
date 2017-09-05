@@ -25,12 +25,9 @@ function routesConfig($stateProvider, $urlRouterProvider) {
         scrollTo: 'body'
       }
     })
-    .state('tableEditor', {
-      url: '/catalog/tableEditor/:database/:table',
-      component: 'tableEditorControllerComponent',
-      params: {
-        scrollTo: 'body'
-      }
+    .state('customFileDataSet', {
+      url: '/dataset/customFile',
+      component: 'customFileDataSetControllerComponent'
     })
     .state('admin', {
       url: '/admin',

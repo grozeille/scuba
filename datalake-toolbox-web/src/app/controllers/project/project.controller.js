@@ -12,10 +12,6 @@ function ProjectController($log, $uibModal, $stateParams, projectService) {
 
   vm.alerts = [];
 
-  vm.closeAlert = function(index) {
-    vm.alerts.splice(index, 1);
-  };
-
   vm.projectId = $stateParams.id;
   vm.project = {
     name: '',

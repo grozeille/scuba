@@ -24,10 +24,6 @@ function SetupController($log, $state, adminService) {
     });
   };
 
-  vm.closeAlert = function(index) {
-    vm.alerts.splice(index, 1);
-  };
-
   function activate() {
   }
 

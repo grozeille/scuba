@@ -24,10 +24,6 @@ function AdminController($log, $uibModal, adminService, userService, projectServ
 
   vm.showPage = false;
 
-  vm.closeAlert = function(index) {
-    vm.alerts.splice(index, 1);
-  };
-
   vm.refreshPage = function() {
     userService.isCurrentAdmin().then(function(isAdmin) {
       vm.showPage = isAdmin;

@@ -16,7 +16,8 @@ function ChooseDataSetTypeController($uibModalInstance, $log, $state, preparatio
   };
 
   vm.fileDataSet = function() {
-    $state.go('tableEditor({database: \'\', table: \'\'})');
+    // $state.go('customFileDataSet({databaseAndTable: \'\'})');
+    $state.go('customFileDataSet');
     $uibModalInstance.close();
   };
 

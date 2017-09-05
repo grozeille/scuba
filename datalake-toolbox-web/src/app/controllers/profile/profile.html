@@ -4,10 +4,47 @@
 
 <div class="container-fluid" style="padding-top:20px;">
 
+  <alerts-popup alerts="profile.alerts"></alerts-popup>
+
   <div class="row" style="margin-bottom:20px;">
 
     <div class="col-md-12">
+      <div class="panel panel-default panel-editor-tab" style="height: auto;">
+        <div class="panel-body">
 
+          <fieldset>
+            <legend>Preferences</legend>
+
+            <form style="padding: 0px;">
+
+              <div class="row">
+                <div class="col-sm-4">
+                  <div class="form-group">
+                    <label for="selectedProject" class="control-label">Current project Name</label>
+                    <select class="form-control" id="selectedProject" style="font-family: FontAwesome, sans-serif;" ng-model="profile.selectedProjectId">
+                      <option ng-repeat="project in profile.memberProjects" value="project.id">{{project.name}}</option>
+                      </select>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="form-group">
+                    <label for="projectDatabase" class="control-label">Hive Database</label>
+                    <input class="form-control" id="projectDatabase" placeholder="" ng-model="profile.selectedProject.hiveDatabase" disabled>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="form-group">
+                    <label for="projectHdfsPath" class="control-label">HDFS Working Directory</label>
+                    <input class="form-control" id="projectHdfsPath" placeholder="" ng-model="profile.selectedProject.hdfsWorkingDirectory" disabled>
+                  </div>
+                </div>
+              </div>
+
+            </form>
+          </fieldset>
+
+        </div>
+      </div>
     </div>
 
   </div>
