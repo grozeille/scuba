@@ -28,7 +28,7 @@
         <!-- fix compatibility of SpringBoot with Spark -->
         <!--<jackson.version>2.4.4</jackson.version>-->
         <hibernate.version>5.1.0.Final</hibernate.version>
-        <springfox-swagger.version>2.5.0</springfox-swagger.version>
+        <springfox-swagger.version>2.6.0</springfox-swagger.version>
     </properties>
 
     <repositories>
@@ -499,10 +499,10 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <hive.hiveserver2>localhost:10000</hive.hiveserver2>
+                <hive.hiveserver2>localhost:20103</hive.hiveserver2>
                 <hive.hiveserver2.login>hive</hive.hiveserver2.login>
-                <hive.metastore>localhost:9083</hive.metastore>
-                <hadoop.namenode>localhost:8020</hadoop.namenode>
+                <hive.metastore>localhost:20102</hive.metastore>
+                <hadoop.namenode>localhost:20112</hadoop.namenode>
                 <hadoop.resourcemanager>localhost:8050</hadoop.resourcemanager>
             </properties>
             <build>

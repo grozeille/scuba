@@ -12,16 +12,49 @@ function ProfileController($log, userService, projectService) {
 
   vm.alerts = [];
   vm.currentProfile = {};
+  vm.memberProjects = [];
+  vm.selectedProject = null;
 
-  vm.refresh = function() {
+  vm.refreshProjectList = function() {
+    userService.getMemberProjects().then(function(request) {
+      vm.memberProjects = request.data;
+
+      vm.refreshLastProject();
+    })
+    .catch(function(error) {
+      vm.alerts.push({msg: 'Unable to load current profile.', type: 'danger'});
+      throw error;
+    });
+  };
+
+  vm.refreshLastProject = function() {
     userService.getCurrent().then(function(request) {
       vm.currentProfile = request.data;
       if(vm.currentProfile.lastProject !== null) {
-
+        for(var index = 0; index < vm.memberProjects.length; index++) {
+          if(vm.memberProjects[index].id === vm.currentProfile.lastProject) {
+            vm.selectedProject = vm.memberProjects[index];
+            return;
+          }
+        }
       }
     })
     .catch(function(error) {
-      vm.alerts.push({msg: 'Unable to load current profile .', type: 'danger'});
+      vm.alerts.push({msg: 'Unable to load current profile.', type: 'danger'});
+      throw error;
+    });
+  };
+
+  vm.refresh = function() {
+    vm.refreshProjectList();
+  };
+
+  vm.save = function() {
+    userService.updateLastProject(vm.selectedProject.id).then(function(request) {
+      vm.alerts.push({msg: 'Profile saved.', type: 'info'});
+    })
+    .catch(function(error) {
+      vm.alerts.push({msg: 'Unable to save profile.', type: 'danger'});
       throw error;
     });
   };
