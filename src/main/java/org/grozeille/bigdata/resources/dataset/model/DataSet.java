@@ -37,7 +37,7 @@ public class DataSet {
 
     //@Indexed(copyTo = "all")
     @Field
-    private String dataDomainOwner;
+    private String creator;
 
     //@Indexed(copyTo = "all")
     @Field

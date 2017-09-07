@@ -3,9 +3,6 @@ package org.grozeille.bigdata.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.hive.metastore.TableType;
-import org.grozeille.bigdata.resources.dataset.model.DataSet;
-import org.grozeille.bigdata.repositories.solr.DataSetRepository;
 import org.grozeille.bigdata.resources.userdataset.model.*;
 import org.grozeille.bigdata.resources.hive.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +16,6 @@ import org.apache.thrift.TException;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.solr.core.SolrOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +27,7 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
@@ -62,11 +56,11 @@ public class HiveService {
 
     public static final String TEMP_FOLDER = ".datalake-toolbox";
 
-    public static final String DATALAKE_ITEM_TYPE_TABLE = "table";
+    public static final String DATALAKE_ITEM_TYPE_DATA_SET = "PublicDataSet";
 
-    public static final String DATALAKE_ITEM_TYPE_USER_DATASET = "user_dataset";
+    public static final String DATALAKE_ITEM_TYPE_WRANGLING_DATA_SET = "WranglingDataSet";
 
-    public static final String DATALAKE_ITEM_TYPE_USER_FILE = "user_file";
+    public static final String DATALAKE_ITEM_TYPE_FILE_DATA_SET = "CustomFileDataSet";
 
     @Autowired
     private HiveMetaStoreClient hiveMetaStoreClient;
@@ -74,6 +68,9 @@ public class HiveService {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private JdbcTemplate hiveJdbcTemplate;
+
+    @Autowired
+    private FileSystem fs;
 
     @Autowired
     @Qualifier("hiveDataSource")
@@ -232,7 +229,7 @@ public class HiveService {
                 "TBLPROPERTIES (" +
                 "\"format\" = \""+ userDataSetConf.getFormat()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
-                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_USER_DATASET + "\"" +
+                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_WRANGLING_DATA_SET + "\"" +
                 "\"datsetConfiguration\" = \""+ userDataSetConf.getId()+"\"" +
                 ")\n"+
                 "AS "+sqlQuery;
@@ -273,7 +270,7 @@ public class HiveService {
                 "\"format\" = \""+table.getFormat()+"\"," +
                 "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
-                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_USER_FILE + "\"" +
+                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_FILE_DATA_SET + "\"" +
                 ")";
 
         log.info("Drop table: " + dropSql);
@@ -286,6 +283,48 @@ public class HiveService {
             log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
         }catch(Exception e){
             throw new HiveQueryException("Unable to create table: "+createSql, e);
+        }
+    }
+
+    public void update(HiveTable table) throws HiveQueryException {
+        String jsonTags = "[]";
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            jsonTags = objectMapper.writeValueAsString(table.getTags());
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to serialize tags", e);
+        }
+
+        String alterPropertiesSql = "ALTER TABLE `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
+                "SET TBLPROPERTIES (\n"+
+                "\"creator\" = \""+table.getCreator()+"\"," +
+                "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
+                "\"comment\"=\""+table.getComment()+"\",\n"+
+                "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
+                "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_FILE_DATA_SET + "\"" +
+                ")";
+
+        log.info("Alter table properties: " + alterPropertiesSql);
+
+        try {
+            long startTime = System.currentTimeMillis();
+            hiveJdbcTemplate.execute(alterPropertiesSql);
+            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+        }catch(Exception e){
+            throw new HiveQueryException("Unable to alter table: "+alterPropertiesSql, e);
+        }
+    }
+
+    public void delete(HiveTable table) throws HiveQueryException {
+        String dropSql = "DROP TABLE IF EXISTS `" + table.getDatabase() + "`.`" + table.getTable() + "`";
+        log.info("Drop table: " + dropSql);
+
+        try {
+            long startTime = System.currentTimeMillis();
+            hiveJdbcTemplate.execute(dropSql);
+            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+        }catch(Exception e){
+            throw new HiveQueryException("Unable to create table: "+dropSql, e);
         }
     }
 
@@ -459,15 +498,6 @@ public class HiveService {
     }
 
     private String buildCache(UserDataSetConf userDataSetConf, Map<String, String> tableAliases, String selectStatement) throws HiveQueryException {
-        // try to get data from cache
-        Configuration conf = new Configuration();
-        FileSystem fs = null;
-        try {
-            fs = FileSystem.get(conf);
-        } catch (IOException e) {
-            throw new HiveQueryException("Unexpected exception", e);
-        }
-
         // get the cached table
         boolean cacheUpToDate = false;
 
@@ -517,6 +547,7 @@ public class HiveService {
 
         if (!cacheUpToDate) {
             // create the cache, build the query without the cast/rename/formula, with all columns & links
+            // TODO: use the project's working directory
             Path cacheParentPath = new Path(fs.getHomeDirectory(), TEMP_FOLDER);
             Path cacheTablePath = new Path(cacheParentPath, cacheTableName);
             try {
@@ -748,12 +779,9 @@ public class HiveService {
         hiveTable.setDatabase(table.getDbName());
         hiveTable.setTable(table.getTableName());
         hiveTable.setComment(table.getParameters().getOrDefault("comment", ""));
-        hiveTable.setDataDomainOwner(table.getOwner());
+        hiveTable.setCreator(table.getParameters().getOrDefault("creator", ""));
         hiveTable.setFormat(table.getParameters().getOrDefault("format", ""));
-        hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", DATALAKE_ITEM_TYPE_TABLE));
-
-        //table.getTableType() == TableType.VIRTUAL_VIEW.name()
-        log.error("AAAAA "+table.getTableType());
+        hiveTable.setDatalakeItemType(table.getParameters().getOrDefault("datalakeItemType", DATALAKE_ITEM_TYPE_DATA_SET));
 
         hiveTable.setDatsetConfiguration(table.getParameters().getOrDefault("datsetConfiguration", ""));
         hiveTable.setOriginalFile(table.getParameters().getOrDefault("originalFile", ""));
@@ -902,7 +930,6 @@ public class HiveService {
 
         return hiveTable;
     }
-
 
     /*
     data_type

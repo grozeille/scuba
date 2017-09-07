@@ -41,7 +41,7 @@
           <p><b>Path:</b> {{table.path}}</p>
           <br/>
           <p><b>Format:</b> {{table.format}}</p>
-          <p><b>Data Domain Owner:</b> <a href="mailto:{{table.dataDomainOwner}}">{{table.dataDomainOwner}}</a></p>
+          <p><b>Data Domain Owner:</b> <a href="mailto:{{table.creator}}">{{table.creator}}</a></p>
           <p><b>Comment:</b><br/><span ng-bind-html="table.comment"></span></p>
           <p><b>Tags:</b><br/>
             <span ng-repeat="tag in table.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>

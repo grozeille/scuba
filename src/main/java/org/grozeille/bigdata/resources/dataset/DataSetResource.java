@@ -10,10 +10,7 @@ import org.grozeille.bigdata.services.DataSetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -29,7 +26,7 @@ public class DataSetResource {
     private DataSetService dataSetService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public Iterable<HiveTable> dataset(Pageable pageable, @RequestParam(value = "filter", required = false, defaultValue = "") String filter) {
+    public Iterable<HiveTable> filter(Pageable pageable, @RequestParam(value = "filter", required = false, defaultValue = "") String filter) {
         final ObjectMapper objectMapper = new ObjectMapper();
         Page<DataSet> result;
         if(Strings.isNullOrEmpty(filter)) {
@@ -55,6 +52,28 @@ public class DataSetResource {
                 return null;
             }
         });
+    }
+
+    @RequestMapping(value = "/{database}/{table}", method = RequestMethod.GET)
+    public HiveTable get(@PathVariable("database") String database,
+                         @PathVariable("table") String table) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+
+        DataSet result = dataSetRepository.findByDatabaseAndTable(database, table);
+        try {
+            return objectMapper.readValue(result.getJsonData(), HiveTable.class);
+        } catch (IOException e) {
+            log.error("Unable to read json data: "+result.getJsonData());
+            return null;
+        }
+    }
+
+    @RequestMapping(value = "/{database}/{table}", method = RequestMethod.DELETE)
+    public void delete(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table) throws Exception {
+
+        this.dataSetService.delete(database, table);
     }
 
     @RequestMapping(value = "/refresh", method = RequestMethod.POST)

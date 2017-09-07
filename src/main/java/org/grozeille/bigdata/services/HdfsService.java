@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,9 +16,11 @@ public class HdfsService {
 
     public static final String TEMP_ORIGINAL_PREFIX = "_datalaketoolbox_original";
 
+    @Autowired
+    private FileSystem fs;
+
     public String write(InputStream inputStream, String fileName, String tablePath) throws IOException {
-        Configuration conf = new Configuration();
-        FileSystem fs = FileSystem.get(conf);
+        // TODO use project working path
 
         Path fullTablePath = new Path(tablePath);
         Path basePath = fullTablePath.getParent();
@@ -36,11 +39,11 @@ public class HdfsService {
     }
 
     public InputStream read(String path) throws IOException {
-        Configuration conf = new Configuration();
         Path filePath = new Path(path);
-
-        FileSystem fs = FileSystem.get(conf);
         return fs.open(filePath);
+    }
 
+    public void delete(String path) throws IOException {
+        fs.delete(new Path(path), true);
     }
 }

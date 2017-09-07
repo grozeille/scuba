@@ -16,6 +16,7 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.io.Text;
 import org.grozeille.bigdata.resources.hive.model.HiveData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,9 @@ import java.util.*;
 
 @Service
 public class CsvParserService {
+
+    @Autowired
+    private FileSystem fs;
 
     public HiveData data(InputStream inputStream, Character separator, Character textQualifier, boolean firstLineHeader, Long limit) throws Exception {
         CsvParserSettings settings = new CsvParserSettings();
@@ -92,13 +96,13 @@ public class CsvParserService {
 
     public String[] write(InputStream inputStream, Character separator, Character textQualifier, boolean firstLineHeader, String path) throws Exception {
 
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+
         List<String> columns = new ArrayList<>();
 
-        Configuration conf = new Configuration();
         Path orcPath = new Path(path+"/data.orc");
 
         // TODO: do better, create versions
-        FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(path), true);
 
         CsvParserSettings settings = new CsvParserSettings();

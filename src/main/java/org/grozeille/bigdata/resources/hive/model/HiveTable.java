@@ -12,7 +12,7 @@ public class HiveTable {
 
     private String comment;
 
-    private String dataDomainOwner;
+    private String creator;
 
     private String[] tags;
 

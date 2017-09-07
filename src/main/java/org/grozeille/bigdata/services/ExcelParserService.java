@@ -27,6 +27,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.grozeille.bigdata.resources.hive.model.HiveData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -41,6 +42,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class ExcelParserService {
+
+    @Autowired
+    private FileSystem fs;
 
     public String[] sheets(InputStream inputStream, String fileName) throws Exception {
 
@@ -132,13 +136,14 @@ public class ExcelParserService {
     }
 
     public String[] write(InputStream inputStream, String fileName, String sheet, boolean firstLineHeader, String path) throws Exception {
+
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+
         List<String> columns = new ArrayList<>();
 
-        Configuration conf = new Configuration();
         Path orcPath = new Path(path+"/data.orc");
 
         // TODO: do better, create versions
-        FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(path), true);
 
         Writer writer = null;

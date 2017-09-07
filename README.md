@@ -5,7 +5,7 @@ Dive in your DataLake.
 You can list and create your DataSet on a Hadoop cluster using Apache Hive.
 
 * PublicDataSet : an existing Hive table
-* WrangleDataSet : create your Hive table using wrangling tool
+* WranglingDataSet : create your Hive table using wrangling tool
 * CustomFileDataSet : upload your file (csv, excel file, etc.) as a new Hive table
 * CustomSQLQueryDataSet : build your Hive table based on your custom SQL query
 

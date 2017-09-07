@@ -33,6 +33,9 @@ public class DataSetService {
     private UserDataSetRepository userDataSetRepository;
 
     @Autowired
+    private HdfsService hdfsService;
+
+    @Autowired
     private DataSetRepository dataSetRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -108,13 +111,21 @@ public class DataSetService {
         dataSetRepository.save(dataSet);
     }
 
+    public void delete(String database, String table) throws Exception {
+        HiveTable hiveTable = this.hiveService.findOne(database, table);
+        this.hiveService.delete(hiveTable);
+        this.hdfsService.delete(hiveTable.getOriginalFile());
+        DataSet dataSet = this.dataSetRepository.findByDatabaseAndTable(database, table);
+        this.dataSetRepository.delete(dataSet);
+    }
+
     private DataSet convert(HiveTable hiveTable) {
         DataSet dataSet = new DataSet();
         dataSet.setId("`" + hiveTable.getDatabase() + "`.`" + hiveTable.getTable() + "`");
         dataSet.setComment(hiveTable.getComment());
         dataSet.setDatabase(hiveTable.getDatabase());
         dataSet.setTable(hiveTable.getTable());
-        dataSet.setDataDomainOwner(hiveTable.getDataDomainOwner());
+        dataSet.setCreator(hiveTable.getCreator());
         dataSet.setFormat(hiveTable.getFormat());
         dataSet.setPath(hiveTable.getPath());
         dataSet.setTags(hiveTable.getTags());
@@ -138,11 +149,11 @@ public class DataSetService {
         hiveTable.setDatabase(userDataSetConf.getDatabase());
         hiveTable.setTable(userDataSetConf.getTable());
         hiveTable.setComment(userDataSetConf.getComment());
-        hiveTable.setDataDomainOwner(userDataSetConf.getDataDomainOwner());
+        hiveTable.setCreator(userDataSetConf.getDataDomainOwner());
         hiveTable.setFormat(userDataSetConf.getFormat());
         hiveTable.setPath(userDataSetConf.getPath());
         hiveTable.setTags(userDataSetConf.getTags());
-        hiveTable.setDatalakeItemType(HiveService.DATALAKE_ITEM_TYPE_USER_DATASET);
+        hiveTable.setDatalakeItemType(HiveService.DATALAKE_ITEM_TYPE_WRANGLING_DATA_SET);
 
         Stream<HiveColumn> calculatedColumns = Arrays.stream(userDataSetConf.getCalculatedColumns()).map(c -> {
             HiveColumn column = new HiveColumn();

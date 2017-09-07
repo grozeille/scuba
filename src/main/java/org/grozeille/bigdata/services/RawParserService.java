@@ -11,6 +11,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.grozeille.bigdata.resources.hive.model.HiveData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,10 @@ import java.util.Map;
 
 @Service
 public class RawParserService {
+
+    @Autowired
+    private FileSystem fs;
+
     public HiveData data(InputStream inputStream, Long limit) throws Exception {
         HiveData result = new HiveData();
         result.setData(new ArrayList<>());
@@ -41,13 +46,14 @@ public class RawParserService {
     }
 
     public String[] write(InputStream inputStream, String path) throws Exception {
+
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+
         List<String> columns = new ArrayList<>();
 
-        Configuration conf = new Configuration();
         Path orcPath = new Path(path+"/data.orc");
 
         // TODO: do better, create versions
-        FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(path), true);
 
         final String column = "raw";

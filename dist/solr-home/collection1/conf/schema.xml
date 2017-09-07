@@ -126,7 +126,7 @@
     <field name="table" type="string" indexed="true" stored="false" multiValued="false"/>
     <field name="path" type="string" indexed="true" stored="false" multiValued="false"/>
     <field name="comment" type="string" indexed="true" stored="false" multiValued="false"/>
-    <field name="dataDomainOwner" type="string" indexed="true" stored="false" multiValued="false"/>
+    <field name="creator" type="string" indexed="true" stored="false" multiValued="false"/>
     <field name="format" type="string" indexed="true" stored="false" multiValued="false"/>
     <field name="tags" type="string" indexed="true" stored="false" multiValued="true"/>
     <field name="columns" type="string" indexed="true" stored="false" multiValued="true"/>
@@ -139,7 +139,7 @@
     <copyField source="table" dest="text"/>
     <copyField source="path" dest="text"/>
     <copyField source="comment" dest="text"/>
-    <copyField source="dataDomainOwner" dest="text"/>
+    <copyField source="creator" dest="text"/>
     <copyField source="tags" dest="text"/>
     <copyField source="columns" dest="text"/>
     <copyField source="columnsComment" dest="text"/>

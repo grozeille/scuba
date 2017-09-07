@@ -1,6 +1,5 @@
 package org.grozeille.bigdata.resources.hive;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.grozeille.bigdata.resources.userdataset.model.UserDataSetConf;
 import org.grozeille.bigdata.resources.hive.model.*;
 import org.grozeille.bigdata.services.*;
@@ -11,11 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 
 @RestController
@@ -93,7 +87,7 @@ public class HiveResource {
         hiveTable.setTable(table);
         hiveTable.setFormat("orc");
         hiveTable.setPath(hiveDB.getPath()+"/"+table);
-        hiveTable.setDataDomainOwner(creationRequest.getDataDomainOwner());
+        hiveTable.setCreator(creationRequest.getDataDomainOwner());
         hiveTable.setComment(creationRequest.getComment());
         hiveTable.setTags(creationRequest.getTags());
         hiveTable.setColumns(new HiveColumn[]{ hiveDummyColumn });

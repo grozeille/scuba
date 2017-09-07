@@ -62,11 +62,10 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
   function save(options) {
     return userService.getLastProject().then(function(request) {
       var baseName = request.data.hiveDatabase;
-      var url = vm.apiHost + '/hive/tables/' + baseName + '/' + options.name;
+      var url = vm.apiHost + '/dataset/custom-file/' + baseName + '/' + options.name;
 
       var creationRequest = {
         comment: options.description,
-        dataDomainOwner: 'mathias.kluba@gmail.com',
         tags: ['aaa']
       };
 

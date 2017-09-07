@@ -1,5 +1,6 @@
 package org.grozeille.bigdata.configurations;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.grozeille.bigdata.ClusterConfiguration;
@@ -53,6 +54,12 @@ public class ApplicationConfiguration {
     public HiveMetaStoreClient hiveMetaStoreClient() throws MetaException {
         HiveConf hiveConf = new HiveConf();
         return new HiveMetaStoreClient(hiveConf);
+    }
+
+    @Bean
+    public FileSystem fileSystem() throws IOException {
+        org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+        return FileSystem.get(conf);
     }
 
     @Bean

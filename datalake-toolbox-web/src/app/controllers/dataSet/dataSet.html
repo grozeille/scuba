@@ -53,7 +53,7 @@
           <p><b>Database:</b> {{v.database}}</p>
           <p><b>View:</b> {{v.table}}</p>
           <br/>
-          <p><b>Owner:</b> <a href="mailto:{{v.dataDomainOwner}}">{{v.dataDomainOwner}}</a></p>
+          <p><b>Owner:</b> <a href="mailto:{{v.creator}}">{{v.creator}}</a></p>
           <p><b>Comment:</b><br/><span ng-bind-html="v.comment"></span></p>
           <p><b>Tags:</b><br/>
             <span ng-repeat="tag in v.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>

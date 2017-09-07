@@ -11,4 +11,6 @@ public interface DataSetRepository extends SolrCrudRepository<DataSet, String> {
 
     @Query(value = "text:?0")
     Page<DataSet> findByAll(Pageable pageable, String text);
+
+    DataSet findByDatabaseAndTable(String database, String table);
 }
