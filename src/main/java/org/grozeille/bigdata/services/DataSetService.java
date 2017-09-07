@@ -24,7 +24,7 @@ import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
-public class CatalogService {
+public class DataSetService {
 
     @Autowired
     private HiveService hiveService;
@@ -37,7 +37,7 @@ public class CatalogService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void refreshCatalog() throws TException {
+    public void refreshAll() throws TException {
 
         // get all indexed
         // TODO: find a way to not load all data in memory
@@ -100,7 +100,6 @@ public class CatalogService {
             log.error("Unable to refresh table "+database+"."+table, e);
         }
     }
-
 
     public void refreshUserDataSet(UserDataSetConf userDataSetConf){
         DataSet dataSet = convert(userDataSetConf);

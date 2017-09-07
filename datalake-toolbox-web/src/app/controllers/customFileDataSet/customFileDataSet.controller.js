@@ -8,7 +8,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function CustomFileDataSetController($timeout, $log, $location, $filter, $scope, $stateParams, prepareTableService) {
+function CustomFileDataSetController($timeout, $log, $location, $filter, $scope, $stateParams, $state, customFileDataSetService) {
   var vm = this;
   vm.isLoading = false;
 
@@ -69,7 +69,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
   });
 
   vm.getWorksheet = function() {
-    prepareTableService.getExcelWorksheets(vm.fileInfo).then(function(data) {
+    customFileDataSetService.getExcelWorksheets(vm.fileInfo).then(function(data) {
       vm.excelSheets = data;
       if(vm.excelSheets.length > 0) {
         vm.excelSource = vm.excelSheets[0];
@@ -126,7 +126,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
         firstLineHeader: vm.excelFirstLineHeader
       };
 
-      return prepareTableService.getExcelData(excelOptions)
+      return customFileDataSetService.getExcelData(excelOptions)
         .then(loadData)
         .then(stopLoading)
         .catch(stopLoading);
@@ -143,13 +143,13 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
         firstLineHeader: vm.csvFirstLineHeader
       };
 
-      return prepareTableService.getCsvData(csvOptions)
+      return customFileDataSetService.getCsvData(csvOptions)
         .then(loadData)
         .then(stopLoading)
         .catch(stopLoading);
     }
     if(vm.dataType === 'raw') {
-      return prepareTableService.getRawData(vm.fileInfo)
+      return customFileDataSetService.getRawData(vm.fileInfo)
         .then(loadData)
         .then(stopLoading)
         .catch(stopLoading);
@@ -178,9 +178,9 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
       };
     }
 
-    return prepareTableService.save(options)
+    return customFileDataSetService.save(options)
         .then(function() {
-          $location.path('/catalog');
+          $state.go('dataSet');
         });
   };
 
