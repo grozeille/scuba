@@ -2,6 +2,7 @@ package org.grozeille.bigdata.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.grozeille.bigdata.resources.userdataset.model.*;
 import org.grozeille.bigdata.resources.hive.model.*;
@@ -792,9 +793,20 @@ public class HiveService {
         hiveTable.setDatsetConfiguration(table.getParameters().getOrDefault("datsetConfiguration", ""));
         hiveTable.setOriginalFile(table.getParameters().getOrDefault("originalFile", ""));
         hiveTable.setOriginalFileContentType(table.getParameters().getOrDefault("originalFileContentType", ""));
-        hiveTable.setOriginalFileSize(Integer.parseInt(table.getParameters().getOrDefault("originalFileSize", "-1")));
-        hiveTable.setTemporary(Boolean.parseBoolean(table.getParameters().getOrDefault("temporary", "false")));
-        // TODO detect format ?
+        String originalFileSize = table.getParameters().getOrDefault("originalFileSize", "-1");
+        if(Strings.isNullOrEmpty(originalFileSize) || "null".equalsIgnoreCase(originalFileSize)){
+            hiveTable.setOriginalFileSize(-1);
+        }
+        else {
+            hiveTable.setOriginalFileSize(Integer.parseInt(originalFileSize));
+        }
+        String temporary = table.getParameters().getOrDefault("temporary", "false");
+        if(Strings.isNullOrEmpty(temporary) || "null".equalsIgnoreCase(temporary)){
+            hiveTable.setTemporary(false);
+        }
+        else {
+            hiveTable.setTemporary(Boolean.parseBoolean(temporary));
+        }
         String tagsJson = table.getParameters().getOrDefault("tags", "[]");
         String[] tags = new String[0];
         try {

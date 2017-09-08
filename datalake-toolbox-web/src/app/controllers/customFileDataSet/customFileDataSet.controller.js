@@ -8,7 +8,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function CustomFileDataSetController($timeout, $log, $location, $filter, $scope, $stateParams, $state, userService, customFileDataSetService) {
+function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $scope, $stateParams, $state, userService, customFileDataSetService) {
   var vm = this;
   vm.isLoading = false;
 
@@ -16,6 +16,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
   if(angular.isDefined(vm.database_table) && vm.databaseAndTable !== '') {
     // TODO load existing table
   }
+
+  vm.alerts = [];
 
   vm.database = '';
   vm.name = '';
@@ -120,17 +122,28 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
     vm.gridOptions.columnDefs = [];
     vm.gridOptions.data = [];
 
-    var loadData = function(data) {
-      if(data !== null) {
-        vm.gridOptions.data = data.data;
-      }
-    };
-
     var stopLoading = function() {
       vm.isLoading = false;
     };
 
-    var parseData = function() {
+    $q(function() {
+      // upload the file if not already deployed
+      if(vm.fileUploaded === false) {
+        return customFileDataSetService.uploadFile({
+          database: vm.database,
+          name: vm.temporaryTableName,
+          file: vm.fileInfo
+        }).then(function() {
+          vm.fileUploaded = true;
+        });
+      }
+      else {
+        return $q(function() {
+          $log.info('File already uploaded');
+        });
+      }
+    })
+    .then(function() {
       if(vm.dataType === 'excel') {
         var excelOptions = {
           database: vm.database,
@@ -140,12 +153,9 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
           firstLineHeader: vm.excelFirstLineHeader
         };
 
-        return customFileDataSetService.getExcelData(excelOptions)
-          .then(loadData)
-          .then(stopLoading)
-          .catch(stopLoading);
+        return customFileDataSetService.getExcelData(excelOptions);
       }
-      if(vm.dataType === 'csv') {
+      else if(vm.dataType === 'csv') {
         var separator = getSeparator();
 
         var textQualifier = getTextQualifier();
@@ -159,39 +169,32 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
           firstLineHeader: vm.csvFirstLineHeader
         };
 
-        return customFileDataSetService.getCsvData(csvOptions)
-          .then(loadData)
-          .then(stopLoading)
-          .catch(stopLoading);
+        return customFileDataSetService.getCsvData(csvOptions);
       }
-      if(vm.dataType === 'raw') {
+      else if(vm.dataType === 'raw') {
         var rawOptions = {
           database: vm.database,
           name: vm.temporaryTableName,
           maxLinePreview: vm.maxLinePreview
         };
 
-        return customFileDataSetService.getRawData(rawOptions)
-          .then(loadData)
-          .then(stopLoading)
-          .catch(stopLoading);
+        return customFileDataSetService.getRawData(rawOptions);
       }
-    };
-
-    // upload the file if not already deployed
-    if(vm.fileUploaded === false) {
-      return customFileDataSetService.uploadFile({
-        database: vm.database,
-        name: vm.temporaryTableName,
-        file: vm.fileInfo
-      }).then(function() {
-        vm.fileUploaded = true;
-        return parseData();
-      });
-    }
-    else {
-      return parseData();
-    }
+      else {
+        return $q(function() { });
+      }
+    })
+    .then(function(data) {
+      if(data !== null) {
+        vm.gridOptions.data = data.data;
+      }
+    })
+    .then(stopLoading)
+    .catch(function(error) {
+      vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
+      throw error;
+    })
+    .catch(stopLoading);
   };
 
   vm.save = function() {
@@ -203,72 +206,65 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
     };
 
     customFileDataSetService.saveTable(saveTableRequest).then(function() {
-      var uploadRequest = {
-        database: vm.database,
-        name: vm.name,
-        file: vm.fileInfo
-      };
-
       // update file
-      customFileDataSetService.uploadFile(function() {
-        // update the data
-        if(vm.dataType === 'raw') {
-          options.rawOptions = {
-            database: vm.database,
-            name: vm.name
-          };
-
-          customFileDataSetService.saveDataAsRaw(options);
-        }
-        else if(vm.dataType === 'csv') {
-          options.csvOptions = {
-            database: vm.database,
-            name: vm.name,
-            separator: getSeparator(),
-            textQualifier: getTextQualifier(),
-            firstLineHeader: vm.csvFirstLineHeader
-          };
-
-          customFileDataSetService.saveDataAsCsv(options);
-        }
-        else if(vm.dataType === 'excel') {
-          options.excelOptions = {
-            database: vm.database,
-            name: vm.name,
-            sheet: vm.excelSource,
-            firstLineHeader: vm.excelFirstLineHeader
-          };
-
-          customFileDataSetService.saveDataAsExcel(options);
-        }
-      });
-    });
-
-    var options = {
-      file: vm.fileInfo,
-      name: vm.name,
-      description: vm.description,
-      format: vm.dataType
-    };
-
-    if(vm.dataType === 'csv') {
-      options.csvOptions = {
-        separator: getSeparator(),
-        textQualifier: getTextQualifier(),
-        firstLineHeader: vm.csvFirstLineHeader
-      };
-    }
-    else if(vm.dataType === 'excel') {
-      options.excelOptions = {
-        sheet: vm.excelSource,
-        firstLineHeader: vm.excelFirstLineHeader
-      };
-    }
-
-    return customFileDataSetService.save(options)
+      if(vm.fileUploaded === false) {
+        return customFileDataSetService.uploadFile({
+          database: vm.database,
+          name: vm.name,
+          file: vm.fileInfo
+        })
         .then(function() {
-          $state.go('dataSet');
+          vm.fileUploaded = true;
         });
+      }
+      else {
+        return $q(function() {
+          $log.info('File already uploaded');
+        });
+      }
+    })
+    .then(function() {
+      // update the data
+      if(vm.dataType === 'raw') {
+        var rawOptions = {
+          database: vm.database,
+          name: vm.name
+        };
+
+        return customFileDataSetService.saveDataAsRaw(rawOptions);
+      }
+      else if(vm.dataType === 'csv') {
+        var csvOptions = {
+          database: vm.database,
+          name: vm.name,
+          separator: getSeparator(),
+          textQualifier: getTextQualifier(),
+          firstLineHeader: vm.csvFirstLineHeader
+        };
+
+        return customFileDataSetService.saveDataAsCsv(csvOptions);
+      }
+      else if(vm.dataType === 'excel') {
+        var excelOptions = {
+          database: vm.database,
+          name: vm.name,
+          sheet: vm.excelSource,
+          firstLineHeader: vm.excelFirstLineHeader
+        };
+
+        return customFileDataSetService.saveDataAsExcel(excelOptions);
+      }
+      else {
+        return $q(function() { });
+      }
+    })
+    .then(function() {
+      vm.alerts.push({msg: 'Table saved.', type: 'info'});
+    })
+    .catch(function(error) {
+      vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
+      throw error;
+    });
   };
 
   function activate() {

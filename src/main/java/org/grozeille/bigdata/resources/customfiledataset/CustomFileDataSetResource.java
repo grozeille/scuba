@@ -126,7 +126,7 @@ public class CustomFileDataSetResource {
         return this.customFileDataSetService.sheets(database, table);
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.PUT)
+    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional(readOnly = false)
     public void uploadFile(
             @PathVariable("database") String database,
