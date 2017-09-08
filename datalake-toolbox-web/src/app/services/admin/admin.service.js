@@ -11,6 +11,7 @@ function adminService($log, $http, $location, $filter, $q, $rootScope) {
 
   vm.catchServiceException = function(error) {
     $log.error('XHR Failed.\n' + angular.toJson(error.data, true));
+    throw error;
   };
 
   function setupFirstAdmin(token) {
@@ -20,25 +21,25 @@ function adminService($log, $http, $location, $filter, $q, $rootScope) {
       adminToken: token
     };
 
-    return $http.post(url, request);
+    return $http.post(url, request).catch(vm.catchServiceException);
   }
 
   function getAllAdmins() {
     var url = vm.apiHost + '/admin';
 
-    return $http.get(url);
+    return $http.get(url).then(vm.getServiceData).catch(vm.catchServiceException);
   }
 
   function remove(login) {
     var url = vm.apiHost + '/admin/' + login;
 
-    return $http.delete(url);
+    return $http.delete(url).catch(vm.catchServiceException);
   }
 
   function add(login) {
     var url = vm.apiHost + '/admin/' + login;
 
-    return $http.put(url);
+    return $http.put(url).catch(vm.catchServiceException);
   }
 
   var service = {

@@ -29,6 +29,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
   vm.excelSheets = [];
   vm.excelFirstLineHeader = 'true';
 
+  vm.fileUploaded = false;
+
   vm.jsTags = {
     edit: true,
     texts: {
@@ -54,6 +56,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
     if(newValue === null || angular.isUndefined(newValue.name)) {
       return;
     }
+
+    vm.fileUploaded = false;
 
     var extension = newValue.name.split('.').pop();
     var extensionStart = extension.substr(0, 3);

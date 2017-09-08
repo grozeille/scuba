@@ -10,7 +10,8 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
   };
 
   vm.catchServiceException = function(error) {
-    $log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
+    $log.error('XHR Failed.\n' + angular.toJson(error.data, true));
+    throw error;
   };
 
   function getRawData(file) {

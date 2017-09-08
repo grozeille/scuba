@@ -5,16 +5,25 @@ function userService($log, $http, $location, $filter, $q, $rootScope, projectSer
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
 
+  vm.getServiceData = function(response) {
+    return response.data;
+  };
+
+  vm.catchServiceException = function(error) {
+    $log.error('XHR Failed.\n' + angular.toJson(error.data, true));
+    throw error;
+  };
+
   function getCurrent() {
     var url = vm.apiHost + '/user/current';
 
-    return $http.get(url);
+    return $http.get(url).then(vm.getServiceData).catch(vm.catchServiceException);
   }
 
   function getMemberProjects() {
     var url = vm.apiHost + '/user/current/project';
 
-    return $http.get(url);
+    return $http.get(url).then(vm.getServiceData).catch(vm.catchServiceException);
   }
 
   function updateLastProject(projectId) {
@@ -24,22 +33,22 @@ function userService($log, $http, $location, $filter, $q, $rootScope, projectSer
       projectId: projectId
     };
 
-    return $http.post(url, request);
+    return $http.post(url, request).then(vm.getServiceData).catch(vm.catchServiceException);
   }
 
   function getLastProject() {
-    return getCurrent().then(function(request) {
+    return getCurrent()
+    .then(function(request) {
       return projectService.getById(request.data.lastProject);
-    });
+    })
+    .then(vm.getServiceData)
+    .catch(vm.catchServiceException);
   }
 
   function isCurrentAdmin() {
     var url = vm.apiHost + '/user/current/is-admin';
 
-    return $http.get(url)
-      .then(function(request) {
-        return request.data;
-      });
+    return $http.get(url).then(vm.getServiceData).catch(vm.catchServiceException);
   }
 
   var service = {

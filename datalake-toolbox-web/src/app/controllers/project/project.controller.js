@@ -23,8 +23,8 @@ function ProjectController($log, $uibModal, $stateParams, projectService) {
 
   vm.refresh = function() {
     projectService.getById(vm.projectId)
-      .then(function(response) {
-        vm.project = response.data;
+      .then(function(data) {
+        vm.project = data;
       })
       .catch(function(error) {
         vm.alerts.push({msg: 'Unable to get project ' + vm.projectId + '.', type: 'danger'});
@@ -53,7 +53,7 @@ function ProjectController($log, $uibModal, $stateParams, projectService) {
 
   vm.save = function() {
     projectService.save(vm.project)
-      .then(function(response) {
+      .then(function() {
         vm.alerts.push({msg: 'Project saved.', type: 'info'});
       })
       .catch(function(error) {

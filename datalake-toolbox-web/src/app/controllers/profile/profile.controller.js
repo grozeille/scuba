@@ -16,8 +16,8 @@ function ProfileController($log, userService, projectService) {
   vm.selectedProject = null;
 
   vm.refreshProjectList = function() {
-    userService.getMemberProjects().then(function(request) {
-      vm.memberProjects = request.data;
+    userService.getMemberProjects().then(function(data) {
+      vm.memberProjects = data;
 
       vm.refreshLastProject();
     })
@@ -28,8 +28,8 @@ function ProfileController($log, userService, projectService) {
   };
 
   vm.refreshLastProject = function() {
-    userService.getCurrent().then(function(request) {
-      vm.currentProfile = request.data;
+    userService.getCurrent().then(function(data) {
+      vm.currentProfile = data;
       if(vm.currentProfile.lastProject !== null) {
         for(var index = 0; index < vm.memberProjects.length; index++) {
           if(vm.memberProjects[index].id === vm.currentProfile.lastProject) {
@@ -50,7 +50,7 @@ function ProfileController($log, userService, projectService) {
   };
 
   vm.save = function() {
-    userService.updateLastProject(vm.selectedProject.id).then(function(request) {
+    userService.updateLastProject(vm.selectedProject.id).then(function(data) {
       vm.alerts.push({msg: 'Profile saved.', type: 'info'});
     })
     .catch(function(error) {

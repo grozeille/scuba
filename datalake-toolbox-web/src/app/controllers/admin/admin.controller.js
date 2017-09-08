@@ -37,8 +37,8 @@ function AdminController($log, $uibModal, adminService, userService, projectServ
 
   vm.refreshAdmins = function() {
     adminService.getAllAdmins()
-      .then(function(response) {
-        vm.adminUsers = response.data;
+      .then(function(data) {
+        vm.adminUsers = data;
       })
       .catch(function(error) {
         vm.alerts.push({msg: 'Unable to get admins.', type: 'danger'});
@@ -93,8 +93,8 @@ function AdminController($log, $uibModal, adminService, userService, projectServ
 
   vm.refreshProjects = function() {
     projectService.getAllProjects()
-      .then(function(response) {
-        vm.projects = response.data;
+      .then(function(data) {
+        vm.projects = data;
       })
       .catch(function(error) {
         vm.alerts.push({msg: 'Unable to get projects.', type: 'danger'});
