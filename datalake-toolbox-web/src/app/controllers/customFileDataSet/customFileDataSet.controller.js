@@ -8,7 +8,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function CustomFileDataSetController($timeout, $log, $location, $filter, $scope, $stateParams, $state, customFileDataSetService) {
+function CustomFileDataSetController($timeout, $log, $location, $filter, $scope, $stateParams, $state, userService, customFileDataSetService) {
   var vm = this;
   vm.isLoading = false;
 
@@ -17,6 +17,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
     // TODO load existing table
   }
 
+  vm.database = '';
   vm.name = '';
   vm.description = '';
   vm.dataType = '';
@@ -28,8 +29,9 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
   vm.excelSource = '';
   vm.excelSheets = [];
   vm.excelFirstLineHeader = 'true';
-
+  vm.temporaryTableName = '';
   vm.fileUploaded = false;
+  vm.maxLinePreview = 5000;
 
   vm.jsTags = {
     edit: true,
@@ -73,7 +75,12 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
   });
 
   vm.getWorksheet = function() {
-    customFileDataSetService.getExcelWorksheets(vm.fileInfo).then(function(data) {
+    var options = {
+      database: vm.database,
+      name: vm.temporaryTableName
+    };
+
+    customFileDataSetService.getExcelWorksheets(options).then(function(data) {
       vm.excelSheets = data;
       if(vm.excelSheets.length > 0) {
         vm.excelSource = vm.excelSheets[0];
@@ -123,44 +130,120 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
       vm.isLoading = false;
     };
 
-    if(vm.dataType === 'excel') {
-      var excelOptions = {
-        file: vm.fileInfo,
-        sheet: vm.excelSource,
-        firstLineHeader: vm.excelFirstLineHeader
-      };
+    var parseData = function() {
+      if(vm.dataType === 'excel') {
+        var excelOptions = {
+          database: vm.database,
+          name: vm.temporaryTableName,
+          maxLinePreview: vm.maxLinePreview,
+          sheet: vm.excelSource,
+          firstLineHeader: vm.excelFirstLineHeader
+        };
 
-      return customFileDataSetService.getExcelData(excelOptions)
-        .then(loadData)
-        .then(stopLoading)
-        .catch(stopLoading);
+        return customFileDataSetService.getExcelData(excelOptions)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
+      if(vm.dataType === 'csv') {
+        var separator = getSeparator();
+
+        var textQualifier = getTextQualifier();
+
+        var csvOptions = {
+          database: vm.database,
+          name: vm.temporaryTableName,
+          maxLinePreview: vm.maxLinePreview,
+          separator: separator,
+          textQualifier: textQualifier,
+          firstLineHeader: vm.csvFirstLineHeader
+        };
+
+        return customFileDataSetService.getCsvData(csvOptions)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
+      if(vm.dataType === 'raw') {
+        var rawOptions = {
+          database: vm.database,
+          name: vm.temporaryTableName,
+          maxLinePreview: vm.maxLinePreview
+        };
+
+        return customFileDataSetService.getRawData(rawOptions)
+          .then(loadData)
+          .then(stopLoading)
+          .catch(stopLoading);
+      }
+    };
+
+    // upload the file if not already deployed
+    if(vm.fileUploaded === false) {
+      return customFileDataSetService.uploadFile({
+        database: vm.database,
+        name: vm.temporaryTableName,
+        file: vm.fileInfo
+      }).then(function() {
+        vm.fileUploaded = true;
+        return parseData();
+      });
     }
-    if(vm.dataType === 'csv') {
-      var separator = getSeparator();
-
-      var textQualifier = getTextQualifier();
-
-      var csvOptions = {
-        file: vm.fileInfo,
-        separator: separator,
-        textQualifier: textQualifier,
-        firstLineHeader: vm.csvFirstLineHeader
-      };
-
-      return customFileDataSetService.getCsvData(csvOptions)
-        .then(loadData)
-        .then(stopLoading)
-        .catch(stopLoading);
-    }
-    if(vm.dataType === 'raw') {
-      return customFileDataSetService.getRawData(vm.fileInfo)
-        .then(loadData)
-        .then(stopLoading)
-        .catch(stopLoading);
+    else {
+      return parseData();
     }
   };
 
   vm.save = function() {
+    var saveTableRequest = {
+      database: vm.database,
+      name: vm.name,
+      description: vm.description,
+      temporary: false
+    };
+
+    customFileDataSetService.saveTable(saveTableRequest).then(function() {
+      var uploadRequest = {
+        database: vm.database,
+        name: vm.name,
+        file: vm.fileInfo
+      };
+
+      // update file
+      customFileDataSetService.uploadFile(function() {
+        // update the data
+        if(vm.dataType === 'raw') {
+          options.rawOptions = {
+            database: vm.database,
+            name: vm.name
+          };
+
+          customFileDataSetService.saveDataAsRaw(options);
+        }
+        else if(vm.dataType === 'csv') {
+          options.csvOptions = {
+            database: vm.database,
+            name: vm.name,
+            separator: getSeparator(),
+            textQualifier: getTextQualifier(),
+            firstLineHeader: vm.csvFirstLineHeader
+          };
+
+          customFileDataSetService.saveDataAsCsv(options);
+        }
+        else if(vm.dataType === 'excel') {
+          options.excelOptions = {
+            database: vm.database,
+            name: vm.name,
+            sheet: vm.excelSource,
+            firstLineHeader: vm.excelFirstLineHeader
+          };
+
+          customFileDataSetService.saveDataAsExcel(options);
+        }
+      });
+    });
+
     var options = {
       file: vm.fileInfo,
       name: vm.name,
@@ -188,9 +271,47 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $scope,
         });
   };
 
-  activate();
-
   function activate() {
+    userService.getLastProject().then(function(data) {
+      $log.info(data);
+      vm.database = data.hiveDatabase;
+
+      userService.getCurrent().then(function(data) {
+        var today = new Date();
+        var minutes = today.getMinutes();
+        var day = today.getDate();
+        var month = today.getMonth() + 1; // January is 0!
+        var year = today.getFullYear();
+
+        if(minutes < 10) {
+          minutes = '0' + minutes;
+        }
+
+        if(day < 10) {
+          day = '0' + day;
+        }
+
+        if(month < 10) {
+          month = '0' + month;
+        }
+
+        today = year + month + day + minutes;
+
+        vm.temporaryTableName = 'new_file_' + data.login + '_' + today;
+
+        // create the temporary table
+        var saveTableRequest = {
+          database: vm.database,
+          name: vm.temporaryTableName,
+          temporary: true
+        };
+
+        customFileDataSetService.saveTable(saveTableRequest);
+      });
+    });
+
     $(':file').filestyle();
   }
+
+  activate();
 }

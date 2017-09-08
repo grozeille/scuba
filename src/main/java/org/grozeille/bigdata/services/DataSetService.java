@@ -95,10 +95,12 @@ public class DataSetService {
         try {
             HiveTable hiveTable = hiveService.findOne(database, table);
 
-            DataSet dataSet = convert(hiveTable);
+            if(!hiveTable.getTemporary()) {
+                DataSet dataSet = convert(hiveTable);
 
-            // index the table
-            dataSetRepository.save(dataSet);
+                // index the table
+                dataSetRepository.save(dataSet);
+            }
         } catch (TException e) {
             log.error("Unable to refresh table "+database+"."+table, e);
         }

@@ -11,8 +11,8 @@ public class PreviewCustomFileDataSetFormatRequest {
     }
     private CustomFileDataSetFormat format;
     private String sheet;
-    private Character separator;
-    private Character textQualifier;
+    private String separator;
+    private String textQualifier;
     private boolean firstLineHeader;
 
     private Long maxLinePreview = MAX_LINES_PREVIEW;

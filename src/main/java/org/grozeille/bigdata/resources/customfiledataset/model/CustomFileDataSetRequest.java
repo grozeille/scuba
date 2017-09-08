@@ -7,4 +7,6 @@ public class CustomFileDataSetRequest {
     private String comment;
 
     private String[] tags;
+
+    private Boolean temporary = false;
 }

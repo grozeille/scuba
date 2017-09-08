@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
+import org.apache.thrift.TException;
 import org.grozeille.bigdata.resources.hive.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class CustomFileDataSetService {
     @Autowired
     private DataSetService dataSetService;
 
-    public void createOrUpdateTemporaryTable(String database, String table, String comment, String creator, String[] tags) throws Exception {
+    public void createOrUpdateOrcTable(String database, String table, String comment, String creator, String[] tags, Boolean temporary) throws Exception {
         HiveTable hiveTable = hiveService.findOne(database, table);
 
         if(hiveTable == null) {
@@ -65,6 +66,7 @@ public class CustomFileDataSetService {
             hiveTable.setComment(comment);
             hiveTable.setCreator(creator);
             hiveTable.setTags(tags);
+            hiveTable.setTemporary(temporary);
             hiveTable.setColumns(new HiveColumn[]{new HiveColumn("line", "binary", "", new HiveColumnStatistics())});
 
             HiveDatabase hiveDatabase = hiveService.findOneDatabase(database);
@@ -77,18 +79,23 @@ public class CustomFileDataSetService {
             hiveTable.setComment(comment);
             hiveTable.setCreator(creator);
             hiveTable.setTags(tags);
+            hiveTable.setTemporary(temporary);
 
             hiveService.update(hiveTable);
         }
-        dataSetService.refreshTable(database, table);
+        if(!temporary) {
+            dataSetService.refreshTable(database, table);
+        }
     }
 
-    public void uploadFile(String database, String table, String filename, InputStream inputStream) throws Exception {
+    public void uploadFile(String database, String table, String filename, String contentType, InputStream inputStream) throws Exception {
         HiveTable hiveTable = hiveService.findOne(database, table);
 
-        String originalFilePath = hdfsService.write(inputStream, filename, hiveTable.getPath());
+        HdfsService.HdfsFileInfo originalFile = hdfsService.write(inputStream, filename, hiveTable.getPath());
         inputStream.close();
-        hiveTable.setOriginalFile(originalFilePath);
+        hiveTable.setOriginalFile(originalFile.getFilePath());
+        hiveTable.setOriginalFileSize(originalFile.getSize());
+        hiveTable.setOriginalFileContentType(contentType);
 
         hiveService.update(hiveTable);
         dataSetService.refreshTable(database, table);
@@ -208,5 +215,10 @@ public class CustomFileDataSetService {
             this.hiveService.createOrcTable(hiveTable);
             dataSetService.refreshTable(database, table);
         }
+    }
+
+    public InputStream downloadFile(String database, String table) throws Exception {
+        HiveTable hiveTable = hiveService.findOne(database, table);
+        return hdfsService.read(hiveTable.getOriginalFile());
     }
 }

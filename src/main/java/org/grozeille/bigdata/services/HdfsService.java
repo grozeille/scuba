@@ -1,5 +1,8 @@
 package org.grozeille.bigdata.services;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -16,10 +19,19 @@ public class HdfsService {
 
     public static final String TEMP_ORIGINAL_PREFIX = "_datalaketoolbox_original";
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HdfsFileInfo {
+        private String filePath;
+
+        private int size;
+    }
+
     @Autowired
     private FileSystem fs;
 
-    public String write(InputStream inputStream, String fileName, String tablePath) throws IOException {
+    public HdfsFileInfo write(InputStream inputStream, String fileName, String tablePath) throws IOException {
         // TODO use project working path
 
         Path fullTablePath = new Path(tablePath);
@@ -31,11 +43,12 @@ public class HdfsService {
             fs.mkdirs(originalFolderPath);
         }
 
+        int size = 0;
         try(FSDataOutputStream ous = fs.create(filePath)) {
-            IOUtils.copy(inputStream, ous);
+            size = IOUtils.copy(inputStream, ous);
         }
 
-        return filePath.toString();
+        return new HdfsFileInfo(filePath.toString(), size);
     }
 
     public InputStream read(String path) throws IOException {

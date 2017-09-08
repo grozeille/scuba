@@ -269,6 +269,9 @@ public class HiveService {
                 "TBLPROPERTIES (" +
                 "\"format\" = \""+table.getFormat()+"\"," +
                 "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
+                "\"originalFileContentType\" = \""+table.getOriginalFileContentType()+"\"," +
+                "\"originalFileSize\" = \""+table.getOriginalFileSize()+"\"," +
+                "\"temporary\" = \""+table.getTemporary()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
                 "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_FILE_DATA_SET + "\"" +
                 ")";
@@ -299,6 +302,9 @@ public class HiveService {
                 "SET TBLPROPERTIES (\n"+
                 "\"creator\" = \""+table.getCreator()+"\"," +
                 "\"originalFile\" = \""+table.getOriginalFile()+"\"," +
+                "\"originalFileContentType\" = \""+table.getOriginalFileContentType()+"\"," +
+                "\"originalFileSize\" = \""+table.getOriginalFileSize()+"\"," +
+                "\"temporary\" = \""+table.getTemporary()+"\"," +
                 "\"comment\"=\""+table.getComment()+"\",\n"+
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
                 "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_FILE_DATA_SET + "\"" +
@@ -785,6 +791,9 @@ public class HiveService {
 
         hiveTable.setDatsetConfiguration(table.getParameters().getOrDefault("datsetConfiguration", ""));
         hiveTable.setOriginalFile(table.getParameters().getOrDefault("originalFile", ""));
+        hiveTable.setOriginalFileContentType(table.getParameters().getOrDefault("originalFileContentType", ""));
+        hiveTable.setOriginalFileSize(Integer.parseInt(table.getParameters().getOrDefault("originalFileSize", "-1")));
+        hiveTable.setTemporary(Boolean.parseBoolean(table.getParameters().getOrDefault("temporary", "false")));
         // TODO detect format ?
         String tagsJson = table.getParameters().getOrDefault("tags", "[]");
         String[] tags = new String[0];

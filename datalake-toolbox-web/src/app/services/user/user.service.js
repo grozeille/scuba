@@ -38,10 +38,9 @@ function userService($log, $http, $location, $filter, $q, $rootScope, projectSer
 
   function getLastProject() {
     return getCurrent()
-    .then(function(request) {
-      return projectService.getById(request.data.lastProject);
+    .then(function(data) {
+      return projectService.getById(data.lastProject);
     })
-    .then(vm.getServiceData)
     .catch(vm.catchServiceException);
   }
 

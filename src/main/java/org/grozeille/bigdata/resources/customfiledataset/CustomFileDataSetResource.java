@@ -2,6 +2,7 @@ package org.grozeille.bigdata.resources.customfiledataset;
 
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hadoop.fs.Path;
 import org.apache.thrift.TException;
 import org.grozeille.bigdata.resources.customfiledataset.model.CustomFileDataSetFormatRequest;
 import org.grozeille.bigdata.resources.customfiledataset.model.CustomFileDataSetRequest;
@@ -9,13 +10,19 @@ import org.grozeille.bigdata.resources.customfiledataset.model.PreviewCustomFile
 import org.grozeille.bigdata.resources.hive.model.*;
 import org.grozeille.bigdata.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.InputStream;
 import java.security.Principal;
 
 @RestController
@@ -32,7 +39,7 @@ public class CustomFileDataSetResource {
     @Autowired
     private CustomFileDataSetService customFileDataSetService;
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.GET)
+    @RequestMapping(value = "/custom-file/{database}/{table}/file/parse-data", method = RequestMethod.POST)
     public HiveData data(
             @PathVariable("database") String database,
             @PathVariable("table") String table,
@@ -59,8 +66,8 @@ public class CustomFileDataSetResource {
                     database,
                     table,
                     new CustomFileDataSetService.CsvOptions(
-                            request.getSeparator(),
-                            request.getTextQualifier(),
+                            request.getSeparator() == null ? null : request.getSeparator().charAt(0),
+                            request.getTextQualifier() == null ? null : request.getTextQualifier().charAt(0),
                             request.isFirstLineHeader()
                     ),
                     request.getMaxLinePreview()
@@ -86,8 +93,34 @@ public class CustomFileDataSetResource {
         }
     }
 
+    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> data(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            HttpServletResponse response) throws Exception {
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file/sheets", method = RequestMethod.POST)
+        checkIfExists(database, table);
+
+        HiveTable hiveTable = hiveService.findOne(database, table);
+
+        String fileName = new Path(hiveTable.getOriginalFile()).getName();
+        String contentType = hiveTable.getOriginalFileContentType();
+        int size = hiveTable.getOriginalFileSize();
+
+        HttpHeaders respHeaders = new HttpHeaders();
+        respHeaders.setContentType(MediaType.valueOf(contentType));
+        if(size > 0) {
+            respHeaders.setContentLength(size);
+        }
+        respHeaders.setContentDispositionFormData("attachment", fileName);
+
+        // get your file as InputStream
+        InputStream is = this.customFileDataSetService.downloadFile(database, table);
+        InputStreamResource isr = new InputStreamResource(is);
+        return new ResponseEntity<InputStreamResource>(isr, respHeaders, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/custom-file/{database}/{table}/file/sheets", method = RequestMethod.GET)
     public String[] sheets(@PathVariable("database") String database,
                            @PathVariable("table") String table) throws Exception {
         return this.customFileDataSetService.sheets(database, table);
@@ -102,7 +135,12 @@ public class CustomFileDataSetResource {
 
         checkIfExists(database, table);
 
-        customFileDataSetService.uploadFile(database, table, file.getOriginalFilename(), file.getInputStream());
+        customFileDataSetService.uploadFile(
+                database,
+                table,
+                file.getOriginalFilename(),
+                file.getContentType(),
+                file.getInputStream());
     }
 
     @RequestMapping(value = "/custom-file/{database}/{table}", method = RequestMethod.PUT)
@@ -112,12 +150,13 @@ public class CustomFileDataSetResource {
             @PathVariable("table") String table,
             @RequestBody CustomFileDataSetRequest createCustomFileDataSetRequest) throws Exception {
 
-        this.customFileDataSetService.createOrUpdateTemporaryTable(
+        this.customFileDataSetService.createOrUpdateOrcTable(
                 database,
                 table,
                 createCustomFileDataSetRequest.getComment(),
                 principal.getName(),
-                createCustomFileDataSetRequest.getTags()
+                createCustomFileDataSetRequest.getTags(),
+                createCustomFileDataSetRequest.getTemporary()
         );
     }
 

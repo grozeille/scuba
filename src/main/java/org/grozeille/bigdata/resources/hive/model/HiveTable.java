@@ -22,7 +22,13 @@ public class HiveTable {
 
     private String originalFile;
 
+    private String originalFileContentType;
+
+    private Integer originalFileSize;
+
     private String datsetConfiguration;
+
+    private Boolean temporary;
 
     private HiveColumn[] columns;
 }
