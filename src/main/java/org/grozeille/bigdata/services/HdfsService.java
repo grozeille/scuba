@@ -48,7 +48,7 @@ public class HdfsService {
             size = IOUtils.copy(inputStream, ous);
         }
 
-        return new HdfsFileInfo(filePath.toString(), size);
+        return new HdfsFileInfo(fs.getFileStatus(filePath).getPath().toString(), size);
     }
 
     public InputStream read(String path) throws IOException {

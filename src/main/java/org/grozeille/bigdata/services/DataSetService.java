@@ -133,8 +133,10 @@ public class DataSetService {
         dataSet.setTags(hiveTable.getTags());
         dataSet.setDatalakeItemType(hiveTable.getDatalakeItemType());
 
-        dataSet.setColumns(Arrays.stream(hiveTable.getColumns()).map(c -> c.getName()).toArray(String[]::new));
-        dataSet.setColumnsComment(Arrays.stream(hiveTable.getColumns()).map(c -> c.getDescription()).toArray(String[]::new));
+        if(hiveTable.getColumns() != null) {
+            dataSet.setColumns(Arrays.stream(hiveTable.getColumns()).map(c -> c.getName()).toArray(String[]::new));
+            dataSet.setColumnsComment(Arrays.stream(hiveTable.getColumns()).map(c -> c.getDescription()).toArray(String[]::new));
+        }
 
         try {
             dataSet.setJsonData(objectMapper.writeValueAsString(hiveTable));

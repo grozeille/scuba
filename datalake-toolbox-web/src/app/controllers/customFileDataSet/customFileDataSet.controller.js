@@ -33,7 +33,9 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   vm.excelFirstLineHeader = 'true';
   vm.temporaryTableName = '';
   vm.fileUploaded = false;
+  vm.temporaryFileUploaded = false;
   vm.maxLinePreview = 5000;
+  vm.saving = false;
 
   vm.jsTags = {
     edit: true,
@@ -117,33 +119,59 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     return textQualifier;
   }
 
+  function uploadFile(temporary) {
+    var tableName = '';
+    if(temporary) {
+      tableName = vm.temporaryTableName;
+    }
+    else {
+      tableName = vm.name;
+    }
+
+    var uploaded = false;
+    if(temporary) {
+      uploaded = vm.temporaryFileUploaded;
+    }
+    else {
+      uploaded = vm.fileUploaded;
+    }
+
+    // upload the file if not already deployed
+    if(uploaded === false) {
+      return customFileDataSetService.uploadFile({
+        database: vm.database,
+        name: tableName,
+        file: vm.fileInfo
+      }).then(function() {
+        $log.info('File uploaded into ' + tableName);
+        if(temporary) {
+          vm.temporaryFileUploaded = true;
+        }
+        else {
+          vm.fileUploaded = true;
+        }
+      });
+    }
+    else {
+      return $q(function() {
+        $log.info('File already uploaded');
+      });
+    }
+  }
+
   vm.getData = function() {
     vm.isLoading = true;
     vm.gridOptions.columnDefs = [];
     vm.gridOptions.data = [];
 
     var stopLoading = function() {
+      $log.info('Stop loading');
       vm.isLoading = false;
     };
 
-    $q(function() {
-      // upload the file if not already deployed
-      if(vm.fileUploaded === false) {
-        return customFileDataSetService.uploadFile({
-          database: vm.database,
-          name: vm.temporaryTableName,
-          file: vm.fileInfo
-        }).then(function() {
-          vm.fileUploaded = true;
-        });
-      }
-      else {
-        return $q(function() {
-          $log.info('File already uploaded');
-        });
-      }
-    })
+    uploadFile(true)
     .then(function() {
+      $log.info('Parsing data...');
       if(vm.dataType === 'excel') {
         var excelOptions = {
           database: vm.database,
@@ -185,6 +213,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       }
     })
     .then(function(data) {
+      $log.info('Refresh data');
       if(data !== null) {
         vm.gridOptions.data = data.data;
       }
@@ -198,6 +227,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   };
 
   vm.save = function() {
+    vm.saving = true;
+
     var saveTableRequest = {
       database: vm.database,
       name: vm.name,
@@ -205,25 +236,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       temporary: false
     };
 
-    customFileDataSetService.saveTable(saveTableRequest).then(function() {
-      // update file
-      if(vm.fileUploaded === false) {
-        return customFileDataSetService.uploadFile({
-          database: vm.database,
-          name: vm.name,
-          file: vm.fileInfo
-        })
-        .then(function() {
-          vm.fileUploaded = true;
-        });
-      }
-      else {
-        return $q(function() {
-          $log.info('File already uploaded');
-        });
-      }
-    })
-    .then(function() {
+    var parseData = function() {
+      $log.info('Parsing data...');
       // update the data
       if(vm.dataType === 'raw') {
         var rawOptions = {
@@ -255,13 +269,21 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
         return customFileDataSetService.saveDataAsExcel(excelOptions);
       }
       else {
-        return $q(function() { });
+        $q(function() { });
       }
-    })
+    };
+
+    customFileDataSetService.saveTable(saveTableRequest)
     .then(function() {
+      return uploadFile(false);
+    })
+    .then(parseData)
+    .then(function() {
+      vm.saving = false;
       vm.alerts.push({msg: 'Table saved.', type: 'info'});
     })
     .catch(function(error) {
+      vm.saving = false;
       vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
       throw error;
     });
