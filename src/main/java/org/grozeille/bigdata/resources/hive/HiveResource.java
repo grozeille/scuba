@@ -1,6 +1,6 @@
 package org.grozeille.bigdata.resources.hive;
 
-import org.grozeille.bigdata.resources.userdataset.model.UserDataSetConf;
+import org.grozeille.bigdata.resources.wranglingdataset.model.WranglingDataSetConf;
 import org.grozeille.bigdata.resources.hive.model.*;
 import org.grozeille.bigdata.services.*;
 import lombok.extern.slf4j.Slf4j;
@@ -46,13 +46,13 @@ public class HiveResource {
 
     @RequestMapping(value = "/data/dataset", method = RequestMethod.POST)
     public HiveData data(
-            @RequestBody UserDataSetConf userDataSetConf,
+            @RequestBody WranglingDataSetConf wranglingDataSetConf,
             @RequestParam(value = "max", required = false, defaultValue = "10000") long max) throws Exception {
 
         HiveData hiveData = new HiveData();
 
         try {
-            hiveData.setData(hiveService.getData(userDataSetConf, max));
+            hiveData.setData(hiveService.getData(wranglingDataSetConf, max));
         } catch (HiveInvalidDataSetException e) {
             throw e;
         } catch (Exception e) {

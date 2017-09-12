@@ -4,10 +4,9 @@ var angular = require('angular');
 
 angular.module('datalakeToolbox')
   .component('datasetControllerComponent', require('./dataset/dataset.controller'))
-  .component('datasetEditorControllerComponent', require('./datasetEditor/datasetEditor.controller'))
-  .component('datasetEditorLinksControllerComponent', require('./datasetEditor/links/links.controller'))
-  .component('chooseTableControllerComponent', require('./chooseTable/chooseTable.controller'))
-  .component('catalogControllerComponent', require('./catalog/catalog.controller'))
+  .component('wranglingDataSetControllerComponent', require('./wranglingDataSet/wranglingDataSet.controller'))
+  .component('wranglingDataSetLinksControllerComponent', require('./wranglingDataSet/links/links.controller'))
+  .component('wranglingDataSetTableSelectionControllerComponent', require('./wranglingDataSetTableSelection/wranglingDataSetTableSelection.controller'))
   .component('customFileDataSetControllerComponent', require('./customFileDataSet/customFileDataSet.controller'))
   .component('adminControllerComponent', require('./admin/admin.controller'))
   .component('profileControllerComponent', require('./profile/profile.controller'))

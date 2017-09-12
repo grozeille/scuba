@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -26,22 +28,28 @@ public class DataSetResource {
     private DataSetService dataSetService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
-    public Iterable<HiveTable> filter(Pageable pageable, @RequestParam(value = "filter", required = false, defaultValue = "") String filter) {
+    public Iterable<HiveTable> filter(
+            Pageable pageable,
+            @RequestParam(value = "filter", required = false, defaultValue = "") String filter,
+            @RequestParam(value = "datalakeItemType", required = false) Collection<String> datalakeItemType) {
+
         final ObjectMapper objectMapper = new ObjectMapper();
         Page<DataSet> result;
         if(Strings.isNullOrEmpty(filter)) {
-            result = dataSetRepository.findAll(pageable);
-            return result.map(dataSet -> {
-                try {
-                    return objectMapper.readValue(dataSet.getJsonData(), HiveTable.class);
-                } catch (IOException e) {
-                    log.error("Unable to read json data: "+dataSet.getJsonData());
-                    return null;
-                }
-            });
+            if(datalakeItemType == null || datalakeItemType.isEmpty()) {
+                result = dataSetRepository.findAll(pageable);
+            }
+            else {
+                result = dataSetRepository.findByDatalakeItemTypeIn(pageable, datalakeItemType);
+            }
         }
         else {
-            result = dataSetRepository.findByAll(pageable, filter);
+            if(datalakeItemType == null || datalakeItemType.isEmpty()) {
+                result = dataSetRepository.findByAll(pageable, filter);
+            }
+            else {
+                result = dataSetRepository.findByDatalakeItemTypeInAndAll(pageable, datalakeItemType, filter);
+            }
         }
 
         return result.map(dataSet -> {

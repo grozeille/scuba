@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, preparationService) {
+function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, dataSetService, wranglingDataSetService) {
   var vm = this;
   vm.sourceFilter = '';
 
@@ -17,53 +17,52 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
     vm.chooseDataSetType();
   };
 
-  vm.loadView = function(id) {
-    preparationService.loadView(id).then(function() {
-      $state.go('datasetEditor');
+  vm.openWranglingDataSet = function(database, table) {
+    wranglingDataSetService.initDataSet(database, table).then(function() {
+      $state.go('wranglingDataSet');
     });
   };
 
-  vm.deleteView = function(id) {
-    preparationService.loadView(id);
-    var viewName = preparationService.getName();
-    preparationService.loadView();
-
-    $uibModal.open({
-      templateUrl: 'delete.html',
-      controllerAs: 'delete',
-      controller: function($uibModalInstance, viewName, parent) {
-        var vm = this;
-        vm.viewName = viewName;
-        vm.ok = function() {
-          preparationService.deleteView(id).then(function() {
-            $uibModalInstance.close();
-            parent.loadViews();
-          });
-        };
-        vm.cancel = function() {
-          $uibModalInstance.dismiss('cancel');
-        };
-      },
-      resolve: {
-        viewName: function () {
-          return viewName;
+  vm.deleteDataSet = function(database, table) {
+    dataSetService.getDataSet(database, table).then(function(data) {
+      $uibModal.open({
+        templateUrl: 'delete.html',
+        controllerAs: 'delete',
+        controller: function($uibModalInstance, dataSetName, parent) {
+          var vm = this;
+          vm.dataSetName = dataSetName;
+          vm.ok = function() {
+            dataSetService.deleteView(database, table).then(function() {
+              $uibModalInstance.close();
+              parent.loadAllDataSet();
+            });
+          };
+          vm.cancel = function() {
+            $uibModalInstance.dismiss('cancel');
+          };
         },
-        parent: function() {
-          return vm;
+        resolve: {
+          dataSetName: function () {
+            return database + '.' + table;
+          },
+          parent: function() {
+            return vm;
+          }
         }
-      }
+      });
     });
   };
 
-  vm.cloneView = function(id) {
-    preparationService.cloneView(id).then(function() {
-      $state.go('datasetEditor');
+  vm.cloneDataSet = function(database, table) {
+    // TODO test type of dataset
+    wranglingDataSetService.cloneDataSet(database, table).then(function() {
+      $state.go('wranglingDataSet');
     });
   };
 
-  vm.loadViews = function() {
-    preparationService.getViews().then(function(data) {
-      vm.views = data.content;
+  vm.loadAllDataSet = function() {
+    dataSetService.getAllDataSet().then(function(data) {
+      vm.dataSetList = data.content;
     });
   };
 
@@ -74,7 +73,7 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   };
 
   function activate() {
-    vm.loadViews();
+    vm.loadAllDataSet();
   }
 
   activate();

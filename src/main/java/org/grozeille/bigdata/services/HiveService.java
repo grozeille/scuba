@@ -4,11 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
-import org.grozeille.bigdata.resources.userdataset.model.*;
+import org.grozeille.bigdata.resources.wranglingdataset.model.*;
 import org.grozeille.bigdata.resources.hive.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -173,13 +172,13 @@ public class HiveService {
         return getData("select * from `"+database+"`.`"+table+"` limit "+max);
     }
 
-    public List<Map<String, Object>> getData(UserDataSetConf userDataSetConf, long max) throws HiveQueryException {
+    public List<Map<String, Object>> getData(WranglingDataSetConf wranglingDataSetConf, long max) throws HiveQueryException {
 
-        verifyDataSet(userDataSetConf);
+        verifyDataSet(wranglingDataSetConf);
 
-        String denormalizedSqlQuery = buildDenormalizedSqlQuery(userDataSetConf, max, true);
+        String denormalizedSqlQuery = buildDenormalizedSqlQuery(wranglingDataSetConf, max, true);
 
-        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, userDataSetConf);
+        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, wranglingDataSetConf);
 
         return getData(sqlQuery);
     }
@@ -209,36 +208,36 @@ public class HiveService {
         return result;
     }
 
-    public void createDataSet(UserDataSetConf userDataSetConf) throws HiveQueryException {
+    public void createDataSet(WranglingDataSetConf wranglingDataSetConf) throws HiveQueryException {
 
-        verifyDataSet(userDataSetConf);
+        verifyDataSet(wranglingDataSetConf);
 
-        String denormalizedSqlQuery = buildDenormalizedSqlQuery(userDataSetConf);
+        String denormalizedSqlQuery = buildDenormalizedSqlQuery(wranglingDataSetConf);
 
-        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, userDataSetConf);
+        String sqlQuery = buildSqlQuery(denormalizedSqlQuery, wranglingDataSetConf);
 
         String jsonTags = "[]";
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            jsonTags = objectMapper.writeValueAsString(userDataSetConf.getTags());
+            jsonTags = objectMapper.writeValueAsString(wranglingDataSetConf.getTags());
         } catch (JsonProcessingException e) {
             log.warn("Unable to serialize tags", e);
         }
 
-        String createViewSql = "CREATE VIEW `" + userDataSetConf.getDatabase() + "`.`" + userDataSetConf.getTable() + "`\n" +
-                "COMMENT '"+ userDataSetConf.getComment()+"'\n"+
+        String createViewSql = "CREATE VIEW `" + wranglingDataSetConf.getDatabase() + "`.`" + wranglingDataSetConf.getTable() + "`\n" +
+                "COMMENT '"+ wranglingDataSetConf.getComment()+"'\n"+
                 "TBLPROPERTIES (" +
-                "\"format\" = \""+ userDataSetConf.getFormat()+"\"," +
+                "\"format\" = \""+ wranglingDataSetConf.getFormat()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"," +
                 "\"datalakeItemType\" = \"" + DATALAKE_ITEM_TYPE_WRANGLING_DATA_SET + "\"" +
-                "\"datsetConfiguration\" = \""+ userDataSetConf.getId()+"\"" +
+                "\"datsetConfiguration\" = \""+ wranglingDataSetConf.getId()+"\"" +
                 ")\n"+
                 "AS "+sqlQuery;
 
         log.info("Create dataSet: " + createViewSql);
 
         try {
-            hiveJdbcTemplate.execute("DROP VIEW IF EXISTS `"+ userDataSetConf.getDatabase() + "`.`" + userDataSetConf.getTable() + "`");
+            hiveJdbcTemplate.execute("DROP VIEW IF EXISTS `"+ wranglingDataSetConf.getDatabase() + "`.`" + wranglingDataSetConf.getTable() + "`");
             long startTime = System.currentTimeMillis();
             hiveJdbcTemplate.execute(createViewSql);
             log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
@@ -335,15 +334,15 @@ public class HiveService {
         }
     }
 
-    private String buildDenormalizedSqlQuery(UserDataSetConf userDataSetConf) throws HiveQueryException {
-        return buildDenormalizedSqlQuery(userDataSetConf, Long.MAX_VALUE, false);
+    private String buildDenormalizedSqlQuery(WranglingDataSetConf wranglingDataSetConf) throws HiveQueryException {
+        return buildDenormalizedSqlQuery(wranglingDataSetConf, Long.MAX_VALUE, false);
     }
 
-    private void verifyDataSet(UserDataSetConf userDataSetConf) throws HiveInvalidDataSetException {
+    private void verifyDataSet(WranglingDataSetConf wranglingDataSetConf) throws HiveInvalidDataSetException {
         // verify that column names are unique
         Set<String> columns = new HashSet<>();
-        for(UserDataSetConfTable table : userDataSetConf.getTables()){
-            for(UserDataSetConfColumn col : table.getColumns()) {
+        for(WranglingDataSetConfTable table : wranglingDataSetConf.getTables()){
+            for(WranglingDataSetConfColumn col : table.getColumns()) {
                 if (col.getSelected()) {
                     if(columns.contains(col.getNewName().toLowerCase())){
                         throw new HiveInvalidDataSetException("Column '"+col.getNewName()+"' is duplicated");
@@ -354,19 +353,19 @@ public class HiveService {
         }
     }
 
-    private String buildSqlQuery(String denormalizedSqlQuery, UserDataSetConf userDataSetConf) throws HiveInvalidDataSetException {
+    private String buildSqlQuery(String denormalizedSqlQuery, WranglingDataSetConf wranglingDataSetConf) throws HiveInvalidDataSetException {
 
         // get the primary table, and the others
-        UserDataSetConfTable primaryTable = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
+        WranglingDataSetConfTable primaryTable = Arrays.stream(wranglingDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
 
         // get all tables with links
-        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), userDataSetConf.getLinks());
+        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), wranglingDataSetConf.getLinks());
 
         // compute the select path
         List<String> selectFirstLevelPartList = new ArrayList<>();
         List<String> selectSecondLevelPartList = new ArrayList<>();
 
-        for(UserDataSetConfTable table : userDataSetConf.getTables()){
+        for(WranglingDataSetConfTable table : wranglingDataSetConf.getTables()){
 
             // ignore columns of table not included
             String tableName = formatTableName(table.getDatabase(), table.getTable());
@@ -374,7 +373,7 @@ public class HiveService {
                 continue;
             }
 
-            for(UserDataSetConfColumn col : table.getColumns()){
+            for(WranglingDataSetConfColumn col : table.getColumns()){
 
                 // ignore unselected columns
                 if(!col.getSelected()){
@@ -401,7 +400,7 @@ public class HiveService {
         }
 
 
-        for(UserDataSetConfColumn col : userDataSetConf.getCalculatedColumns()){
+        for(WranglingDataSetConfColumn col : wranglingDataSetConf.getCalculatedColumns()){
             String formula = col.getFormula().toLowerCase();
             selectFirstLevelPartList.add(formula+" as `"+col.getNewName().toLowerCase()+"`");
         }
@@ -412,18 +411,18 @@ public class HiveService {
         return sqlQuery;
     }
 
-    private String buildDenormalizedSqlQuery(UserDataSetConf userDataSetConf, long max, boolean buildCache) throws HiveQueryException {
+    private String buildDenormalizedSqlQuery(WranglingDataSetConf wranglingDataSetConf, long max, boolean buildCache) throws HiveQueryException {
         // get the primary table, and the others
-        UserDataSetConfTable primaryTable = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
+        WranglingDataSetConfTable primaryTable = Arrays.stream(wranglingDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
         String primaryTableName = formatTableName(primaryTable.getDatabase(), primaryTable.getTable());
 
 
         // compute a unique alias for each tables, excludes tables not in joins
         int tableCpt = 0;
         Map<String, String> tableAliases = new HashMap<>();
-        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), userDataSetConf.getLinks());
+        Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), wranglingDataSetConf.getLinks());
 
-        for(UserDataSetConfTable ds : userDataSetConf.getTables()){
+        for(WranglingDataSetConfTable ds : wranglingDataSetConf.getTables()){
             String tableName = formatTableName(ds.getDatabase(), ds.getTable());
             if(tables.contains(tableName)) {
                 tableAliases.put(tableName, "T" + (tableCpt++));
@@ -438,7 +437,7 @@ public class HiveService {
         // compute the select path
         List<String> selectPartList = new ArrayList<>();
 
-        for(UserDataSetConfTable table : userDataSetConf.getTables()){
+        for(WranglingDataSetConfTable table : wranglingDataSetConf.getTables()){
 
             String tableName = formatTableName(table.getDatabase(), table.getTable());
             String tableAlias = tableAliases.get(tableName);
@@ -448,7 +447,7 @@ public class HiveService {
                 continue;
             }
 
-            for(UserDataSetConfColumn col : table.getColumns()){
+            for(WranglingDataSetConfColumn col : table.getColumns()){
 
                 String columnName = tableAlias+".`"+col.getName()+"`";
                 String columnAlias = computeColumnAlias(table.getDatabase(), table.getTable(), col.getName());
@@ -462,7 +461,7 @@ public class HiveService {
 
         // compute the join part
         List<String> joinPartList = new ArrayList<>();
-        for(UserDataSetConfLink link : userDataSetConf.getLinks()){
+        for(WranglingDataSetConfLink link : wranglingDataSetConf.getLinks()){
             String rightTableName = formatTableName(link.getRight().getDatabase(), link.getRight().getTable());
             String rightTableAlias = tableAliases.get(rightTableName);
 
@@ -476,7 +475,7 @@ public class HiveService {
 
             String join = joinType+" JOIN `" + link.getRight().getDatabase()+"`.`"+link.getRight().getTable()+"` AS "+rightTableAlias+" ON ";
             List<String> joinConditions = new ArrayList<>();
-            for(UserDataSetConfLinkColumn lc : link.getColumns()){
+            for(WranglingDataSetConfLinkColumn lc : link.getColumns()){
                 joinConditions.add(leftTableAlias+".`"+lc.getLeft()+"` = "+rightTableAlias+".`"+lc.getRight()+"`");
             }
             join += String.join(" AND ", joinConditions);
@@ -487,8 +486,8 @@ public class HiveService {
         String joinPart = String.join("\n", joinPartList);
 
         String wherePart = "";
-        if(userDataSetConf.getFilter().getConditions().length > 0 || userDataSetConf.getFilter().getGroups().length > 0){
-            wherePart = "WHERE "+computeFilter(userDataSetConf, tableAliases, userDataSetConf.getFilter());
+        if(wranglingDataSetConf.getFilter().getConditions().length > 0 || wranglingDataSetConf.getFilter().getGroups().length > 0){
+            wherePart = "WHERE "+computeFilter(wranglingDataSetConf, tableAliases, wranglingDataSetConf.getFilter());
         }
 
         String selectStatement = selectPart+"\n"+fromPart+"\n"+joinPart+"\n"+wherePart;
@@ -498,13 +497,13 @@ public class HiveService {
         }
 
         if(buildCache) {
-            selectStatement = buildCache(userDataSetConf, tableAliases, selectStatement);
+            selectStatement = buildCache(wranglingDataSetConf, tableAliases, selectStatement);
         }
 
         return selectStatement;
     }
 
-    private String buildCache(UserDataSetConf userDataSetConf, Map<String, String> tableAliases, String selectStatement) throws HiveQueryException {
+    private String buildCache(WranglingDataSetConf wranglingDataSetConf, Map<String, String> tableAliases, String selectStatement) throws HiveQueryException {
         // get the cached table
         boolean cacheUpToDate = false;
 
@@ -526,10 +525,10 @@ public class HiveService {
         }
 
         // search for the cached table and check the hash
-        String cacheTableName = TEMP_TABLE_PREFIX +"_"+ userDataSetConf.getTable().toLowerCase();
+        String cacheTableName = TEMP_TABLE_PREFIX +"_"+ wranglingDataSetConf.getTable().toLowerCase();
         Table cacheHiveTable = null;
         try {
-            cacheHiveTable = hiveMetaStoreClient.getTable(userDataSetConf.getDatabase(), cacheTableName);
+            cacheHiveTable = hiveMetaStoreClient.getTable(wranglingDataSetConf.getDatabase(), cacheTableName);
         } catch (NoSuchObjectException nsoe) {
             log.debug("Table not found: " + cacheTableName, nsoe);
         } catch (MetaException e) {
@@ -546,7 +545,7 @@ public class HiveService {
 
             if (!hash.equalsIgnoreCase(cacheHash)) {
                 // cache is not up to date, delete it
-                hiveJdbcTemplate.execute("DROP TABLE `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`");
+                hiveJdbcTemplate.execute("DROP TABLE `" + wranglingDataSetConf.getDatabase() + "`.`" + cacheTableName + "`");
             } else {
                 cacheUpToDate = true;
             }
@@ -570,7 +569,7 @@ public class HiveService {
 
 
 
-            String createCacheTableSql = "CREATE TABLE `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`\n" +
+            String createCacheTableSql = "CREATE TABLE `" + wranglingDataSetConf.getDatabase() + "`.`" + cacheTableName + "`\n" +
                     "STORED AS ORC\n" +
                     "LOCATION '" + cacheTablePath.toString() + "'\n" +
                     "TBLPROPERTIES ('" + linkHashKey + "'='" + hash + "')\n" +
@@ -589,7 +588,7 @@ public class HiveService {
 
         List<String> selectCachePartList = new ArrayList<>();
 
-        for(UserDataSetConfTable table : userDataSetConf.getTables()){
+        for(WranglingDataSetConfTable table : wranglingDataSetConf.getTables()){
 
             String tableName = formatTableName(table.getDatabase(), table.getTable());
             String tableAlias = tableAliases.get(tableName);
@@ -599,7 +598,7 @@ public class HiveService {
                 continue;
             }
 
-            for(UserDataSetConfColumn col : table.getColumns()){
+            for(WranglingDataSetConfColumn col : table.getColumns()){
 
                 String columnAlias = computeColumnAlias(table.getDatabase(), table.getTable(), col.getName());
 
@@ -610,15 +609,15 @@ public class HiveService {
         String selectCachePart = "SELECT "+String.join(" , ", selectCachePartList);
 
         // now the select statement is a simple select on the cache table
-        selectStatement = selectCachePart + "\nFROM `" + userDataSetConf.getDatabase() + "`.`" + cacheTableName + "`";
+        selectStatement = selectCachePart + "\nFROM `" + wranglingDataSetConf.getDatabase() + "`.`" + cacheTableName + "`";
         return selectStatement;
     }
 
-    private Set<String> getLinkedTables(String database, String table, UserDataSetConfLink[] links){
+    private Set<String> getLinkedTables(String database, String table, WranglingDataSetConfLink[] links){
         Set<String> result = new HashSet<>();
         result.add(formatTableName(database, table));
 
-        for(UserDataSetConfLink link : links){
+        for(WranglingDataSetConfLink link : links){
             if(link.getLeft().getDatabase().equalsIgnoreCase(database) && link.getLeft().getTable().equalsIgnoreCase(table)){
                 result.addAll(getLinkedTables(link.getRight().getDatabase(), link.getRight().getTable(), links));
             }
@@ -650,22 +649,22 @@ public class HiveService {
         throw new HiveInvalidDataSetException("Unknown type "+dataSetType);
     }
 
-    private String computeFilter(UserDataSetConf userDataSetConf, Map<String, String> tableAliases, UserDataSetFilterGroup group) throws HiveInvalidDataSetException {
+    private String computeFilter(WranglingDataSetConf wranglingDataSetConf, Map<String, String> tableAliases, WranglingDataSetFilterGroup group) throws HiveInvalidDataSetException {
         String operator = group.getOperator();
 
         List<String> conditions = new ArrayList<>();
-        for(UserDataSetFilterCondition c : group.getConditions()){
+        for(WranglingDataSetFilterCondition c : group.getConditions()){
 
             String columnName = "";
             String columnType = "";
 
             // search for database
-            UserDataSetConfTable table = Arrays.stream(userDataSetConf.getTables()).filter(dataSetConfTable ->
+            WranglingDataSetConfTable table = Arrays.stream(wranglingDataSetConf.getTables()).filter(dataSetConfTable ->
                     dataSetConfTable.getDatabase().equalsIgnoreCase(c.getDatabase()) && dataSetConfTable.getTable().equalsIgnoreCase(c.getTable())
             ).findFirst().get();
 
             // search for table
-            UserDataSetConfColumn column = Arrays.stream(table.getColumns()).filter(dataSetConfColumn ->
+            WranglingDataSetConfColumn column = Arrays.stream(table.getColumns()).filter(dataSetConfColumn ->
                     dataSetConfColumn.getName().equalsIgnoreCase(c.getColumn())
             ).findFirst().get();
 
@@ -765,8 +764,8 @@ public class HiveService {
 
         }
 
-        for(UserDataSetFilterGroup g : group.getGroups()) {
-            conditions.add(computeFilter(userDataSetConf, tableAliases, g));
+        for(WranglingDataSetFilterGroup g : group.getGroups()) {
+            conditions.add(computeFilter(wranglingDataSetConf, tableAliases, g));
         }
 
         String result = "("+String.join(" "+operator+" ", conditions)+")";

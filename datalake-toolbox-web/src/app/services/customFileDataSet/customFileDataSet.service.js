@@ -1,7 +1,7 @@
 module.exports = customFileDataSetService;
 
 /** @ngInject */
-function customFileDataSetService($log, $http, $location, $filter, $q, $rootScope, Upload, userService) {
+function customFileDataSetService($log, $http, $location, $filter, $q, $rootScope, Upload) {
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
 
@@ -13,6 +13,18 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
     $log.error('XHR Failed.\n' + angular.toJson(error.data, true));
     throw error;
   };
+
+  function initDataSet(database, table) {
+
+  }
+
+  function cloneDataSet(database, table) {
+
+  }
+
+  function saveDataSet() {
+
+  }
 
   function getRawData(options) {
     var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file/parse-data';

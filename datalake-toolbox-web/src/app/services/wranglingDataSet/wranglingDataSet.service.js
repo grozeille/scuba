@@ -1,12 +1,11 @@
-module.exports = preparationService;
+module.exports = wranglingDataSetService;
 
 /** @ngInject */
-function preparationService($log, $http, $location, $filter, $q, $rootScope, hiveService) {
+function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope, hiveService, userService) {
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
-  // vm.apiHost = 'http://localhost:8000/api';
 
-  vm.id = '';
+  vm.database = '';
   vm.name = '';
   vm.comment = '';
   vm.tables = { };
@@ -24,30 +23,21 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
     $log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
   };
 
-  function getViews() {
-    return $http.get(vm.apiHost + '/dataset')
-      .then(vm.getServiceData)
-      .catch(vm.catchServiceException);
-  }
+  function initDataSet(database, table) {
+    if(angular.isUndefined(database) && angular.isUndefined(table)) {
+      return userService.getLastProject().then(function(data) {
+        vm.database = data.hiveDatabase;
+        vm.name = '';
+        vm.comment = '';
+        vm.tables = { };
+        vm.calculatedColumns = [];
+        vm.links = [];
+        vm.filter = {operator: 'AND', rules: []};
 
-  function loadView(id) {
-    if(angular.isUndefined(id)) {
-      // load new view
-      vm.id = '';
-      vm.name = '';
-      vm.comment = '';
-      vm.tables = { };
-      vm.calculatedColumns = [];
-      vm.links = [];
-      vm.filter = {operator: 'AND', rules: []};
-
-      notifyOnChange();
-
-      return $q.when(null);
+        return $q.when(null);
+      });
     } else {
-      vm.id = id;
-
-      return $http.get(vm.apiHost + '/dataset/' + id)
+      return $http.get(vm.apiHost + '/dataset/' + database + '/' + table)
         .then(vm.getServiceData)
         .then(function(data) {
           var loadedView = data;
@@ -70,8 +60,8 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
     }
   }
 
-  function cloneView(id) {
-    return $http.get(vm.apiHost + '/dataset/' + id)
+  function cloneDataSet(database, table) {
+    return $http.get(vm.apiHost + '/dataset/' + database + '/' + table)
       .then(vm.getServiceData)
       .then(function(data) {
         var loadedView = data;
@@ -84,9 +74,28 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
         vm.comment = loadedView.comment;
         vm.filter = parseDataSetFilterGroup(loadedView.filter);
         vm.name = loadedView.table + ' (cloned)';
-        vm.id = '';
 
         notifyOnChange();
+
+        return data;
+      })
+      .catch(vm.catchServiceException);
+  }
+
+  function saveDataSet() {
+    var dataSetConf = buildDataSetConf();
+
+    var url = vm.apiHost + '/dataset';
+    if(''.localeCompare(vm.id) !== 0) {
+      url = url + '/' + vm.id;
+    }
+
+    return $http.put(url, dataSetConf)
+      .then(vm.getServiceData)
+      .then(function(data) {
+        if(angular.isDefined(data.id)) {
+          vm.id = data.id;
+        }
 
         return data;
       })
@@ -161,14 +170,10 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
 
   function buildDataSetConf() {
     var dataSetConf = {
-      id: vm.id,
-      database: 'app_aaa',
+      database: vm.database,
       table: vm.name,
-      path: '/app/aaa/' + vm.name,
       comment: vm.comment,
-      dataDomainOwner: 'mathias.kluba@gmail.com',
-      tags: ['quotes', 'yahoo', 'referential'],
-      format: 'view',
+      tags: ['test1', 'test2'],
       tables: getTables(),
       calculatedColumns: vm.calculatedColumns,
       links: vm.links,
@@ -176,36 +181,6 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
     };
 
     return dataSetConf;
-  }
-
-  function saveView() {
-    var dataSetConf = buildDataSetConf();
-
-    var url = vm.apiHost + '/dataset';
-    if(''.localeCompare(vm.id) !== 0) {
-      url = url + '/' + vm.id;
-    }
-
-    return $http.put(url, dataSetConf)
-      .then(vm.getServiceData)
-      .then(function(data) {
-        if(angular.isDefined(data.id)) {
-          vm.id = data.id;
-        }
-
-        return data;
-      })
-      .catch(vm.catchServiceException);
-  }
-
-  function deleteView(id) {
-    return $http.delete(vm.apiHost + '/dataset/' + id)
-      .then(vm.getServiceData)
-      .then(function(data) {
-        vm.id = data.id;
-        return data;
-      })
-      .catch(vm.catchServiceException);
   }
 
   function getName() {
@@ -420,11 +395,9 @@ function preparationService($log, $http, $location, $filter, $q, $rootScope, hiv
   }
 
   var service = {
-    getViews: getViews,
-    loadView: loadView,
-    saveView: saveView,
-    deleteView: deleteView,
-    cloneView: cloneView,
+    initDataSet: initDataSet,
+    saveDataSet: saveDataSet,
+    cloneDataSet: cloneDataSet,
     getName: getName,
     setName: setName,
     getComment: getComment,

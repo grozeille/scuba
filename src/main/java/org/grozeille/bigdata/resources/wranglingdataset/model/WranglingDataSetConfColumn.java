@@ -1,9 +1,9 @@
-package org.grozeille.bigdata.resources.userdataset.model;
+package org.grozeille.bigdata.resources.wranglingdataset.model;
 
 import lombok.Data;
 
 @Data
-public class UserDataSetConfColumn {
+public class WranglingDataSetConfColumn {
 
     private String name;
 

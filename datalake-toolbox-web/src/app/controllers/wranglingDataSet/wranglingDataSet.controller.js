@@ -1,13 +1,13 @@
-require('./datasetEditor.css');
+require('./wranglingDataSet.css');
 
 module.exports = {
-  controller: DatasetEditorController,
-  controllerAs: 'datasetEditor',
-  template: require('./datasetEditor.html')
+  controller: WranglingDataSetController,
+  controllerAs: 'wranglingDataSet',
+  template: require('./wranglingDataSet.html')
 };
 
 /** @ngInject */
-function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, preparationService) {
+function WranglingDataSetController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, wranglingDataSetService) {
   var vm = this;
   vm.maxRows = 10000;
   vm.selectedColumn = null;
@@ -29,10 +29,10 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   vm.calculatedColumns = [];
   vm.isColumnLinked = { };
 
-  vm.name = preparationService.getName();
-  vm.description = preparationService.getComment();
+  vm.name = wranglingDataSetService.getName();
+  vm.description = wranglingDataSetService.getComment();
 
-  vm.queryGroup = preparationService.getFilter();
+  vm.queryGroup = wranglingDataSetService.getFilter();
   vm.queryFields = [];
 
   function htmlEntities(str) {
@@ -75,7 +75,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
     return '<b>Filter:</b> ' + computed(vm.queryGroup);
   };
 
-  preparationService.subscribeOnChange($scope, function() {
+  wranglingDataSetService.subscribeOnChange($scope, function() {
     vm.refreshTables();
     $log.info('Refreshed after changes at: ' + new Date());
   });
@@ -83,10 +83,10 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   var savedModal = require('./saved/saved.controller');
 
   vm.save = function() {
-    preparationService.setName(vm.name);
-    preparationService.setComment(vm.description);
-    preparationService.setFilter(vm.queryGroup);
-    preparationService.saveView();
+    wranglingDataSetService.setName(vm.name);
+    wranglingDataSetService.setComment(vm.description);
+    wranglingDataSetService.setFilter(vm.queryGroup);
+    wranglingDataSetService.saveDataSet();
     $log.info('Save at: ' + new Date());
 
     savedModal.resolve = {
@@ -105,9 +105,9 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
     vm.selectedColumnIsCalculated = null;
     vm.queryFields = [];
 
-    vm.tables = preparationService.getTables();
-    vm.calculatedColumns = preparationService.getCalculatedColumns();
-    var links = preparationService.getLinks();
+    vm.tables = wranglingDataSetService.getTables();
+    vm.calculatedColumns = wranglingDataSetService.getCalculatedColumns();
+    var links = wranglingDataSetService.getLinks();
     vm.isColumnLinked = { };
     for(var l = 0; l < links.length; l++) {
       var link = links[l];
@@ -211,7 +211,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
 
   vm.getData = function() {
     vm.isLoading = true;
-    return preparationService.getData(vm.maxRows).then(function(data) {
+    return wranglingDataSetService.getData(vm.maxRows).then(function(data) {
       if(data !== null) {
         vm.gridOptions.data = data.data;
       }
@@ -223,7 +223,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   };
 
   vm.cancelGetData = function() {
-    preparationService.cancelGetData('user cancel');
+    wranglingDataSetService.cancelGetData('user cancel');
   };
 
   vm.rename = function() {
@@ -237,7 +237,7 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   };
 
   vm.makeTablePrimary = function(database, table) {
-    preparationService.makeTablePrimary(database, table);
+    wranglingDataSetService.makeTablePrimary(database, table);
   };
 
   vm.isColumnSelected = function(col) {
@@ -284,19 +284,19 @@ function DatasetEditorController($timeout, $log, $uibModal, $state, $stateParams
   };
 
   vm.onColumnSelectionChange = function() {
-    preparationService.notifyOnChange();
+    wranglingDataSetService.notifyOnChange();
   };
 
   vm.createCalculated = function() {
     if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null) {
       var calculatedColumn = {
-        name: 'calculated_' + preparationService.getNextCalculatedColumnSequence(),
+        name: 'calculated_' + wranglingDataSetService.getNextCalculatedColumnSequence(),
         newName: vm.selectedColumn.newName + ' calculated',
         newDescription: '',
         formula: '`' + vm.selectedColumn.newName + '`',
         isCalculated: true
       };
-      preparationService.addCalculatedColumn(calculatedColumn);
+      wranglingDataSetService.addCalculatedColumn(calculatedColumn);
 
       // TODO select the new column
       // vm.gridOptions.columnDefs

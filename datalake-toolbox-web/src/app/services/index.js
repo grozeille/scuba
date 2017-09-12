@@ -4,7 +4,8 @@ var angular = require('angular');
 
 angular.module('datalakeToolbox')
   .service('hiveService', require('./hive/hive.service'))
-  .service('preparationService', require('./preparation/preparation.service'))
+  .service('dataSetService', require('./dataSet/dataSet.service'))
+  .service('wranglingDataSetService', require('./wranglingDataSet/wranglingDataSet.service'))
   .service('customFileDataSetService', require('./customFileDataSet/customFileDataSet.service'))
   .service('adminService', require('./admin/admin.service'))
   .service('projectService', require('./project/project.service'))

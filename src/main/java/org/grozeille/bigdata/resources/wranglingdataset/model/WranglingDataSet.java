@@ -1,4 +1,4 @@
-package org.grozeille.bigdata.resources.userdataset.model;
+package org.grozeille.bigdata.resources.wranglingdataset.model;
 
 import lombok.Data;
 
@@ -10,7 +10,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "DATASET")
 @Data
-public class UserDataSet {
+public class WranglingDataSet {
 
     @Id
     @Column(name = "ID")

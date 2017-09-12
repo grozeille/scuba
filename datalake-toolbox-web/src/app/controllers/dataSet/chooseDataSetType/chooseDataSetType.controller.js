@@ -5,12 +5,12 @@ module.exports = {
 };
 
 /** @ngInject */
-function ChooseDataSetTypeController($uibModalInstance, $log, $state, preparationService) {
+function ChooseDataSetTypeController($uibModalInstance, $log, $state, wranglingDataSetService) {
   var vm = this;
 
   vm.wrangleDataSet = function() {
-    preparationService.loadView().then(function() {
-      $state.go('datasetEditor');
+    wranglingDataSetService.initDataSet().then(function() {
+      $state.go('wranglingDataSet');
     });
     $uibModalInstance.close();
   };

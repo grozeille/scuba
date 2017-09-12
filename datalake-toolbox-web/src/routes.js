@@ -7,23 +7,13 @@ function routesConfig($stateProvider, $urlRouterProvider) {
       url: '/dataset',
       component: 'datasetControllerComponent'
     })
-    .state('datasetEditor', {
-      url: '/dataset/editor',
-      component: 'datasetEditorControllerComponent',
-      params: {
-        scrollTo: 'body'
-      }
+    .state('wranglingDataSet', {
+      url: '/dataset/wrangling',
+      component: 'wranglingDataSetControllerComponent'
     })
-    .state('chooseTable', {
-      url: '/dataset/chooseTable',
-      component: 'chooseTableControllerComponent'
-    })
-    .state('catalog', {
-      url: '/catalog',
-      component: 'catalogControllerComponent',
-      params: {
-        scrollTo: 'body'
-      }
+    .state('wranglingDataSetTableSelection', {
+      url: '/dataset/tableSelection',
+      component: 'wranglingDataSetTableSelectionControllerComponent'
     })
     .state('customFileDataSet', {
       url: '/dataset/customFile',

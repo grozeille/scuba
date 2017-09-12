@@ -9,8 +9,8 @@ import org.grozeille.bigdata.repositories.jpa.UserDataSetRepository;
 import org.grozeille.bigdata.repositories.solr.DataSetRepository;
 import org.grozeille.bigdata.resources.hive.model.HiveColumn;
 import org.grozeille.bigdata.resources.hive.model.HiveTable;
-import org.grozeille.bigdata.resources.userdataset.model.UserDataSet;
-import org.grozeille.bigdata.resources.userdataset.model.UserDataSetConf;
+import org.grozeille.bigdata.resources.wranglingdataset.model.WranglingDataSet;
+import org.grozeille.bigdata.resources.wranglingdataset.model.WranglingDataSetConf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,34 +56,13 @@ public class DataSetService {
         // refresh index from tables
         allPublicTables.forEach(hiveTable -> {
 
-            DataSet dataSet = convert(hiveTable);
+            DataSet dataSet = refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
 
-            // index the table
-            dataSetRepository.save(dataSet);
-
-            // remove it from the list of existing tables
-            tableKeys.remove(dataSet.getId());
-        });
-
-        // load datasets
-        Iterable<UserDataSet> userDataSets = userDataSetRepository.findAll();
-        for (UserDataSet uds : userDataSets) {
-
-            try {
-                UserDataSetConf userDataSetConf = objectMapper.readValue(uds.getJsonConf(), UserDataSetConf.class);
-
-                DataSet dataSet = convert(userDataSetConf);
-
-                // index the table
-                dataSetRepository.save(dataSet);
-
+            if(dataSet != null) {
                 // remove it from the list of existing tables
                 tableKeys.remove(dataSet.getId());
-
-            } catch (IOException e) {
-                log.error("Unable to read user DataSet: " + uds.getId(), e);
             }
-        }
+        });
 
         // delete missing tables
         for (String key : tableKeys) {
@@ -91,7 +70,7 @@ public class DataSetService {
         }
     }
 
-    public void refreshTable(String database, String table){
+    public DataSet refreshTable(String database, String table){
         try {
             HiveTable hiveTable = hiveService.findOne(database, table);
 
@@ -100,14 +79,19 @@ public class DataSetService {
 
                 // index the table
                 dataSetRepository.save(dataSet);
+
+                return dataSet;
             }
+
+            return null;
         } catch (TException e) {
             log.error("Unable to refresh table "+database+"."+table, e);
+            return null;
         }
     }
 
-    public void refreshUserDataSet(UserDataSetConf userDataSetConf){
-        DataSet dataSet = convert(userDataSetConf);
+    public void refreshUserDataSet(WranglingDataSetConf wranglingDataSetConf){
+        DataSet dataSet = convert(wranglingDataSetConf);
 
         // index the table
         dataSetRepository.save(dataSet);
@@ -147,26 +131,26 @@ public class DataSetService {
         return dataSet;
     }
 
-    private DataSet convert(UserDataSetConf userDataSetConf){
+    private DataSet convert(WranglingDataSetConf wranglingDataSetConf){
 
         HiveTable hiveTable = new HiveTable();
-        hiveTable.setDatabase(userDataSetConf.getDatabase());
-        hiveTable.setTable(userDataSetConf.getTable());
-        hiveTable.setComment(userDataSetConf.getComment());
-        hiveTable.setCreator(userDataSetConf.getDataDomainOwner());
-        hiveTable.setFormat(userDataSetConf.getFormat());
-        hiveTable.setPath(userDataSetConf.getPath());
-        hiveTable.setTags(userDataSetConf.getTags());
+        hiveTable.setDatabase(wranglingDataSetConf.getDatabase());
+        hiveTable.setTable(wranglingDataSetConf.getTable());
+        hiveTable.setComment(wranglingDataSetConf.getComment());
+        hiveTable.setCreator(wranglingDataSetConf.getDataDomainOwner());
+        hiveTable.setFormat(wranglingDataSetConf.getFormat());
+        hiveTable.setPath(wranglingDataSetConf.getPath());
+        hiveTable.setTags(wranglingDataSetConf.getTags());
         hiveTable.setDatalakeItemType(HiveService.DATALAKE_ITEM_TYPE_WRANGLING_DATA_SET);
 
-        Stream<HiveColumn> calculatedColumns = Arrays.stream(userDataSetConf.getCalculatedColumns()).map(c -> {
+        Stream<HiveColumn> calculatedColumns = Arrays.stream(wranglingDataSetConf.getCalculatedColumns()).map(c -> {
             HiveColumn column = new HiveColumn();
             column.setName(c.getNewName());
             column.setDescription(c.getNewDescription());
             column.setType(c.getNewType());
             return column;
         });
-        Stream<HiveColumn> selectedColumns = Arrays.stream(userDataSetConf.getTables()).flatMap(t -> {
+        Stream<HiveColumn> selectedColumns = Arrays.stream(wranglingDataSetConf.getTables()).flatMap(t -> {
             return Arrays.stream(t.getColumns())
                     .map(c -> {
                         if(!c.getSelected()){

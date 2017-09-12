@@ -1,9 +1,9 @@
-package org.grozeille.bigdata.resources.userdataset.model;
+package org.grozeille.bigdata.resources.wranglingdataset.model;
 
 import lombok.Data;
 
 @Data
-public class UserDataSetConfTable {
+public class WranglingDataSetConfTable {
 
     private String database;
 
@@ -21,5 +21,5 @@ public class UserDataSetConfTable {
 
     private Boolean primary;
 
-    private UserDataSetConfColumn[] columns;
+    private WranglingDataSetConfColumn[] columns;
 }
