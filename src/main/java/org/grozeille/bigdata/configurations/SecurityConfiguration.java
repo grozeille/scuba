@@ -10,21 +10,35 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.Filter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -83,21 +97,34 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return filter;
     }
 
+    private Filter basicFilter() throws Exception {
+        InternalTestAuthenticationProvider internalProvider = new InternalTestAuthenticationProvider();
+        internalProvider.setAuthoritiesExtractor(internalAuthoritiesExtractor);
+
+        Map<String, String> loginPasswords = new HashMap<>();
+        loginPasswords.put("admin", "admin");
+        loginPasswords.put("user", "user");
+        internalProvider.setLoginPasswords(loginPasswords);
+
+        ProviderManager providerManager = new ProviderManager(Arrays.asList(internalProvider));
+        AuthenticationEventPublisher authenticationEventPublisher = new DefaultAuthenticationEventPublisher(this.applicationEventPublisher);
+        providerManager.setAuthenticationEventPublisher(authenticationEventPublisher);
+
+        BasicAuthenticationFilter filter = new BasicAuthenticationFilter(providerManager);
+
+        return filter;
+    }
+
+    private AuthenticationEntryPoint basicEntryPoint() {
+        BasicAuthenticationEntryPoint entryPoint = new BasicAuthenticationEntryPoint();
+        entryPoint.setRealmName("Realm");
+
+        return entryPoint;
+    }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        if(securityEnabled) {
-            super.configure(auth);
-        }
-        else {
-            auth.inMemoryAuthentication()
-                    .withUser("admin")
-                    .password("admin")
-                    .authorities("ROLE_USER", "ROLE_ADMIN")
-            .and()
-                    .withUser("user")
-                    .password("user")
-                    .authorities("ROLE_USER");
-        }
+        super.configure(auth);
     }
 
     @Override
@@ -141,23 +168,27 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
             http
                     .authorizeRequests()
-                    .antMatchers(
-                            "/login**",
-                            "/login",
-                            "/health**",
-                            "/info**",
-                            "/metrics**",
-                            "/h2-console/**",
-                            "/api/profile/user"
-                    ).permitAll()
-                    .antMatchers("/").authenticated()
-                    .antMatchers("/**").hasRole("USER")
-                    .anyRequest().authenticated()
+                        .antMatchers(
+                                "/login**",
+                                "/login",
+                                "/health**",
+                                "/info**",
+                                "/metrics**",
+                                "/h2-console/**",
+                                "/api/profile/user"
+                        ).permitAll()
+                        .antMatchers("/").authenticated()
+                        .antMatchers("/**").hasRole("USER")
+                        .anyRequest().authenticated()
+                    .and()
+                    .exceptionHandling().authenticationEntryPoint(basicEntryPoint())
+                    .and()
+                    .logout().logoutUrl("/logout").logoutSuccessUrl("/").permitAll()
                     .and()
                     .headers().frameOptions().disable()
                     .and()
                     .csrf().disable()
-                    .httpBasic();
+                    .addFilter(basicFilter());
         }
     }
 }
