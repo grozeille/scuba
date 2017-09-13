@@ -7,11 +7,14 @@ import org.grozeille.bigdata.ClusterConfiguration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.grozeille.bigdata.configurations.stereotype.JpaRepository;
+import org.grozeille.bigdata.configurations.stereotype.SolrRepository;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
@@ -30,8 +33,8 @@ import javax.sql.DataSource;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
-@EnableSolrRepositories(basePackages = "org.grozeille.bigdata.repositories.solr")
-@EnableJpaRepositories(basePackages = "org.grozeille.bigdata.repositories.jpa")
+@EnableSolrRepositories(includeFilters = @ComponentScan.Filter(SolrRepository.class), basePackages = "org.grozeille.bigdata")
+@EnableJpaRepositories(includeFilters = @ComponentScan.Filter(JpaRepository.class), basePackages = "org.grozeille.bigdata")
 @Configuration
 public class ApplicationConfiguration {
 

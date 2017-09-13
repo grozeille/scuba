@@ -39,7 +39,7 @@ datalake:
 
 
 security:
-  enabled: true
+  enabled: false
   oauth2:
     client:
       clientId: e033f4f194da5c694fbf

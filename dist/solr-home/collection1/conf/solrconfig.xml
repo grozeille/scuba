@@ -965,12 +965,12 @@
   </initParams>
 
   <!-- The following are implicitly added
-  <requestHandler name="/update/json" class="solr.UpdateRequestHandler">
+  <requestHandler name="/updateTable/json" class="solr.UpdateRequestHandler">
         <lst name="defaults">
          <str name="stream.contentType">application/json</str>
        </lst>
   </requestHandler>
-  <requestHandler name="/update/csv" class="solr.UpdateRequestHandler">
+  <requestHandler name="/updateTable/csv" class="solr.UpdateRequestHandler">
         <lst name="defaults">
          <str name="stream.contentType">application/csv</str>
        </lst>
@@ -1578,11 +1578,11 @@
    </updateRequestProcessorChain>
   -->
 
-  <!-- Script update processor
+  <!-- Script updateTable processor
 
-    This example hooks in an update processor implemented using JavaScript.
+    This example hooks in an updateTable processor implemented using JavaScript.
 
-    See more about the script update processor at http://wiki.apache.org/solr/ScriptUpdateProcessor
+    See more about the script updateTable processor at http://wiki.apache.org/solr/ScriptUpdateProcessor
   -->
   <!--
     <updateRequestProcessorChain name="script">
