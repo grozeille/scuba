@@ -4,8 +4,8 @@
 <div class="modal-body">
 
 
-  <div class="row">
-    <div class="col-md-offset-1 col-md-5">
+  <div class="row" ng-show="chooseDataSetType.page === 1">
+    <div class="col-sm-offset-1 col-sm-5">
       <a ng-click="chooseDataSetType.wrangleDataSet()" class="thumbnail">
         <img src="../../../assets/images/tables.png" style="padding:20px">
         <div class="caption">
@@ -14,7 +14,7 @@
         </div>
       </a>
     </div>
-    <div class="col-md-5">
+    <div class="col-sm-5">
       <a ng-click="chooseDataSetType.fileDataSet()" class="thumbnail">
         <img src="../../../assets/images/upload.png" style="padding:20px">
         <div class="caption">
@@ -25,7 +25,34 @@
     </div>
   </div>
 
+  <div class="row" ng-show="chooseDataSetType.page === 2">
+    <form style="padding:10px;">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="form-group">
+            <label for="inputDatabase" class="control-label">Database</label>
+            <input class="form-control" id="inputDatabase" placeholder="" ng-model="chooseDataSetType.database" disabled>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="form-group">
+            <label for="inputTableName" class="control-label">Table Name</label>
+            <input class="form-control" id="inputTableName" placeholder="" ng-model="chooseDataSetType.name">
+          </div>
+        </div>
+      </div>
+      <div class="row" ng-show="chooseDataSetType.showTableAlreadyExistError">
+        <div class="col-sm-12">
+          <div uib-alert class="alert-danger">This table already exists. Please choose another name.</div>
+        </div>
+      </div>
+    </form>
+  </div>
+
 </div>
 <div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="chooseDataSetType.ok()" ng-show="chooseDataSetType.page === 2">OK</button>
   <button class="btn btn-default" type="button" ng-click="chooseDataSetType.cancel()">Cancel</button>
 </div>

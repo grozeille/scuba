@@ -11,6 +11,8 @@ import org.grozeille.bigdata.dataset.services.DataSetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -65,17 +67,15 @@ public class DataSetResource {
     }
 
     @RequestMapping(value = "/{database}/{table}", method = RequestMethod.GET)
-    public HiveTable get(@PathVariable("database") String database,
-                         @PathVariable("table") String table) {
+    public ResponseEntity<HiveTable> get(@PathVariable("database") String database,
+                                         @PathVariable("table") String table) throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
 
         DataSetSearchItem result = dataSetRepository.findByDatabaseAndTable(database, table);
-        try {
-            return objectMapper.readValue(result.getJsonData(), HiveTable.class);
-        } catch (IOException e) {
-            log.error("Unable to read json data: "+result.getJsonData());
-            return null;
+        if(result == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+        return ResponseEntity.ok(objectMapper.readValue(result.getJsonData(), HiveTable.class));
     }
 
     @RequestMapping(value = "/{database}/{table}", method = RequestMethod.DELETE)

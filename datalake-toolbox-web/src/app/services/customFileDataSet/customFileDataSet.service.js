@@ -1,9 +1,16 @@
 module.exports = customFileDataSetService;
 
 /** @ngInject */
-function customFileDataSetService($log, $http, $location, $filter, $q, $rootScope, Upload) {
+function customFileDataSetService($log, $http, $location, $filter, $q, $rootScope, Upload, dataSetService, userService) {
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
+
+  vm.database = '';
+  vm.table = '';
+  vm.temporaryTable = '';
+  vm.dataSetRequest = null;
+  vm.customFileDataSetConfig = null;
+  vm.currentUser = null;
 
   vm.getServiceData = function(response) {
     return response.data;
@@ -15,113 +22,91 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
   };
 
   function initDataSet(database, table) {
+    vm.database = database;
+    vm.table = table;
+    vm.dataSetRequest = null;
+    vm.customFileDataSetConfig = null;
 
+    userService.getCurrent().then(function(data) {
+      vm.currentUser = data;
+      vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
+    })
+    .then(function() {
+      dataSetService.getDataSet(vm.database, vm.name).then(function(data) {
+        if(data === null) {
+          vm.dataSetRequest = {
+            comment: '',
+            tags: []
+          };
+          vm.customFileDataSetConfig = {
+            fileFormat: 'RAW'
+          };
+        }
+        else {
+          vm.dataSetRequest = {
+            comment: data.comment,
+            tags: data.tags
+          };
+          // TODO parse json
+          vm.customFileDataSetConfig = {};
+        }
+
+        // TODO: clone instead of save, to clone also the original file
+        // save a temporary table
+        saveDataSet(true);
+      });
+    });
   }
 
   function cloneDataSet(database, table) {
-
   }
 
-  function saveDataSet() {
+  function getTableName(temporary) {
+    if(angular.isUndefined(temporary)) {
+      temporary = false;
+    }
 
+    var table = vm.table;
+
+    if(temporary) {
+      table = vm.temporaryTable;
+    }
+
+    return table;
   }
 
-  function getRawData(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file/parse-data';
+  function saveDataSet(temporary) {
+    var table = getTableName(temporary);
 
-    var parseRequest = {
-      format: 'RAW',
-      maxLinePreview: options.maxLinePreview
+    var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + table;
+
+    var creationRequest = {
+      comment: vm.dataSetRequest.comment,
+      tags: vm.dataSetRequest.tags,
+      temporary: temporary,
+      dataSetConfig: vm.customFileDataSetConfig
     };
 
-    return $http.post(url, parseRequest)
-      .then(vm.getServiceData)
+    return $http.put(url, creationRequest)
       .catch(vm.catchServiceException);
   }
 
-  function saveDataAsRaw(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/update';
+  function updateTableSchema(temporary) {
+    var table = getTableName(temporary);
 
-    var updateRequest = {
-      format: 'RAW'
-    };
+    var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + table + '/update-table-schema';
 
-    return $http.post(url, updateRequest)
-      .catch(vm.catchServiceException);
+    return $http.post(url);
   }
 
-  function getCsvData(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file/parse-data';
+  function uploadFile(temporary, file) {
+    var table = getTableName(temporary);
 
-    var parseRequest = {
-      format: 'CSV',
-      maxLinePreview: options.maxLinePreview,
-      separator: options.separator,
-      textQualifier: options.textQualifier,
-      firstLineHeader: options.firstLineHeader
-    };
-
-    return $http.post(url, parseRequest)
-      .then(vm.getServiceData)
-      .catch(vm.catchServiceException);
-  }
-
-  function saveDataAsCsv(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/update';
-
-    var updateRequest = {
-      format: 'CSV',
-      separator: options.separator,
-      textQualifier: options.textQualifier,
-      firstLineHeader: options.firstLineHeader
-    };
-
-    return $http.post(url, updateRequest)
-      .catch(vm.catchServiceException);
-  }
-
-  function getExcelData(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file/parse-data';
-
-    var parseRequest = {
-      format: 'EXCEL',
-      maxLinePreview: options.maxLinePreview,
-      sheet: options.sheet,
-      firstLineHeader: options.firstLineHeader
-    };
-
-    return $http.post(url, parseRequest)
-      .then(vm.getServiceData)
-      .catch(vm.catchServiceException);
-  }
-
-  function saveDataAsExcel(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/update';
-
-    var updateRequest = {
-      format: 'EXCEL',
-      sheet: options.sheet,
-      firstLineHeader: options.firstLineHeader
-    };
-
-    return $http.post(url, updateRequest)
-      .catch(vm.catchServiceException);
-  }
-
-  function getExcelWorksheets(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file/sheets';
-
-    return $http.get(url)
-      .then(vm.getServiceData)
-      .catch(vm.catchServiceException);
-  }
-
-  function uploadFile(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name + '/file';
+    var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + table + '/file';
 
     var upload = Upload.upload({
       url: url,
-      data: {file: options.file},
+      data: {file: file},
       method: 'PUT'
     });
 
@@ -129,29 +114,51 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
       .catch(vm.catchServiceException);
   }
 
-  function saveTable(options) {
-    var url = vm.apiHost + '/dataset/custom-file/' + options.database + '/' + options.name;
+  function getData(maxLinePreview) {
+    var url = vm.apiHost + '/dataset/' + vm.database + '/' + vm.temporaryTable + '/data?max=' + maxLinePreview;
 
-    var creationRequest = {
-      comment: options.description,
-      tags: ['aaa'],
-      temporary: options.temporary
-    };
-
-    return $http.put(url, creationRequest)
+    return $http.get(url)
+      .then(vm.getServiceData)
       .catch(vm.catchServiceException);
   }
 
+  function getExcelWorksheets() {
+    var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + vm.temporaryTable + '/file/sheets';
+
+    return $http.get(url)
+      .then(vm.getServiceData)
+      .catch(vm.catchServiceException);
+  }
+
+  function getDataSet() {
+    return {
+      database: vm.database,
+      name: vm.table,
+      comment: vm.dataSetRequest.comment,
+      tags: vm.dataSetRequest.tags,
+      dataSetConfig: vm.customFileDataSetConfig
+    };
+  }
+
+  function setDataSet(dataSet) {
+    vm.dataSetRequest = {
+      comment: dataSet.comment,
+      tags: dataSet.tags
+    };
+
+    vm.customFileDataSetConfig = dataSet.dataSetConfig;
+  }
+
   var service = {
-    saveTable: saveTable,
-    saveDataAsExcel: saveDataAsExcel,
-    saveDataAsCsv: saveDataAsCsv,
-    saveDataAsRaw: saveDataAsRaw,
-    getExcelData: getExcelData,
+    initDataSet: initDataSet,
+    cloneDataSet: cloneDataSet,
+    saveDataSet: saveDataSet,
+    updateTableSchema: updateTableSchema,
+    uploadFile: uploadFile,
+    getData: getData,
     getExcelWorksheets: getExcelWorksheets,
-    getCsvData: getCsvData,
-    getRawData: getRawData,
-    uploadFile: uploadFile
+    getDataSet: getDataSet,
+    setDataSet: setDataSet
   };
 
   return service;

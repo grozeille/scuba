@@ -22,6 +22,15 @@ function dataSetService($log, $http, $location, $filter, $q, $rootScope) {
 
   function getDataSet(database, table) {
     return $http.get(vm.apiHost + '/dataset/' + database + '/' + table)
+      .catch(function(request) {
+        if(request.status === 404) {
+          request.data = null;
+          return request;
+        }
+        else {
+          throw request;
+        }
+      })
       .then(vm.getServiceData)
       .catch(vm.catchServiceException);
   }
