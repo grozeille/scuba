@@ -8,8 +8,17 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
   vm.database = '';
   vm.table = '';
   vm.temporaryTable = '';
-  vm.dataSetRequest = null;
-  vm.customFileDataSetConfig = null;
+  vm.dataSetRequest = {
+    comment: '',
+    tags: []
+  };
+  vm.customFileDataSetConfig = {
+    fileFormat: 'RAW',
+    sheet: '',
+    separator: '',
+    textQualifier: '',
+    firstLineHeader: true
+  };
   vm.currentUser = null;
 
   vm.getServiceData = function(response) {
@@ -27,12 +36,12 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
     vm.dataSetRequest = null;
     vm.customFileDataSetConfig = null;
 
-    userService.getCurrent().then(function(data) {
+    return userService.getCurrent().then(function(data) {
       vm.currentUser = data;
       vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
     })
     .then(function() {
-      dataSetService.getDataSet(vm.database, vm.name).then(function(data) {
+      return dataSetService.getDataSet(vm.database, vm.table).then(function(data) {
         if(data === null) {
           vm.dataSetRequest = {
             comment: '',
@@ -114,8 +123,8 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
       .catch(vm.catchServiceException);
   }
 
-  function getData(maxLinePreview) {
-    var url = vm.apiHost + '/dataset/' + vm.database + '/' + vm.temporaryTable + '/data?max=' + maxLinePreview;
+  function getData(maxLinePreview, useTablePrefix) {
+    var url = vm.apiHost + '/dataset/' + vm.database + '/' + vm.temporaryTable + '/data?max=' + maxLinePreview + '&useTablePrefix=' + useTablePrefix;
 
     return $http.get(url)
       .then(vm.getServiceData)

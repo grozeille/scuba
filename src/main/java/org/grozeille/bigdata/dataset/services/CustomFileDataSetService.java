@@ -146,6 +146,10 @@ public class CustomFileDataSetService {
     }
 
     private void updateTableSchemaFromRaw(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
+        if(config.getOriginalFile() == null) {
+            log.warn("No original file for the hive table " + hiveTable.getDatabase() + "." + hiveTable.getTable() + ", update schema skipped");
+        }
+
         try(InputStream in = hdfsService.read(config.getOriginalFile().getPath())) {
 
             hiveTable.setFormat("RAW");

@@ -94,8 +94,8 @@ public class DataSetService {
         this.dataSetRepository.delete(dataSetSearchItem);
     }
 
-    public List<Map<String, Object>> getData(String database, String table, Integer max) {
-        return this.hiveService.getData(database, table, max);
+    public List<Map<String, Object>> getData(String database, String table, Integer max, Boolean useTablePrefix) {
+        return this.hiveService.getData(database, table, max, useTablePrefix);
     }
 
     private DataSetSearchItem convert(HiveTable hiveTable) {

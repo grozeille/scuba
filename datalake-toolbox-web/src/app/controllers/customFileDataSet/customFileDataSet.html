@@ -40,20 +40,30 @@
               <fieldset>
                 <form style="padding: 0px;">
 
-
-
                   <div class="row">
+
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="inputTableName" class="control-label">Table Name</label>
-                        <input class="form-control" id="inputTableName" placeholder="" ng-model="customFileDataSet.name">
+                        <label for="inputDatabase" class="control-label">Database</label>
+                        <input class="form-control" id="inputDatabase" placeholder="" ng-model="customFileDataSet.database" disabled>
                       </div>
                     </div>
 
                     <div class="col-sm-4">
                       <div class="form-group">
-                        <label for="inputTableDescription" class="control-label">Table Description</label>
-                        <input class="form-control" id="inputTableDescription" placeholder="" ng-model="customFileDataSet.description">
+                        <label for="inputTableName" class="control-label">Table Name</label>
+                        <input class="form-control" id="inputTableName" placeholder="" ng-model="customFileDataSet.name" disabled>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="row">
+
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="inputTableDescription" class="control-label">Description</label>
+                        <input class="form-control" id="inputTableDescription" placeholder="" ng-model="customFileDataSet.comment">
                       </div>
                     </div>
 
@@ -75,17 +85,17 @@
                     </div>
                     <div class="col-sm-2">
                       <div class="form-group">
-                        <label for="inputTableDataType" class="control-label">Data Type</label>
-                        <select class="form-control" id="inputTableDataType" style="font-family: FontAwesome, sans-serif;" ng-model="customFileDataSet.dataType">
-                          <option value="excel">Excel File</option>
-                          <option value="csv">CSV/TXT</option>
-                          <option value="raw">Raw line</option>
+                        <label for="inputTableFileFormat" class="control-label">Data Type</label>
+                        <select class="form-control" id="inputTableFileFormat" style="font-family: FontAwesome, sans-serif;" ng-model="customFileDataSet.fileFormat">
+                          <option value="EXCEL">Excel File</option>
+                          <option value="CSV">CSV/TXT</option>
+                          <option value="RAW">Raw line</option>
                         </select>
                       </div>
                     </div>
                   </div>
 
-                  <div class="row" ng-if="customFileDataSet.dataType=='csv'">
+                  <div class="row" ng-if="customFileDataSet.fileFormat=='CSV'">
 
                     <div class="col-sm-2">
                       <div class="form-group">
@@ -130,11 +140,11 @@
 
                   </div>
 
-                  <div class="row" ng-if="customFileDataSet.dataType=='excel'">
+                  <div class="row" ng-if="customFileDataSet.fileFormat=='EXCEL'">
                     <div class="col-sm-2">
                       <div class="form-group">
                         <label for="inputExcelSource" class="control-label">Excel worksheet/table</label>
-                        <select class="form-control" id="inputExcelSource"  ng-model="customFileDataSet.excelSource" ng-options="item as item for item in customFileDataSet.excelSheets">
+                        <select class="form-control" id="inputExcelSource"  ng-model="customFileDataSet.excelSheet" ng-options="item as item for item in customFileDataSet.excelSheets">
                         </select>
                       </div>
                     </div>
@@ -188,7 +198,7 @@
                       </div>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-default" ng-click="customFileDataSet.getData()">Preview {{customFileDataSet.maxLinePreview}} lines  <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
+                  <button type="button" class="btn btn-default" ng-click="customFileDataSet.preview()">Preview {{customFileDataSet.maxLinePreview}} lines  <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
                 </form>
               </nav>
               <div style="border-bottom-width: 0px;border-left-width: 0px;border-right-width: 0px;" fill-height="fill-height-substract" ui-grid="customFileDataSet.gridOptions" class="gridSample"  ui-grid-resize-columns ui-grid-auto-resize ></div>

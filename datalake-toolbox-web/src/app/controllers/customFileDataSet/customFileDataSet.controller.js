@@ -8,32 +8,25 @@ module.exports = {
 };
 
 /** @ngInject */
-function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $scope, $stateParams, $state, userService, customFileDataSetService) {
+function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $scope, $state, customFileDataSetService) {
   var vm = this;
   vm.isLoading = false;
-
-  vm.databaseAndTable = $stateParams.databaseAndTable;
-  if(angular.isDefined(vm.database_table) && vm.databaseAndTable !== '') {
-    // TODO load existing table
-  }
 
   vm.alerts = [];
 
   vm.database = '';
   vm.name = '';
-  vm.description = '';
-  vm.dataType = '';
+  vm.comment = '';
+  vm.fileFormat = '';
   vm.csvSeparator = 'comma';
   vm.csvSeparatorCustom = '';
   vm.csvTextQualifier = 'doublequote';
   vm.csvFirstLineHeader = 'true';
   vm.fileInfo = {};
-  vm.excelSource = '';
+  vm.excelSheet = '';
   vm.excelSheets = [];
   vm.excelFirstLineHeader = 'true';
-  vm.temporaryTableName = '';
   vm.fileUploaded = false;
-  vm.temporaryFileUploaded = false;
   vm.maxLinePreview = 5000;
   vm.saving = false;
 
@@ -68,29 +61,41 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     var extension = newValue.name.split('.').pop();
     var extensionStart = extension.substr(0, 3);
     if(extensionStart.localeCompare('xls') === 0) {
-      vm.dataType = 'excel';
+      vm.fileFormat = 'EXCEL';
     }
     else if(extension.localeCompare('csv') === 0 || extension.localeCompare('tsv') === 0 || extension.localeCompare('txt') === 0) {
-      vm.dataType = 'csv';
+      vm.fileFormat = 'CSV';
     }
     else {
-      vm.dataType = 'raw';
+      vm.fileFormat = 'RAW';
     }
   });
 
   vm.getWorksheet = function() {
-    var options = {
-      database: vm.database,
-      name: vm.temporaryTableName
-    };
-
-    customFileDataSetService.getExcelWorksheets(options).then(function(data) {
-      vm.excelSheets = data;
-      if(vm.excelSheets.length > 0) {
-        vm.excelSource = vm.excelSheets[0];
-      }
+    return uploadFile(true).then(function() {
+      return customFileDataSetService.getExcelWorksheets().then(function(data) {
+        vm.excelSheets = data;
+        if(vm.excelSheets.length > 0) {
+          vm.excelSheet = vm.excelSheets[0];
+        }
+      });
     });
   };
+
+  function setSeparator(separator) {
+    if(separator === ';') {
+      vm.csvSeparator = 'semicolon';
+    } else if(separator === ',') {
+      vm.csvSeparator = 'comma';
+    } else if(separator === '\t') {
+      vm.csvSeparator = 'tab';
+    } else if(separator === ' ') {
+      vm.csvSeparator = 'space';
+    } else {
+      vm.csvSeparator = 'custom';
+      vm.csvSeparatorCustom = separator;
+    }
+  }
 
   function getSeparator() {
     var separator = '';
@@ -109,6 +114,14 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     return separator;
   }
 
+  function setTextQualifier(textQualifier) {
+    if(textQualifier === '"') {
+      vm.csvTextQualifier = 'doublequote';
+    } else if(textQualifier === '\'') {
+      vm.csvTextQualifier = 'simplequote';
+    }
+  }
+
   function getTextQualifier() {
     var textQualifier = '';
     if(vm.csvTextQualifier === 'doublequote') {
@@ -120,36 +133,11 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   }
 
   function uploadFile(temporary) {
-    var tableName = '';
-    if(temporary) {
-      tableName = vm.temporaryTableName;
-    }
-    else {
-      tableName = vm.name;
-    }
-
-    var uploaded = false;
-    if(temporary) {
-      uploaded = vm.temporaryFileUploaded;
-    }
-    else {
-      uploaded = vm.fileUploaded;
-    }
-
     // upload the file if not already deployed
-    if(uploaded === false) {
-      return customFileDataSetService.uploadFile({
-        database: vm.database,
-        name: tableName,
-        file: vm.fileInfo
-      }).then(function() {
-        $log.info('File uploaded into ' + tableName);
-        if(temporary) {
-          vm.temporaryFileUploaded = true;
-        }
-        else {
-          vm.fileUploaded = true;
-        }
+    if(vm.fileUploaded === false) {
+      return customFileDataSetService.uploadFile(temporary, vm.fileInfo).then(function() {
+        $log.info('File uploaded');
+        vm.fileUploaded = true;
       });
     }
     else {
@@ -159,7 +147,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     }
   }
 
-  vm.getData = function() {
+  vm.preview = function() {
     vm.isLoading = true;
     vm.gridOptions.columnDefs = [];
     vm.gridOptions.data = [];
@@ -169,48 +157,10 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       vm.isLoading = false;
     };
 
-    uploadFile(true)
+    return vm.save(true)
     .then(function() {
       $log.info('Parsing data...');
-      if(vm.dataType === 'excel') {
-        var excelOptions = {
-          database: vm.database,
-          name: vm.temporaryTableName,
-          maxLinePreview: vm.maxLinePreview,
-          sheet: vm.excelSource,
-          firstLineHeader: vm.excelFirstLineHeader
-        };
-
-        return customFileDataSetService.getExcelData(excelOptions);
-      }
-      else if(vm.dataType === 'csv') {
-        var separator = getSeparator();
-
-        var textQualifier = getTextQualifier();
-
-        var csvOptions = {
-          database: vm.database,
-          name: vm.temporaryTableName,
-          maxLinePreview: vm.maxLinePreview,
-          separator: separator,
-          textQualifier: textQualifier,
-          firstLineHeader: vm.csvFirstLineHeader
-        };
-
-        return customFileDataSetService.getCsvData(csvOptions);
-      }
-      else if(vm.dataType === 'raw') {
-        var rawOptions = {
-          database: vm.database,
-          name: vm.temporaryTableName,
-          maxLinePreview: vm.maxLinePreview
-        };
-
-        return customFileDataSetService.getRawData(rawOptions);
-      }
-      else {
-        return $q(function() { });
-      }
+      return customFileDataSetService.getData(vm.maxLinePreview, false);
     })
     .then(function(data) {
       $log.info('Refresh data');
@@ -220,113 +170,98 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     })
     .then(stopLoading)
     .catch(function(error) {
-      vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
+      vm.alerts.push({msg: 'Unable to preview data table.', type: 'danger'});
+      $log.error(error);
       throw error;
     })
     .catch(stopLoading);
   };
 
-  vm.save = function() {
-    vm.saving = true;
+  vm.save = function(temporary) {
+    if(angular.isUndefined(temporary)) {
+      temporary = false;
+    }
 
-    var saveTableRequest = {
-      database: vm.database,
-      name: vm.name,
-      description: vm.description,
-      temporary: false
+    if(!temporary) {
+      vm.saving = true;
+    }
+
+    var dataSet = {
+      comment: vm.comment,
+      tags: []
     };
 
-    var parseData = function() {
-      $log.info('Parsing data...');
-      // update the data
-      if(vm.dataType === 'raw') {
-        var rawOptions = {
-          database: vm.database,
-          name: vm.name
-        };
+    if(vm.fileFormat === 'RAW') {
+      dataSet.dataSetConfig = {
+        fileFormat: 'RAW'
+      };
+    }
+    else if(vm.fileFormat === 'CSV') {
+      dataSet.dataSetConfig = {
+        fileFormat: 'CSV',
+        firstLineHeader: vm.csvFirstLineHeader === 'true',
+        separator: getSeparator(),
+        textQualifier: getTextQualifier()
+      };
+    }
+    else if(vm.fileFormat === 'EXCEL') {
+      dataSet.dataSetConfig = {
+        fileFormat: 'EXCEL',
+        firstLineHeader: vm.excelFirstLineHeader === 'true',
+        sheet: vm.excelSheet
+      };
+    }
 
-        return customFileDataSetService.saveDataAsRaw(rawOptions);
-      }
-      else if(vm.dataType === 'csv') {
-        var csvOptions = {
-          database: vm.database,
-          name: vm.name,
-          separator: getSeparator(),
-          textQualifier: getTextQualifier(),
-          firstLineHeader: vm.csvFirstLineHeader
-        };
+    customFileDataSetService.setDataSet(dataSet);
 
-        return customFileDataSetService.saveDataAsCsv(csvOptions);
-      }
-      else if(vm.dataType === 'excel') {
-        var excelOptions = {
-          database: vm.database,
-          name: vm.name,
-          sheet: vm.excelSource,
-          firstLineHeader: vm.excelFirstLineHeader
-        };
-
-        return customFileDataSetService.saveDataAsExcel(excelOptions);
-      }
-      else {
-        $q(function() { });
-      }
-    };
-
-    customFileDataSetService.saveTable(saveTableRequest)
-    .then(function() {
-      return uploadFile(false);
-    })
-    .then(parseData)
-    .then(function() {
-      vm.saving = false;
-      vm.alerts.push({msg: 'Table saved.', type: 'info'});
-    })
-    .catch(function(error) {
-      vm.saving = false;
-      vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
-      throw error;
-    });
+    return customFileDataSetService.saveDataSet(temporary)
+      .then(function() {
+        return uploadFile(temporary);
+      })
+      .then(function() {
+        return customFileDataSetService.updateTableSchema(temporary);
+      })
+      .then(function() {
+        vm.saving = false;
+        vm.alerts.push({msg: 'Table saved.', type: 'info'});
+      })
+      .catch(function(error) {
+        vm.saving = false;
+        vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
+        $log.error(error);
+        throw error;
+      });
   };
 
   function activate() {
-    userService.getLastProject().then(function(data) {
-      $log.info(data);
-      vm.database = data.hiveDatabase;
+    var dataSet = customFileDataSetService.getDataSet();
+    vm.database = dataSet.database;
+    vm.name = dataSet.name;
+    vm.comment = dataSet.comment;
+    // TODO tags
 
-      userService.getCurrent().then(function(data) {
-        var today = new Date();
-        var minutes = today.getMinutes();
-        var day = today.getDate();
-        var month = today.getMonth() + 1; // January is 0!
-        var year = today.getFullYear();
-
-        if(minutes < 10) {
-          minutes = '0' + minutes;
-        }
-
-        if(day < 10) {
-          day = '0' + day;
-        }
-
-        if(month < 10) {
-          month = '0' + month;
-        }
-
-        today = year + month + day + minutes;
-
-        vm.temporaryTableName = 'new_file_' + data.login + '_' + today;
-
-        // create the temporary table
-        var saveTableRequest = {
-          database: vm.database,
-          name: vm.temporaryTableName,
-          temporary: true
-        };
-
-        customFileDataSetService.saveTable(saveTableRequest);
-      });
-    });
+    if(dataSet.dataSetConfig.fileFormat === 'RAW') {
+      // TODO do nothing
+    }
+    else if(dataSet.dataSetConfig.fileFormat === 'CSV') {
+      setSeparator(dataSet.dataSetConfig.separator);
+      setTextQualifier(dataSet.dataSetConfig.textQualifier);
+      if(dataSet.dataSetConfig.firstLineHeader) {
+        vm.csvFirstLineHeader = 'true';
+      }
+      else {
+        vm.csvFirstLineHeader = 'false';
+      }
+    }
+    else if(dataSet.dataSetConfig.fileFormat === 'EXCEL') {
+      if(dataSet.dataSetConfig.firstLineHeader) {
+        vm.excelFirstLineHeader = 'true';
+      }
+      else {
+        vm.excelFirstLineHeader = 'false';
+      }
+      vm.excelSheet = dataSet.dataSetConfig.sheet;
+    }
 
     $(':file').filestyle();
   }

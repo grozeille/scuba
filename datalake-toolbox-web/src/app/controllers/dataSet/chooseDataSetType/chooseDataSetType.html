@@ -26,7 +26,7 @@
   </div>
 
   <div class="row" ng-show="chooseDataSetType.page === 2">
-    <form style="padding:10px;">
+    <form style="padding:10px;" ng-submit="chooseDataSetType.ok()">
       <div class="row">
         <div class="col-sm-12">
           <div class="form-group">
@@ -39,7 +39,7 @@
         <div class="col-sm-12">
           <div class="form-group">
             <label for="inputTableName" class="control-label">Table Name</label>
-            <input class="form-control" id="inputTableName" placeholder="" ng-model="chooseDataSetType.name">
+            <input class="form-control" id="inputTableName" placeholder="" ng-model="chooseDataSetType.name" autofocus ng-focus="true">
           </div>
         </div>
       </div>

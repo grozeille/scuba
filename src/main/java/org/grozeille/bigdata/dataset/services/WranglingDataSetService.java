@@ -129,7 +129,7 @@ public class WranglingDataSetService {
 
         String sqlQuery = buildSqlQuery(wranglingDataSetConf, denormalizedSqlQuery);
 
-        return hiveService.getData(sqlQuery);
+        return hiveService.getData(sqlQuery, true);
     }
 
     public WranglingDataSetConf extractDataSetConf(HiveTable hiveTable) throws java.io.IOException {

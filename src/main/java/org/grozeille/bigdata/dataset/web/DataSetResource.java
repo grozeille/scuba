@@ -90,10 +90,11 @@ public class DataSetResource {
     public DataSetData data(
             @PathVariable("database") String database,
             @PathVariable("table") String table,
-            @RequestParam(name = "max", defaultValue = DEFAULT_MAX) Integer max) throws Exception {
+            @RequestParam(name = "max", defaultValue = DEFAULT_MAX) Integer max,
+            @RequestParam(name = "useTablePrefix", defaultValue = "true") Boolean useTablePrefix) throws Exception {
 
         DataSetData data = new DataSetData();
-        data.setData(this.dataSetService.getData(database, table, max));
+        data.setData(this.dataSetService.getData(database, table, max, useTablePrefix));
         return data;
     }
 

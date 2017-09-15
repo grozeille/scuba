@@ -14,7 +14,9 @@ import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
@@ -169,11 +171,11 @@ public class HiveService {
         }
     }
 
-    public List<Map<String, Object>> getData(String database, String table, long max){
-        return getData("select * from `"+database+"`.`"+table+"` limit "+max);
+    public List<Map<String, Object>> getData(String database, String table, long max, Boolean useTablePrefix){
+        return getData("select * from `"+database+"`.`"+table+"` limit "+max, useTablePrefix);
     }
 
-    public List<Map<String, Object>> getData(String sql) {
+    public List<Map<String, Object>> getData(String sql, Boolean useTablePrefix) {
 
         /*DataFrame df = sparkHiveContext.sql(sql);
         final String[] fields = df.schema().fieldNames();
@@ -191,7 +193,25 @@ public class HiveService {
         log.info("Executing SQL: " + sql);
         long startTime = System.currentTimeMillis();
 
-        List<Map<String, Object>> result = hiveJdbcTemplate.queryForList(sql);
+        RowMapper<Map<String, Object>> rowMapper;
+        if(useTablePrefix) {
+            rowMapper = new ColumnMapRowMapper();
+        }
+        else {
+            rowMapper = new ColumnMapRowMapper() {
+                protected String getColumnKey(String columnName) {
+                    String[] split = columnName.split("\\.", 2);
+                    if(split.length > 1) {
+                        return split[1];
+                    }
+                    else {
+                        return split[0];
+                    }
+                }
+            };
+        }
+
+        List<Map<String, Object>> result = hiveJdbcTemplate.query(sql, rowMapper);
 
         log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
 
@@ -259,10 +279,13 @@ public class HiveService {
         }
     }
 
-    public void updateTable(HiveTable table) throws HiveQueryException {
+    public void updateTable(HiveTable table) throws HiveQueryException, IOException {
+
+        InputStream configInputStream = new ByteArrayInputStream(table.getDataSetConfiguration().getBytes(StandardCharsets.UTF_8));
+        HdfsService.HdfsFileInfo dataSetConfigfileInfo = hdfsService.write(configInputStream, "datasetconfig.json", table.getPath());
 
         String alterPropertiesSql = "ALTER TABLE `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
-                "SET "+ buildTableProperties(table, null);
+                "SET "+ buildTableProperties(table, dataSetConfigfileInfo);
 
         log.info("Alter table properties: " + alterPropertiesSql);
 
@@ -275,10 +298,13 @@ public class HiveService {
         }
     }
 
-    public void updateView(HiveTable table) throws HiveQueryException {
+    public void updateView(HiveTable table) throws HiveQueryException, IOException {
+
+        InputStream configInputStream = new ByteArrayInputStream(table.getDataSetConfiguration().getBytes(StandardCharsets.UTF_8));
+        HdfsService.HdfsFileInfo dataSetConfigfileInfo = hdfsService.write(configInputStream, "datasetconfig.json", table.getPath());
 
         String alterPropertiesSql = "ALTER VIEW `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
-                "SET "+ buildTableProperties(table, null);
+                "SET "+ buildTableProperties(table, dataSetConfigfileInfo);
 
         log.info("Alter view properties: " + alterPropertiesSql);
 
@@ -337,17 +363,19 @@ public class HiveService {
                 "\"temporary\" = \""+table.getTemporary()+"\"," +
                 "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"";
 
-        for(Map.Entry<String, String> entry : table.getOtherProperties().entrySet()) {
-            boolean reserved = false;
-            for(String key : reservedKeys){
-                if(key.equalsIgnoreCase(entry.getKey())) {
-                    reserved = true;
-                    break;
+        if(table.getOtherProperties() != null) {
+            for (Map.Entry<String, String> entry : table.getOtherProperties().entrySet()) {
+                boolean reserved = false;
+                for (String key : reservedKeys) {
+                    if (key.equalsIgnoreCase(entry.getKey())) {
+                        reserved = true;
+                        break;
+                    }
                 }
-            }
 
-            if(!reserved) {
-                result += ",\""+entry.getKey()+"\" = \""+entry.getValue()+"\"";
+                if (!reserved) {
+                    result += ",\"" + entry.getKey() + "\" = \"" + entry.getValue() + "\"";
+                }
             }
         }
 
