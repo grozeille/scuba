@@ -457,7 +457,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>gulp build</id>
+                                <id>build</id>
                                 <phase>compile</phase>
                                 <goals>
                                     <goal>exec</goal>
@@ -465,22 +465,8 @@
                                 <configuration>
                                     <executable>node</executable>
                                     <arguments>
-                                        <argument>node_modules/gulp/bin/gulp.js</argument>
+                                        <argument>npm run-script build</argument>
                                         <argument>build</argument>
-                                    </arguments>
-                                    <workingDirectory>${basedir}/datalake-toolbox-web</workingDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>gulp clean</id>
-                                <phase>clean</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>node_modules/gulp/bin/gulp.js</executable>
-                                    <arguments>
-                                        <argument>clean</argument>
                                     </arguments>
                                     <workingDirectory>${basedir}/datalake-toolbox-web</workingDirectory>
                                 </configuration>
