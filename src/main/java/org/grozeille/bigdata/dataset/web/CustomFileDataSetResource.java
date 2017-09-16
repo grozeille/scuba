@@ -45,11 +45,26 @@ public class CustomFileDataSetResource {
             @PathVariable("table") String table,
             @RequestBody CustomFileDataSetRequest request) throws Exception {
 
+        CustomFileDataSetConf customFileDataSetConf = null;
+
+        HiveTable hiveTable = hiveService.findOne(database, table);
+        if(hiveTable != null) {
+            customFileDataSetConf = this.customFileDataSetService.extractDataSetConf(hiveTable);
+        }
+        else {
+            customFileDataSetConf = new CustomFileDataSetConf();
+        }
+        customFileDataSetConf.setFileFormat(request.getDataSetConfig().getFileFormat());
+        customFileDataSetConf.setFirstLineHeader(request.getDataSetConfig().isFirstLineHeader());
+        customFileDataSetConf.setSeparator(request.getDataSetConfig().getSeparator());
+        customFileDataSetConf.setTextQualifier(request.getDataSetConfig().getTextQualifier());
+        customFileDataSetConf.setSheet(request.getDataSetConfig().getSheet());
+
         this.customFileDataSetService.createOrUpdateCustomFileTable(
                 new DataSetConf(database, table, request.getComment(), request.getTags()),
                 principal.getName(),
                 request.getTemporary(),
-                request.getDataSetConfig()
+                customFileDataSetConf
         );
     }
 

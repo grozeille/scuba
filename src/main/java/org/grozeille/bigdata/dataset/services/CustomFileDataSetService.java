@@ -44,8 +44,6 @@ public class CustomFileDataSetService {
             Boolean temporary,
             CustomFileDataSetConf customFileDataSetConf) throws Exception {
 
-        String json = objectMapper.writeValueAsString(customFileDataSetConf);
-        String dataSetType = DataSetType.CustomFileDataSet.name();
 
         HiveDatabase hiveDatabase = hiveService.findOneDatabase(dataSetConf.getDatabase());
         if(hiveDatabase == null) {
@@ -57,6 +55,15 @@ public class CustomFileDataSetService {
         HiveTable hiveTable = hiveService.findOne(dataSetConf.getDatabase(), tableName);
 
         if(hiveTable == null) {
+            String dataSetType = DataSetType.CustomFileDataSet.name();
+            CustomFileDataSetConf customFileDataSetConfOriginal = new CustomFileDataSetConf();
+            customFileDataSetConfOriginal.setFileFormat(customFileDataSetConf.getFileFormat());
+            customFileDataSetConfOriginal.setFirstLineHeader(customFileDataSetConf.isFirstLineHeader());
+            customFileDataSetConfOriginal.setSeparator(customFileDataSetConf.getSeparator());
+            customFileDataSetConfOriginal.setTextQualifier(customFileDataSetConf.getTextQualifier());
+            customFileDataSetConfOriginal.setSheet(customFileDataSetConf.getSheet());
+
+            String json = objectMapper.writeValueAsString(customFileDataSetConfOriginal);
 
             hiveTable = new HiveTable();
             hiveTable.setDatabase(dataSetConf.getDatabase());
@@ -75,6 +82,28 @@ public class CustomFileDataSetService {
             hiveService.createOrcTable(hiveTable);
         }
         else {
+
+            CustomFileDataSetConf customFileDataSetConfOriginal;
+
+            if(hiveTable.getDataSetConfiguration() != null) {
+                customFileDataSetConfOriginal = objectMapper.readValue(hiveTable.getDataSetConfiguration(), CustomFileDataSetConf.class);
+            }
+            else {
+                customFileDataSetConfOriginal = new CustomFileDataSetConf();
+            }
+
+            customFileDataSetConfOriginal.setFileFormat(customFileDataSetConf.getFileFormat());
+            customFileDataSetConfOriginal.setFirstLineHeader(customFileDataSetConf.isFirstLineHeader());
+            customFileDataSetConfOriginal.setSeparator(customFileDataSetConf.getSeparator());
+            customFileDataSetConfOriginal.setTextQualifier(customFileDataSetConf.getTextQualifier());
+            customFileDataSetConfOriginal.setSheet(customFileDataSetConf.getSheet());
+
+            if(customFileDataSetConf.getOriginalFile() != null) {
+                customFileDataSetConfOriginal.setOriginalFile(customFileDataSetConf.getOriginalFile());
+            }
+
+            String json = objectMapper.writeValueAsString(customFileDataSetConfOriginal);
+
             hiveTable.setComment(dataSetConf.getComment());
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
@@ -146,7 +175,7 @@ public class CustomFileDataSetService {
     }
 
     private void updateTableSchemaFromRaw(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
-        if(config.getOriginalFile() == null) {
+        if(config.getOriginalFile() == null || config.getOriginalFile().getPath() == null) {
             log.warn("No original file for the hive table " + hiveTable.getDatabase() + "." + hiveTable.getTable() + ", update schema skipped");
         }
 

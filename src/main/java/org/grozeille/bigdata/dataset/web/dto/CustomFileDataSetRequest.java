@@ -11,5 +11,5 @@ public class CustomFileDataSetRequest {
 
     private Boolean temporary;
 
-    private CustomFileDataSetConf dataSetConfig;
+    private CustomFileDataSetRequestConfig dataSetConfig;
 }

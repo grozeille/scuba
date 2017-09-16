@@ -27,6 +27,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   vm.excelSheets = [];
   vm.excelFirstLineHeader = 'true';
   vm.fileUploaded = false;
+  vm.fileTemporaryUploaded = false;
   vm.maxLinePreview = 5000;
   vm.saving = false;
 
@@ -57,6 +58,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     }
 
     vm.fileUploaded = false;
+    vm.fileTemporaryUploaded = false;
 
     var extension = newValue.name.split('.').pop();
     var extensionStart = extension.substr(0, 3);
@@ -134,15 +136,29 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
 
   function uploadFile(temporary) {
     // upload the file if not already deployed
-    if(vm.fileUploaded === false) {
+    var fileUploaded = false;
+    if(temporary) {
+      fileUploaded = vm.fileTemporaryUploaded;
+    }
+    else {
+      fileUploaded = vm.fileUploaded;
+    }
+
+    if(fileUploaded === false) {
       return customFileDataSetService.uploadFile(temporary, vm.fileInfo).then(function() {
         $log.info('File uploaded');
-        vm.fileUploaded = true;
+        if(temporary) {
+          vm.fileTemporaryUploaded = true;
+        }
+        else {
+          vm.fileUploaded = true;
+        }
       });
     }
     else {
-      return $q(function() {
+      return $q(function(resolve, reject) {
         $log.info('File already uploaded');
+        resolve(null);
       });
     }
   }
@@ -157,7 +173,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       vm.isLoading = false;
     };
 
-    return vm.save(true)
+    return internalSave(true)
     .then(function() {
       $log.info('Parsing data...');
       return customFileDataSetService.getData(vm.maxLinePreview, false);
@@ -177,7 +193,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     .catch(stopLoading);
   };
 
-  vm.save = function(temporary) {
+  function internalSave(temporary) {
     if(angular.isUndefined(temporary)) {
       temporary = false;
     }
@@ -219,13 +235,20 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
         return uploadFile(temporary);
       })
       .then(function() {
+        $log.info('Update table schema...');
         return customFileDataSetService.updateTableSchema(temporary);
-      })
+      });
+  }
+
+  vm.save = function(temporary) {
+    return internalSave(temporary)
       .then(function() {
+        $log.info('Table saved...');
         vm.saving = false;
         vm.alerts.push({msg: 'Table saved.', type: 'info'});
       })
       .catch(function(error) {
+        $log.info('Error...');
         vm.saving = false;
         vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
         $log.error(error);
