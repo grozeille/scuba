@@ -5,9 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,12 +28,7 @@ public class HdfsService {
     private FileSystem fs;
 
     public HdfsFileInfo write(InputStream inputStream, String fileName, String tablePath) throws IOException {
-        Path tableMetaFolder = new Path(tablePath+ ".meta");
-        if(!fs.exists(tableMetaFolder)){
-            fs.mkdirs(tableMetaFolder);
-        }
-
-        Path filePath = new Path(tableMetaFolder, fileName);
+        Path filePath = computeFilePath(fileName, tablePath);
 
         int size = 0;
         try(FSDataOutputStream ous = fs.create(filePath)) {
@@ -53,4 +46,26 @@ public class HdfsService {
     public void delete(String path) throws IOException {
         fs.delete(new Path(path), true);
     }
+
+    public HdfsFileInfo copy(String sourceFilePath, String tablePath) throws IOException {
+        Path sourceFileHdfsPath = new Path(sourceFilePath);
+
+        Path targetPath = computeFilePath(sourceFileHdfsPath.getName(), tablePath);
+
+        FileUtil.copy(fs, sourceFileHdfsPath, fs, targetPath, false, true, fs.getConf());
+
+        FileStatus fileStatus = fs.getFileStatus(targetPath);
+
+        return new HdfsFileInfo(fileStatus.getPath().toString(), (int) fileStatus.getLen());
+    }
+
+    private Path computeFilePath(String fileName, String tablePath) throws IOException {
+        Path tableMetaFolder = new Path(tablePath+ ".meta");
+        if(!fs.exists(tableMetaFolder)){
+            fs.mkdirs(tableMetaFolder);
+        }
+
+        return new Path(tableMetaFolder, fileName);
+    }
+
 }

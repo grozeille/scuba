@@ -8,6 +8,7 @@ import org.grozeille.bigdata.dataset.model.*;
 import org.grozeille.bigdata.dataset.services.CustomFileDataSetService;
 import org.grozeille.bigdata.dataset.services.DataSetService;
 import org.grozeille.bigdata.dataset.services.HiveService;
+import org.grozeille.bigdata.dataset.web.dto.CloneCustomFileDataSetRequest;
 import org.grozeille.bigdata.dataset.web.dto.CustomFileDataSetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -19,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
+import java.net.URI;
 import java.security.Principal;
 
 @RestController
@@ -126,6 +129,29 @@ public class CustomFileDataSetResource {
     public String[] excelSheets(@PathVariable("database") String database,
                            @PathVariable("table") String table) throws Exception {
         return this.customFileDataSetService.sheets(database, table);
+    }
+
+    @RequestMapping(value = "/custom-file/{database}/{table}/clone", method = RequestMethod.POST)
+    public ResponseEntity<?> clone(
+            @ApiIgnore @ApiParam(hidden = true) Principal principal,
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestBody CloneCustomFileDataSetRequest request) throws Exception {
+
+        this.customFileDataSetService.clone(
+                database,
+                table,
+                request.getTargetDatabase(),
+                request.getTargetTable(),
+                principal.getName(),
+                request.getTemporary());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/api/dataset/custom-file/{database}/{table}")
+                .buildAndExpand(request.getTargetDatabase(), request.getTargetTable()).toUri();
+
+        return ResponseEntity.created(location).build();
+
     }
 
     private HiveTable checkIfExists(@PathVariable("database") String database, @PathVariable("table") String table) throws TException {

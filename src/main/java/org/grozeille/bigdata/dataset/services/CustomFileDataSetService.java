@@ -4,7 +4,9 @@ package org.grozeille.bigdata.dataset.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
+import org.apache.thrift.TException;
 import org.grozeille.bigdata.dataset.exceptions.HiveDatabaseNotFoundException;
+import org.grozeille.bigdata.dataset.exceptions.HiveTableAlreadyExistsException;
 import org.grozeille.bigdata.dataset.exceptions.HiveTableNotFoundException;
 import org.grozeille.bigdata.dataset.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -276,5 +278,51 @@ public class CustomFileDataSetService {
         fileStream.setInputStream(hdfsService.read(config.getOriginalFile().getPath()));
 
         return fileStream;
+    }
+
+    public void clone(
+            String sourceDatabase,
+            String sourceTable,
+            String targetDatabase,
+            String targetTable,
+            String creator,
+            Boolean temporary) throws Exception {
+        HiveTable sourceHiveTable = hiveService.findOne(sourceDatabase, sourceTable);
+
+        if(sourceHiveTable == null) {
+            throw new HiveTableNotFoundException(sourceDatabase + "." + sourceTable + " not found");
+        }
+
+        HiveTable targetHiveTable = hiveService.findOne(targetDatabase, targetTable);
+
+        if(targetHiveTable != null) {
+            throw new HiveTableAlreadyExistsException(targetDatabase + "." + targetTable + " already exists");
+        }
+
+        // create the table
+        this.createOrUpdateCustomFileTable(
+                new DataSetConf(targetDatabase, targetTable, sourceHiveTable.getComment(), sourceHiveTable.getTags()),
+                creator,
+                temporary,
+                new CustomFileDataSetConf()
+        );
+
+        // clone the file
+        CustomFileDataSetConf customFileDataSetConf = objectMapper.readValue(sourceHiveTable.getDataSetConfiguration(), CustomFileDataSetConf.class);
+
+        HdfsService.HdfsFileInfo hdfsFileInfo = hdfsService.copy(customFileDataSetConf.getOriginalFile().getPath(), targetTable);
+        customFileDataSetConf.getOriginalFile().setPath(hdfsFileInfo.getFilePath());
+
+        // update the table
+        this.createOrUpdateCustomFileTable(
+                new DataSetConf(targetDatabase, targetTable, sourceHiveTable.getComment(), sourceHiveTable.getTags()),
+                creator,
+                temporary,
+                customFileDataSetConf
+        );
+
+        // update the schema
+        this.updateTableSchema(targetDatabase, targetTable);
+
     }
 }
