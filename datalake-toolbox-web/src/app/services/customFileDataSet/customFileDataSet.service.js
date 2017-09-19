@@ -41,33 +41,80 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
       vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
     })
     .then(function() {
-      return dataSetService.getDataSet(vm.database, vm.table).then(function(data) {
-        if(data === null) {
-          vm.dataSetRequest = {
-            comment: '',
-            tags: []
-          };
-          vm.customFileDataSetConfig = {
-            fileFormat: 'RAW'
-          };
-        }
-        else {
-          vm.dataSetRequest = {
-            comment: data.comment,
-            tags: data.tags
-          };
-          // TODO parse json
-          vm.customFileDataSetConfig = {};
-        }
+      return dataSetService.getDataSet(vm.database, vm.table);
+    })
+    .then(function(data) {
+      if(data === null) {
+        // this table doesn't exist yet, create it first in "temporary" mode
+        vm.dataSetRequest = {
+          comment: '',
+          tags: []
+        };
+        vm.customFileDataSetConfig = {
+          fileFormat: 'RAW'
+        };
 
-        // TODO: clone instead of save, to clone also the original file
-        // save a temporary table
-        saveDataSet(true);
-      });
-    });
+        return saveDataSet(true);
+      }
+      else {
+        // the table already exists, clone it as temporary table
+        var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + vm.table + '/clone';
+
+        var cloneRequest = {
+          targetDatabase: vm.database,
+          targetTable: vm.temporaryTable,
+          temporary: false
+        };
+
+        return $http.post(url, cloneRequest)
+          .then(function() {
+            return dataSetService.getDataSet(vm.database, vm.temporaryTable);
+          })
+          .then(function(tmpData) {
+            vm.dataSetRequest = {
+              comment: tmpData.comment,
+              tags: tmpData.tags
+            };
+            vm.customFileDataSetConfig = angular.fromJson(tmpData.dataSetConfiguration);
+          });
+      }
+    })
+    .catch(vm.catchServiceException);
   }
 
-  function cloneDataSet(database, table) {
+  function cloneDataSet(sourceDatabase, sourceTable, targetDatabase, targetTable) {
+    vm.database = targetDatabase;
+    vm.table = targetTable;
+    vm.dataSetRequest = null;
+    vm.customFileDataSetConfig = null;
+
+    return userService.getCurrent().then(function(data) {
+      vm.currentUser = data;
+      vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
+    })
+    .then(function() {
+      // clone the source table as the temporary table
+      var url = vm.apiHost + '/dataset/custom-file/' + sourceDatabase + '/' + sourceTable + '/clone';
+
+      var cloneRequest = {
+        targetDatabase: vm.database,
+        targetTable: vm.temporaryTable,
+        temporary: true
+      };
+
+      return $http.post(url, cloneRequest)
+        .then(function() {
+          return dataSetService.getDataSet(vm.database, vm.temporaryTable);
+        })
+        .then(function(tmpData) {
+          vm.dataSetRequest = {
+            comment: tmpData.comment,
+            tags: tmpData.tags
+          };
+          vm.customFileDataSetConfig = angular.fromJson(tmpData.dataSetConfiguration);
+        });
+    })
+    .catch(vm.catchServiceException);
   }
 
   function getTableName(temporary) {

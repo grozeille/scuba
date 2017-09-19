@@ -132,16 +132,10 @@ public class HiveService {
                 List<String> tables = hiveMetaStoreClient.getAllTables(db);
 
                 return tables.stream().map(t -> {
-                    Table table = null;
                     try {
-                        table = hiveMetaStoreClient.getTable(db, t);
+                        Table table = hiveMetaStoreClient.getTable(db, t);
                         HiveTable hiveTable = buildHiveTable(table);
-                        if(hiveTable.getTemporary()) {
-                            return null;
-                        }
-                        else {
-                            return hiveTable;
-                        }
+                        return hiveTable;
                     } catch (TException e) {
                         log.error("Unable to get details for table: "+db+"."+t);
                         HiveTable hiveTable = new HiveTable();

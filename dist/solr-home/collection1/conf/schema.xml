@@ -132,6 +132,7 @@
     <field name="columns" type="string" indexed="true" stored="false" multiValued="true"/>
     <field name="columnsComment" type="string" indexed="true" stored="false" multiValued="true"/>
     <field name="dataSetType" type="string" indexed="true" stored="false" multiValued="false"/>
+    <field name="temporary" type="boolean" indexed="true" stored="false" multiValued="false"/>
 
     <field name="jsonData" type="string" indexed="false" stored="true" multiValued="false"/>
 

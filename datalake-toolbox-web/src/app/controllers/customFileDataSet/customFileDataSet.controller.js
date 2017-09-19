@@ -287,6 +287,20 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     }
 
     $(':file').filestyle();
+
+    if(angular.isDefined(dataSet.dataSetConfig.originalFile) && angular.isDefined(dataSet.dataSetConfig.originalFile.path)) {
+      var path = dataSet.dataSetConfig.originalFile.path;
+      var lastIndex = path.lastIndexOf('/');
+      var fileName = path.substring(lastIndex + 1);
+
+      vm.fileInfo = {
+        name: fileName,
+        size: dataSet.dataSetConfig.originalFile.size,
+        type: dataSet.dataSetConfig.originalFile.contentType
+      };
+      vm.fileUploaded = true;
+      vm.fileTemporaryUploaded = true;
+    }
   }
 
   activate();

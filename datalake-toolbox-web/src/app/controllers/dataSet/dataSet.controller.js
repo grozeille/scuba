@@ -7,20 +7,42 @@ module.exports = {
 };
 
 /** @ngInject */
-function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, dataSetService, wranglingDataSetService) {
+function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, dataSetService, wranglingDataSetService, customFileDataSetService) {
   var vm = this;
+
   vm.sourceFilter = '';
+  vm.dataSetList = [];
 
-  vm.views = [];
+  function getDataSet(database, table) {
+    var selectedDataSet = null;
+    for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
+      if(vm.dataSetList[cpt].database === database && vm.dataSetList[cpt].table === table) {
+        selectedDataSet = vm.dataSetList[cpt];
+        break;
+      }
+    }
+    return selectedDataSet;
+  }
 
-  vm.createNewView = function() {
+  vm.createNewDataSet = function() {
     vm.chooseDataSetType();
   };
 
-  vm.openWranglingDataSet = function(database, table) {
-    wranglingDataSetService.initDataSet(database, table).then(function() {
-      $state.go('wranglingDataSet');
-    });
+  vm.editDataSet = function(database, table) {
+    var selectedDataSet = getDataSet(database, table);
+
+    if(selectedDataSet !== null) {
+      if(selectedDataSet.dataSetType === 'CustomFileDataSet') {
+        customFileDataSetService.initDataSet(database, table).then(function() {
+          $state.go('customFileDataSet');
+        });
+      }
+      else if(selectedDataSet.dataSetType === 'WranglingDataSet') {
+        wranglingDataSetService.initDataSet(database, table).then(function() {
+          $state.go('wranglingDataSet');
+        });
+      }
+    }
   };
 
   vm.deleteDataSet = function(database, table) {
@@ -32,7 +54,7 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
           var vm = this;
           vm.dataSetName = dataSetName;
           vm.ok = function() {
-            dataSetService.deleteView(database, table).then(function() {
+            dataSetService.deleteDataSet(database, table).then(function() {
               $uibModalInstance.close();
               parent.loadAllDataSet();
             });
@@ -53,11 +75,24 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
     });
   };
 
+  var cloneDataSetModal = require('./cloneDataSet/cloneDataSet.controller');
+
   vm.cloneDataSet = function(database, table) {
-    // TODO test type of dataset
-    wranglingDataSetService.cloneDataSet(database, table).then(function() {
-      $state.go('wranglingDataSet');
-    });
+    var selectedDataSet = getDataSet(database, table);
+
+    cloneDataSetModal.resolve = {
+      sourceDatabase: function() {
+        return database;
+      },
+      sourceTable: function() {
+        return table;
+      },
+      dataSetType: function() {
+        return selectedDataSet.dataSetType;
+      }
+    };
+
+    $uibModal.open(cloneDataSetModal);
   };
 
   vm.loadAllDataSet = function() {

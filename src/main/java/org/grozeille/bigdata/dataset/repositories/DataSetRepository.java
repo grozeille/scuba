@@ -13,14 +13,14 @@ import java.util.Collection;
 @SolrRepository
 public interface DataSetRepository extends SolrCrudRepository<DataSetSearchItem, String> {
 
-    @Query(value = "text:?0")
+    @Query(value = "text:?0 AND temporary:false")
     Page<DataSetSearchItem> findByAll(Pageable pageable, String text);
 
     DataSetSearchItem findByDatabaseAndTable(String database, String table);
 
-    @Query(value = "dataSetType:(?0)")
+    @Query(value = "dataSetType:(?0) AND temporary:false")
     Page<DataSetSearchItem> findByDatalakeItemTypeIn(Pageable pageable, Collection<String> datalakeItemType);
 
-    @Query(value = "dataSetType:(?0) AND text:?1")
+    @Query(value = "dataSetType:(?0) AND text:?1 AND temporary:false")
     Page<DataSetSearchItem> findByDatalakeItemTypeInAndAll(Pageable pageable, Collection<String> datalakeItemType, String text);
 }

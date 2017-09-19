@@ -115,9 +115,7 @@ public class CustomFileDataSetService {
             hiveService.updateTable(hiveTable);
         }
 
-        if(!temporary) {
-            dataSetService.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
-        }
+        dataSetService.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
     }
 
     public void uploadFile(
@@ -146,9 +144,7 @@ public class CustomFileDataSetService {
 
         hiveService.updateTable(hiveTable);
 
-        if(!hiveTable.getTemporary()) {
-            dataSetService.refreshTable(database, table);
-        }
+        dataSetService.refreshTable(database, table);
     }
 
     public CustomFileDataSetConf extractDataSetConf(HiveTable hiveTable) throws java.io.IOException {
@@ -197,9 +193,7 @@ public class CustomFileDataSetService {
 
             hiveService.createOrcTable(hiveTable);
 
-            if(!hiveTable.getTemporary()) {
-                dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
-            }
+            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
@@ -223,9 +217,7 @@ public class CustomFileDataSetService {
 
             hiveService.createOrcTable(hiveTable);
 
-            if(!hiveTable.getTemporary()) {
-                dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
-            }
+            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
@@ -262,9 +254,7 @@ public class CustomFileDataSetService {
 
             hiveService.createOrcTable(hiveTable);
 
-            if(!hiveTable.getTemporary()) {
-                dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
-            }
+            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
@@ -295,7 +285,7 @@ public class CustomFileDataSetService {
 
         HiveTable targetHiveTable = hiveService.findOne(targetDatabase, targetTable);
 
-        if(targetHiveTable != null) {
+        if(targetHiveTable != null && targetHiveTable.getTemporary() == false) {
             throw new HiveTableAlreadyExistsException(targetDatabase + "." + targetTable + " already exists");
         }
 

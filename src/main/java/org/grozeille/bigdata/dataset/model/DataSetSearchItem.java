@@ -58,6 +58,9 @@ public class DataSetSearchItem {
     @Field
     private String dataSetType;
 
+    @Field
+    private Boolean temporary;
+
     //@Indexed(stored = true, searchable = false)
     @Field
     private String jsonData;
