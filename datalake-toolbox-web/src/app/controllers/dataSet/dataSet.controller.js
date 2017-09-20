@@ -81,8 +81,6 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   vm.cloneDataSet = function(database, table) {
     var selectedDataSet = getDataSet(database, table);
 
-    selectedDataSet.cloneLoading = true;
-
     cloneDataSetModal.resolve = {
       sourceDatabase: function() {
         return database;
@@ -103,7 +101,7 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
       vm.dataSetList = data.content;
       for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
         vm.dataSetList[cpt].editLoading = false;
-        vm.dataSetList[cpt].cloneLoading = false;
+        vm.dataSetList[cpt].showButtons = vm.dataSetList[cpt].dataSetType !== 'PublicDataSet';
       }
     });
   };

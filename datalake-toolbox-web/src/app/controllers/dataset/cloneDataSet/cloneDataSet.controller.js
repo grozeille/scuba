@@ -14,12 +14,14 @@ function CloneDataSetController($uibModalInstance, $log, $state, wranglingDataSe
   vm.sourceTable = sourceTable;
   vm.dataSetType = dataSetType;
   vm.showTableAlreadyExistError = false;
+  vm.cloning = false;
 
   vm.ok = function() {
     vm.showTableAlreadyExistError = false;
 
     dataSetService.getDataSet(vm.database, vm.name).then(function(data) {
       if(data === null) {
+        vm.cloning = true;
         if(vm.dataSetType === 'WranglingDataSet') {
           wranglingDataSetService.cloneDataSet(sourceDatabase, sourceTable, vm.database, vm.name).then(function() {
             $uibModalInstance.close();

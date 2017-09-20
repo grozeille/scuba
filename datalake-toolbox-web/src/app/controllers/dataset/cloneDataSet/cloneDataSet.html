@@ -47,6 +47,8 @@
 
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="cloneDataSet.ok()">OK</button>
+  <a type="button" class="btn btn-primary" type="button" ng-click="cloneDataSet.ok()" ng-disabled="cloneDataSet.cloning">
+    <span ng-show="cloneDataSet.cloning" class="fa fa-spinner fa-spin" style="color: inherit;"></span> OK
+  </a>
   <button class="btn btn-default" type="button" ng-click="cloneDataSet.cancel()">Cancel</button>
 </div>

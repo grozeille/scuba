@@ -58,17 +58,19 @@
             <span ng-repeat="tag in v.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
           </p>
         </div>
-        <div class="panel-body">
+        <div class="panel-body" ng-show="v.showButtons">
           <a ng-click="dataset.deleteDataSet(v.database, v.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
             <span class="glyphicon glyphicon-remove"></span> Delete
           </a>
-          <a ng-click="dataset.cloneDataSet(v.database, v.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="v.cloneLoading">
-            <span ng-show="!v.cloneLoading" class="glyphicon glyphicon-duplicate"></span><span ng-show="v.cloneLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Clone
+          <a ng-click="dataset.cloneDataSet(v.database, v.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
+            <span class="glyphicon glyphicon-duplicate"></span> Clone
           </a>
           <a ng-click="dataset.editDataSet(v.database, v.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="v.editLoading">
             <span ng-show="!v.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="v.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
           </a>
 
+        </div>
+        <div class="panel-body" ng-show="!v.showButtons" style="height:60px;">
         </div>
 
 
