@@ -105,6 +105,7 @@ public class DataSetService {
         dataSetSearchItem.setPath(hiveTable.getPath());
         dataSetSearchItem.setTags(hiveTable.getTags());
         dataSetSearchItem.setDataSetType(hiveTable.getDataSetType());
+        dataSetSearchItem.setTemporary(hiveTable.getTemporary());
 
         if(hiveTable.getColumns() != null) {
             dataSetSearchItem.setColumns(Arrays.stream(hiveTable.getColumns()).map(c -> c.getName()).toArray(String[]::new));

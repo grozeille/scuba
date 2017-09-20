@@ -8,7 +8,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $scope, $state, customFileDataSetService) {
+function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $scope, $state, $window, customFileDataSetService) {
   var vm = this;
   vm.isLoading = false;
 
@@ -54,6 +54,11 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     return(vm.fileInfo);
   }, function(newValue, oldValue) {
     if(newValue === null || angular.isUndefined(newValue.name)) {
+      return;
+    }
+
+    if(newValue.name === oldValue.name && newValue.type === oldValue.type && newValue.size === oldValue.size && newValue.lastModified === oldValue.lastModified) {
+      // same file, return
       return;
     }
 
@@ -261,6 +266,8 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     vm.database = dataSet.database;
     vm.name = dataSet.name;
     vm.comment = dataSet.comment;
+    vm.fileFormat = dataSet.dataSetConfig.fileFormat;
+
     // TODO tags
 
     if(dataSet.dataSetConfig.fileFormat === 'RAW') {
@@ -292,12 +299,15 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       var path = dataSet.dataSetConfig.originalFile.path;
       var lastIndex = path.lastIndexOf('/');
       var fileName = path.substring(lastIndex + 1);
+      var timeStampInMs = $window.performance && $window.performance.now && $window.performance.timing && $window.performance.timing.navigationStart ? $window.performance.now() + $window.performance.timing.navigationStart : Date.now();
 
       vm.fileInfo = {
         name: fileName,
         size: dataSet.dataSetConfig.originalFile.size,
-        type: dataSet.dataSetConfig.originalFile.contentType
+        type: dataSet.dataSetConfig.originalFile.contentType,
+        lastModified: timeStampInMs
       };
+      $(':file').filestyle('placeholder', fileName);
       vm.fileUploaded = true;
       vm.fileTemporaryUploaded = true;
     }

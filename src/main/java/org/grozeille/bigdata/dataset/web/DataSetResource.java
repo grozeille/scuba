@@ -41,7 +41,7 @@ public class DataSetResource {
         Page<DataSetSearchItem> result;
         if(Strings.isNullOrEmpty(filter)) {
             if(datalakeItemType == null || datalakeItemType.isEmpty()) {
-                result = dataSetRepository.findAll(pageable);
+                result = dataSetRepository.findAllNotTemporary(pageable);
             }
             else {
                 result = dataSetRepository.findByDatalakeItemTypeIn(pageable, datalakeItemType);

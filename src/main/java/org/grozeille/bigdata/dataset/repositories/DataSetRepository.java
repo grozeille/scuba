@@ -13,6 +13,9 @@ import java.util.Collection;
 @SolrRepository
 public interface DataSetRepository extends SolrCrudRepository<DataSetSearchItem, String> {
 
+    @Query(value = "temporary:false")
+    Page<DataSetSearchItem> findAllNotTemporary(Pageable pageable);
+
     @Query(value = "text:?0 AND temporary:false")
     Page<DataSetSearchItem> findByAll(Pageable pageable, String text);
 

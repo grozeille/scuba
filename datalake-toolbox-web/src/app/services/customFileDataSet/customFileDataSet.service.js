@@ -63,7 +63,7 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
         var cloneRequest = {
           targetDatabase: vm.database,
           targetTable: vm.temporaryTable,
-          temporary: false
+          temporary: true
         };
 
         return $http.post(url, cloneRequest)
