@@ -32,6 +32,7 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
     var selectedDataSet = getDataSet(database, table);
 
     if(selectedDataSet !== null) {
+      selectedDataSet.editLoading = true;
       if(selectedDataSet.dataSetType === 'CustomFileDataSet') {
         customFileDataSetService.initDataSet(database, table).then(function() {
           $state.go('customFileDataSet');
@@ -80,6 +81,8 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   vm.cloneDataSet = function(database, table) {
     var selectedDataSet = getDataSet(database, table);
 
+    selectedDataSet.cloneLoading = true;
+
     cloneDataSetModal.resolve = {
       sourceDatabase: function() {
         return database;
@@ -98,6 +101,10 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   vm.loadAllDataSet = function() {
     dataSetService.getAllDataSet().then(function(data) {
       vm.dataSetList = data.content;
+      for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
+        vm.dataSetList[cpt].editLoading = false;
+        vm.dataSetList[cpt].cloneLoading = false;
+      }
     });
   };
 
