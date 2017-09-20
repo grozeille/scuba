@@ -56,6 +56,12 @@ public class CustomFileDataSetService {
 
         HiveTable hiveTable = hiveService.findOne(dataSetConf.getDatabase(), tableName);
 
+        // if the previous tmp table is not the same type, delete it
+        if(hiveTable != null && !hiveTable.getDataSetType().equals(DataSetType.CustomFileDataSet.name())) {
+            hiveService.deleteTable(hiveTable);
+            hiveTable = null;
+        }
+
         if(hiveTable == null) {
             String dataSetType = DataSetType.CustomFileDataSet.name();
             CustomFileDataSetConf customFileDataSetConfOriginal = new CustomFileDataSetConf();

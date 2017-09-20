@@ -240,7 +240,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
         return uploadFile(temporary);
       })
       .then(function() {
-        $log.info('Update table schema...');
+        $log.info('Update DataSet schema...');
         return customFileDataSetService.updateTableSchema(temporary);
       });
   }
@@ -248,14 +248,14 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   vm.save = function(temporary) {
     return internalSave(temporary)
       .then(function() {
-        $log.info('Table saved...');
+        $log.info('DataSet saved...');
         vm.saving = false;
-        vm.alerts.push({msg: 'Table saved.', type: 'info'});
+        vm.alerts.push({msg: 'DataSet saved.', type: 'info'});
       })
       .catch(function(error) {
         $log.info('Error...');
         vm.saving = false;
-        vm.alerts.push({msg: 'Unable to save the table.', type: 'danger'});
+        vm.alerts.push({msg: 'Unable to save the DataSet.', type: 'danger'});
         $log.error(error);
         throw error;
       });

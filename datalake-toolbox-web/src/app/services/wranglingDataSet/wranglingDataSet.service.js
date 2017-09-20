@@ -1,16 +1,25 @@
 module.exports = wranglingDataSetService;
 
 /** @ngInject */
-function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope, hiveService, userService) {
+function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope, dataSetService, userService) {
   var vm = this;
   vm.apiHost = $location.protocol() + '://' + $location.host() + ':' + $location.port() + '/api';
 
   vm.database = '';
-  vm.name = '';
-  vm.comment = '';
-  vm.tables = { };
-  vm.calculatedColumns = [];
-  vm.links = [];
+  vm.table = '';
+  vm.temporaryTable = '';
+  vm.dataSetRequest = {
+    comment: '',
+    tags: []
+  };
+  vm.wranglingDataSetConfig = {
+    tables: [],
+    calculatedColumns: [],
+    links: []
+  };
+  vm.currentUser = null;
+
+  vm.tables = [];
   vm.filter = {operator: 'AND', rules: []};
 
   vm.cancelCurrentGetData = null;
@@ -20,85 +29,147 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
   };
 
   vm.catchServiceException = function(error) {
-    $log.error('XHR Failed for getContributors.\n' + angular.toJson(error.data, true));
+    $log.error('XHR Failed.\n' + angular.toJson(error.data, true));
+    throw error;
   };
 
   function initDataSet(database, table) {
-    if(angular.isUndefined(database) && angular.isUndefined(table)) {
-      return userService.getLastProject().then(function(data) {
-        vm.database = data.hiveDatabase;
-        vm.name = '';
-        vm.comment = '';
-        vm.tables = { };
-        vm.calculatedColumns = [];
-        vm.links = [];
+    vm.database = database;
+    vm.table = table;
+    vm.dataSetRequest = null;
+    vm.wranglingDataSetConfig = null;
+
+    return userService.getCurrent().then(function(data) {
+      vm.currentUser = data;
+      vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
+    })
+    .then(function() {
+      return dataSetService.getDataSet(vm.database, vm.table);
+    })
+    .then(function(data) {
+      if(data === null) {
+        // this table doesn't exist yet, create it first in "temporary" mode
+        vm.dataSetRequest = {
+          comment: '',
+          tags: []
+        };
+        vm.wranglingDataSetConfig = {
+          tables: [],
+          calculatedColumns: [],
+          links: []
+        };
         vm.filter = {operator: 'AND', rules: []};
-
-        return $q.when(null);
-      });
-    } else {
-      return $http.get(vm.apiHost + '/dataset/' + database + '/' + table)
-        .then(vm.getServiceData)
-        .then(function(data) {
-          var loadedView = data;
-          vm.tables = [];
-          for(var t = 0; t < loadedView.tables.length; t++) {
-            var table = loadedView.tables[t];
-            vm.tables[table.database + '.' + table.table] = table;
-          }
-          vm.calculatedColumns = loadedView.calculatedColumns;
-          vm.links = loadedView.links;
-          vm.comment = loadedView.comment;
-          vm.name = loadedView.table;
-          vm.filter = parseDataSetFilterGroup(loadedView.filter);
-
-          notifyOnChange();
-
-          return data;
-        })
-        .catch(vm.catchServiceException);
-    }
-  }
-
-  function cloneDataSet(database, table) {
-    return $http.get(vm.apiHost + '/dataset/' + database + '/' + table)
-      .then(vm.getServiceData)
-      .then(function(data) {
-        var loadedView = data;
         vm.tables = [];
-        for(var t = 0; t < loadedView.tables.length; t++) {
-          addTable(loadedView.tables[t]);
-        }
-        vm.calculatedColumns = loadedView.calculatedColumns;
-        vm.links = loadedView.links;
-        vm.comment = loadedView.comment;
-        vm.filter = parseDataSetFilterGroup(loadedView.filter);
-        vm.name = loadedView.table + ' (cloned)';
 
-        notifyOnChange();
+        return saveDataSet(true);
+      }
+      else {
+        // the table already exists, clone it as temporary table
+        var url = vm.apiHost + '/dataset/wrangling/' + vm.database + '/' + vm.table + '/clone';
 
-        return data;
-      })
-      .catch(vm.catchServiceException);
+        var cloneRequest = {
+          targetDatabase: vm.database,
+          targetTable: vm.temporaryTable,
+          temporary: true
+        };
+
+        return $http.post(url, cloneRequest)
+          .then(function() {
+            return dataSetService.getDataSet(vm.database, vm.temporaryTable);
+          })
+          .then(function(tmpData) {
+            vm.dataSetRequest = {
+              comment: tmpData.comment,
+              tags: tmpData.tags
+            };
+            vm.wranglingDataSetConfig = angular.fromJson(tmpData.dataSetConfiguration);
+            vm.filter = parseDataSetFilterGroup(vm.wranglingDataSetConfig.filter);
+            vm.tables = [];
+            for(var t = 0; t < vm.wranglingDataSetConfig.tables.length; t++) {
+              addTable(vm.wranglingDataSetConfig.tables[t]);
+            }
+          });
+      }
+    })
+    .then(function() {
+      notifyOnChange();
+    })
+    .catch(vm.catchServiceException);
   }
 
-  function saveDataSet() {
-    var dataSetConf = buildDataSetConf();
+  function cloneDataSet(sourceDatabase, sourceTable, targetDatabase, targetTable) {
+    vm.database = targetDatabase;
+    vm.table = targetTable;
+    vm.dataSetRequest = null;
+    vm.customFileDataSetConfig = null;
 
-    var url = vm.apiHost + '/dataset';
-    if(''.localeCompare(vm.id) !== 0) {
-      url = url + '/' + vm.id;
+    return userService.getCurrent().then(function(data) {
+      vm.currentUser = data;
+      vm.temporaryTable = '_tmp_' + vm.currentUser.login + '_' + vm.table;
+    })
+    .then(function() {
+      // clone the source table as the temporary table
+      var url = vm.apiHost + '/dataset/wrangling/' + sourceDatabase + '/' + sourceTable + '/clone';
+
+      var cloneRequest = {
+        targetDatabase: vm.database,
+        targetTable: vm.temporaryTable,
+        temporary: true
+      };
+
+      return $http.post(url, cloneRequest)
+        .then(function() {
+          return dataSetService.getDataSet(vm.database, vm.temporaryTable);
+        })
+        .then(function(tmpData) {
+          vm.dataSetRequest = {
+            comment: tmpData.comment,
+            tags: tmpData.tags
+          };
+          vm.wranglingDataSetConfig = angular.fromJson(tmpData.dataSetConfiguration);
+          vm.filter = parseDataSetFilterGroup(vm.wranglingDataSetConfig.filter);
+          vm.tables = [];
+          for(var t = 0; t < vm.wranglingDataSetConfig.tables.length; t++) {
+            addTable(vm.wranglingDataSetConfig.tables[t]);
+          }
+        });
+    })
+    .then(function() {
+      notifyOnChange();
+    })
+    .catch(vm.catchServiceException);
+  }
+
+  function getTableName(temporary) {
+    if(angular.isUndefined(temporary)) {
+      temporary = false;
     }
 
-    return $http.put(url, dataSetConf)
-      .then(vm.getServiceData)
-      .then(function(data) {
-        if(angular.isDefined(data.id)) {
-          vm.id = data.id;
-        }
+    var table = vm.table;
 
-        return data;
-      })
+    if(temporary) {
+      table = vm.temporaryTable;
+    }
+
+    return table;
+  }
+
+  function saveDataSet(temporary) {
+    var table = getTableName(temporary);
+
+    var url = vm.apiHost + '/dataset/wrangling/' + vm.database + '/' + table;
+
+    vm.wranglingDataSetConfig.tables = getTables();
+    vm.wranglingDataSetConfig.filter = buildDataSetFilterGroup(vm.filter);
+
+    var creationRequest = {
+      comment: vm.dataSetRequest.comment,
+      tags: vm.dataSetRequest.tags,
+      temporary: temporary,
+      dataSetConfig: vm.wranglingDataSetConfig
+    };
+
+    return $http.put(url, creationRequest)
       .catch(vm.catchServiceException);
   }
 
@@ -168,35 +239,20 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
     return dataSetFilter;
   }
 
-  function buildDataSetConf() {
-    var dataSetConf = {
+  function getDataSet() {
+    return {
       database: vm.database,
-      table: vm.name,
-      comment: vm.comment,
-      tags: ['test1', 'test2'],
-      tables: getTables(),
-      calculatedColumns: vm.calculatedColumns,
-      links: vm.links,
-      filter: buildDataSetFilterGroup(vm.filter)
+      name: vm.table,
+      comment: vm.dataSetRequest.comment,
+      tags: vm.dataSetRequest.tags
     };
-
-    return dataSetConf;
   }
 
-  function getName() {
-    return vm.name;
-  }
-
-  function setName(name) {
-    vm.name = name;
-  }
-
-  function getComment() {
-    return vm.comment;
-  }
-
-  function setComment(comment) {
-    vm.comment = comment;
+  function setDataSet(dataSet) {
+    vm.dataSetRequest = {
+      comment: dataSet.comment,
+      tags: dataSet.tags
+    };
   }
 
   function getFilter() {
@@ -293,20 +349,20 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
   }
 
   function addCalculatedColumn(calculatedColumn) {
-    vm.calculatedColumns.push(calculatedColumn);
+    vm.wranglingDataSetConfig.calculatedColumns.push(calculatedColumn);
 
     notifyOnChange();
   }
 
   function getCalculatedColumns() {
-    return vm.calculatedColumns;
+    return vm.wranglingDataSetConfig.calculatedColumns;
   }
 
   function removeCalculatedColumn(name) {
-    for(var i = 0; i < vm.calculatedColumns.length; i++) {
-      var calculatedColumn = vm.calculatedColumns[i];
+    for(var i = 0; i < vm.wranglingDataSetConfig.calculatedColumns.length; i++) {
+      var calculatedColumn = vm.wranglingDataSetConfig.calculatedColumns[i];
       if(calculatedColumn.name.localeCompare(name) === 0) {
-        vm.calculatedColumns.splice(i, 1);
+        vm.wranglingDataSetConfig.calculatedColumns.splice(i, 1);
         break;
       }
     }
@@ -322,8 +378,8 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
   }
 
   function getCalculatedColumn(name) {
-    for(var i = 0; i < vm.calculatedColumns.length; i++) {
-      var calculatedColumn = vm.calculatedColumns[i];
+    for(var i = 0; i < vm.wranglingDataSetConfig.calculatedColumns.length; i++) {
+      var calculatedColumn = vm.wranglingDataSetConfig.calculatedColumns[i];
       if(calculatedColumn.name.localeCompare(name) === 0) {
         return calculatedColumn;
       }
@@ -350,11 +406,11 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
   }
 
   function getLinks() {
-    return vm.links;
+    return vm.wranglingDataSetConfig.links;
   }
 
   function updateLinks(newLinks) {
-    vm.links = newLinks;
+    vm.wranglingDataSetConfig.links = newLinks;
     notifyOnChange();
   }
 
@@ -372,7 +428,9 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
       return $q.when([]);
     }
 
-    var result = hiveService.getData(buildDataSetConf(), maxRows);
+    var url = vm.apiHost + '/dataset/wrangling/' + vm.database + '/' + vm.temporaryTable + '/preview?max=' + maxRows;
+    var result = $http.get(url)
+      .catch(vm.catchServiceException);
 
     vm.cancelCurrentGetData = result.cancel;
     return result.promise;
@@ -398,10 +456,8 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
     initDataSet: initDataSet,
     saveDataSet: saveDataSet,
     cloneDataSet: cloneDataSet,
-    getName: getName,
-    setName: setName,
-    getComment: getComment,
-    setComment: setComment,
+    getDataSet: getDataSet,
+    setDataSet: setDataSet,
     getFilter: getFilter,
     setFilter: setFilter,
     addTable: addTable,

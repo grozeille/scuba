@@ -9,14 +9,17 @@ module.exports = {
 /** @ngInject */
 function WranglingDataSetController($timeout, $log, $uibModal, $state, $stateParams, $scope, $rootScope, $window, wranglingDataSetService) {
   var vm = this;
+  vm.alerts = [];
+
   vm.maxRows = 10000;
   vm.selectedColumn = null;
   vm.selectedDatabase = null;
   vm.selectedTable = null;
   vm.selectedColumnIsCalculated = null;
 
+  vm.database = '';
   vm.name = '';
-  vm.description = '';
+  vm.comment = '';
 
   vm.renameField = null;
   vm.renameDescription = null;
@@ -29,11 +32,16 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
   vm.calculatedColumns = [];
   vm.isColumnLinked = { };
 
-  vm.name = wranglingDataSetService.getName();
-  vm.description = wranglingDataSetService.getComment();
-
-  vm.queryGroup = wranglingDataSetService.getFilter();
   vm.queryFields = [];
+
+  vm.saving = false;
+
+  vm.jsTags = {
+    edit: true,
+    texts: {
+      inputPlaceHolder: 'Type text here'
+    }
+  };
 
   function htmlEntities(str) {
     return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -75,27 +83,40 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
     return '<b>Filter:</b> ' + computed(vm.queryGroup);
   };
 
-  wranglingDataSetService.subscribeOnChange($scope, function() {
-    vm.refreshTables();
-    $log.info('Refreshed after changes at: ' + new Date());
-  });
+  function internalSave(temporary) {
+    if(angular.isUndefined(temporary)) {
+      temporary = false;
+    }
 
-  var savedModal = require('./saved/saved.controller');
+    if(!temporary) {
+      vm.saving = true;
+    }
 
-  vm.save = function() {
-    wranglingDataSetService.setName(vm.name);
-    wranglingDataSetService.setComment(vm.description);
-    wranglingDataSetService.setFilter(vm.queryGroup);
-    wranglingDataSetService.saveDataSet();
-    $log.info('Save at: ' + new Date());
-
-    savedModal.resolve = {
-      viewName: function () {
-        return vm.name;
-      }
+    var dataSet = {
+      comment: vm.comment,
+      tags: []
     };
 
-    $uibModal.open(savedModal);
+    wranglingDataSetService.setDataSet(dataSet);
+    wranglingDataSetService.setFilter(vm.queryGroup);
+
+    return wranglingDataSetService.saveDataSet(temporary);
+  }
+
+  vm.save = function(temporary) {
+    return internalSave(temporary)
+      .then(function() {
+        $log.info('DataSet saved...');
+        vm.saving = false;
+        vm.alerts.push({msg: 'DataSet saved.', type: 'info'});
+      })
+      .catch(function(error) {
+        $log.info('Error...');
+        vm.saving = false;
+        vm.alerts.push({msg: 'Unable to save the DataSet.', type: 'danger'});
+        $log.error(error);
+        throw error;
+      });
   };
 
   vm.refreshTables = function() {
@@ -318,6 +339,19 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
   };
 
   function activate() {
+    wranglingDataSetService.subscribeOnChange($scope, function() {
+      vm.refreshTables();
+      $log.info('Refreshed after changes at: ' + new Date());
+    });
+
+    var dataSet = wranglingDataSetService.getDataSet();
+
+    vm.database = dataSet.database;
+    vm.name = dataSet.name;
+    vm.comment = dataSet.comment;
+
+    vm.queryGroup = wranglingDataSetService.getFilter();
+
     vm.refreshTables();
   }
 

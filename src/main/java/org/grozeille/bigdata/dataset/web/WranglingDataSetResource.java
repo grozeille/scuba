@@ -4,9 +4,11 @@ import io.swagger.annotations.ApiParam;
 import org.grozeille.bigdata.dataset.model.DataSetConf;
 import org.grozeille.bigdata.dataset.services.WranglingDataSetService;
 import lombok.extern.slf4j.Slf4j;
+import org.grozeille.bigdata.dataset.web.dto.CloneDataSetRequest;
 import org.grozeille.bigdata.dataset.web.dto.DataSetData;
 import org.grozeille.bigdata.dataset.web.dto.WranglingDataSetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -15,7 +17,7 @@ import java.security.Principal;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/dataset-wrangling")
+@RequestMapping("/api/dataset/wrangling")
 public class WranglingDataSetResource {
 
     private static final String DEFAULT_MAX = "50000";
@@ -47,5 +49,15 @@ public class WranglingDataSetResource {
         DataSetData data = new DataSetData();
         data.setData(this.wranglingDataSetService.getPreviewData(database, table, max));
         return data;
+    }
+
+    @RequestMapping(value = "/{database}/{table}/clone", method = RequestMethod.POST)
+    public ResponseEntity<?> clone(
+            @ApiIgnore @ApiParam(hidden = true) Principal principal,
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestBody CloneDataSetRequest request) throws Exception {
+
+        return ResponseEntity.ok().build();
     }
 }

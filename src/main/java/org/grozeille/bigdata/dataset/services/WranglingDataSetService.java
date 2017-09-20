@@ -8,10 +8,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
-import org.grozeille.bigdata.dataset.exceptions.HiveDatabaseNotFoundException;
-import org.grozeille.bigdata.dataset.exceptions.HiveInvalidDataSetException;
-import org.grozeille.bigdata.dataset.exceptions.HiveQueryException;
-import org.grozeille.bigdata.dataset.exceptions.HiveTableNotFoundException;
+import org.grozeille.bigdata.dataset.exceptions.*;
 import org.grozeille.bigdata.dataset.model.*;
 import org.grozeille.bigdata.dataset.model.HiveDatabase;
 import org.grozeille.bigdata.dataset.model.HiveTable;
@@ -78,8 +75,13 @@ public class WranglingDataSetService {
 
         HiveTable hiveTable = hiveService.findOne(dataSetConf.getDatabase(), dataSetConf.getTable());
 
-        if(hiveTable == null) {
+        // if the previous tmp table is not the same type, delete it
+        if(hiveTable != null && !hiveTable.getDataSetType().equals(DataSetType.WranglingDataSet.name())) {
+            hiveService.deleteTable(hiveTable);
+            hiveTable = null;
+        }
 
+        if(hiveTable == null) {
             hiveTable = new HiveTable();
             hiveTable.setDatabase(dataSetConf.getDatabase());
             hiveTable.setTable(dataSetConf.getTable());
@@ -178,7 +180,12 @@ public class WranglingDataSetService {
         WranglingDataSetConfTable primaryTable = Arrays.stream(wranglingDataSetConf.getTables())
                 .filter(dataSetConfTable -> dataSetConfTable.getPrimary())
                 .findFirst()
-                .get();
+                .orElse(null);
+
+        if(primaryTable == null) {
+            return "SELECT 'empty' as DATA";
+        }
+
         String primaryTableName = formatTableName(primaryTable.getDatabase(), primaryTable.getTable());
 
 
@@ -271,7 +278,14 @@ public class WranglingDataSetService {
     private String buildSqlQuery(WranglingDataSetConf wranglingDataSetConf, String denormalizedSqlQuery) throws HiveInvalidDataSetException {
 
         // get the primary table, and the others
-        WranglingDataSetConfTable primaryTable = Arrays.stream(wranglingDataSetConf.getTables()).filter(dataSetConfTable -> dataSetConfTable.getPrimary()).findFirst().get();
+        WranglingDataSetConfTable primaryTable = Arrays.stream(wranglingDataSetConf.getTables())
+                .filter(dataSetConfTable -> dataSetConfTable.getPrimary())
+                .findFirst()
+                .orElse(null);
+
+        if(primaryTable == null) {
+            return "SELECT 'empty' as DATA";
+        }
 
         // get all tables with links
         Set<String> tables = getLinkedTables(primaryTable.getDatabase(), primaryTable.getTable(), wranglingDataSetConf.getLinks());

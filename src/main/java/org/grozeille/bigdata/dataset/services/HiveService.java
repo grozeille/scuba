@@ -255,7 +255,6 @@ public class HiveService {
         HdfsService.HdfsFileInfo dataSetConfigfileInfo = hdfsService.write(configInputStream, "datasetconfig.json", table.getPath());
 
         String createSql = "CREATE VIEW `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
-                "TBLPROPERTIES (" +
                 buildTableProperties(table, dataSetConfigfileInfo) +"\n"+
                 "AS "+sqlQuery;
 

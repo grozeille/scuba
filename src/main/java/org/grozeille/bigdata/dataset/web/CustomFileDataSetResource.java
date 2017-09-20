@@ -8,7 +8,7 @@ import org.grozeille.bigdata.dataset.model.*;
 import org.grozeille.bigdata.dataset.services.CustomFileDataSetService;
 import org.grozeille.bigdata.dataset.services.DataSetService;
 import org.grozeille.bigdata.dataset.services.HiveService;
-import org.grozeille.bigdata.dataset.web.dto.CloneCustomFileDataSetRequest;
+import org.grozeille.bigdata.dataset.web.dto.CloneDataSetRequest;
 import org.grozeille.bigdata.dataset.web.dto.CustomFileDataSetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -29,7 +29,7 @@ import java.security.Principal;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/dataset")
+@RequestMapping("/api/dataset/custom-file")
 public class CustomFileDataSetResource {
 
     @Autowired
@@ -41,7 +41,7 @@ public class CustomFileDataSetResource {
     @Autowired
     private CustomFileDataSetService customFileDataSetService;
 
-    @RequestMapping(value = "/custom-file/{database}/{table}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{database}/{table}", method = RequestMethod.PUT)
     public void create(
             @ApiIgnore @ApiParam(hidden = true) Principal principal,
             @PathVariable("database") String database,
@@ -71,7 +71,7 @@ public class CustomFileDataSetResource {
         );
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(value = "/{database}/{table}/file", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional(readOnly = false)
     public void uploadFile(
             @PathVariable("database") String database,
@@ -88,7 +88,7 @@ public class CustomFileDataSetResource {
                 file.getInputStream());
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/update-table-schema", method = RequestMethod.POST)
+    @RequestMapping(value = "/{database}/{table}/update-table-schema", method = RequestMethod.POST)
     @Transactional(readOnly = false)
     public void updateSchema(
             @PathVariable("database") String database,
@@ -99,7 +99,7 @@ public class CustomFileDataSetResource {
         customFileDataSetService.updateTableSchema(database, table);
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file", method = RequestMethod.GET)
+    @RequestMapping(value = "/{database}/{table}/file", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> downloadFile(
             @PathVariable("database") String database,
             @PathVariable("table") String table,
@@ -125,18 +125,18 @@ public class CustomFileDataSetResource {
         return new ResponseEntity<InputStreamResource>(isr, respHeaders, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/file/sheets", method = RequestMethod.GET)
+    @RequestMapping(value = "/{database}/{table}/file/sheets", method = RequestMethod.GET)
     public String[] excelSheets(@PathVariable("database") String database,
                            @PathVariable("table") String table) throws Exception {
         return this.customFileDataSetService.sheets(database, table);
     }
 
-    @RequestMapping(value = "/custom-file/{database}/{table}/clone", method = RequestMethod.POST)
+    @RequestMapping(value = "/{database}/{table}/clone", method = RequestMethod.POST)
     public ResponseEntity<?> clone(
             @ApiIgnore @ApiParam(hidden = true) Principal principal,
             @PathVariable("database") String database,
             @PathVariable("table") String table,
-            @RequestBody CloneCustomFileDataSetRequest request) throws Exception {
+            @RequestBody CloneDataSetRequest request) throws Exception {
 
         this.customFileDataSetService.clone(
                 database,

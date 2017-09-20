@@ -3,7 +3,7 @@ package org.grozeille.bigdata.dataset.web.dto;
 import lombok.Data;
 
 @Data
-public class CloneCustomFileDataSetRequest {
+public class CloneDataSetRequest {
     private String targetDatabase;
 
     private String targetTable;
