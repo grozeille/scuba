@@ -194,6 +194,7 @@
             </exclusions>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.10</artifactId>
@@ -265,6 +266,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        -->
         <!--
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
