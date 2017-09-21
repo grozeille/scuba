@@ -5,7 +5,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function LinksController($timeout, $log, $location, $filter, $uibModalInstance, $state, database, table, preparationService) {
+function LinksController($timeout, $log, $location, $filter, $uibModalInstance, $state, database, table, wranglingDataSetService) {
   var vm = this;
 
   vm.leftTable = {
@@ -23,7 +23,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
     $log.info('Modal OK at: ' + new Date());
 
     // update links, only for selected left database.table.column
-    var links = preparationService.getLinks();
+    var links = wranglingDataSetService.getLinks();
     var newLinks = [];
     for(var l = 0; l < links.length; l++) {
       var link = links[l];
@@ -64,9 +64,9 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
       }
     }
 
-    preparationService.updateLinks(newLinks);
+    wranglingDataSetService.updateLinks(newLinks);
 
-    preparationService.notifyOnChange();
+    wranglingDataSetService.notifyOnChange();
     $uibModalInstance.close();
   };
 
@@ -124,7 +124,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
   vm.refreshLinks = function() {
     vm.refreshRightTableList();
 
-    var links = preparationService.getLinks();
+    var links = wranglingDataSetService.getLinks();
 
     for(var l = 0; l < links.length; l++) {
       var link = links[l];
@@ -192,7 +192,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
 
     // TODO: don't include tables linked in the left side to avoid loop
 
-    var tables = preparationService.getTables();
+    var tables = wranglingDataSetService.getTables();
     for(var t = 0; t < tables.length; t++) {
       var table = tables[t];
       var tableItem = {
@@ -223,7 +223,7 @@ function LinksController($timeout, $log, $location, $filter, $uibModalInstance, 
   };
 
   vm.refreshLeftTable = function() {
-    var table = preparationService.getTable(vm.leftTable.database, vm.leftTable.table);
+    var table = wranglingDataSetService.getTable(vm.leftTable.database, vm.leftTable.table);
     vm.leftTable.columns = [];
 
     for(var c = 0; c < table.columns.length; c++) {

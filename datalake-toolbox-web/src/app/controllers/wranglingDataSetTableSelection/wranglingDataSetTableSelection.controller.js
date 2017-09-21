@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function WranglingDataSetTableSelectionController($timeout, $log, $location, $filter, $state, wranglingDataSetService, hiveService) {
+function WranglingDataSetTableSelectionController($timeout, $log, $location, $filter, $state, wranglingDataSetService, dataSetService) {
   var vm = this;
   vm.sourceFilter = '';
 
@@ -23,8 +23,8 @@ function WranglingDataSetTableSelectionController($timeout, $log, $location, $fi
   activate();
 
   function activate() {
-    hiveService.getTables().then(function(tables) {
-      vm.tables = tables;
+    dataSetService.getAllDataSet().then(function(data) {
+      vm.tables = data.content;
     });
   }
 }

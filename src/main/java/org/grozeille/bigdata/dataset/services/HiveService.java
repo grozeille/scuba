@@ -222,8 +222,11 @@ public class HiveService {
                 .map(c -> "`"+c.getName()+"` STRING COMMENT '"+c.getDescription()+"'")
                 .toArray(size -> new String[size]), ",\n");
 
-        InputStream configInputStream = new ByteArrayInputStream(table.getDataSetConfiguration().getBytes(StandardCharsets.UTF_8));
-        HdfsService.HdfsFileInfo dataSetConfigfileInfo = hdfsService.write(configInputStream, "datasetconfig.json", table.getPath());
+        HdfsService.HdfsFileInfo dataSetConfigfileInfo = null;
+        if(table.getDataSetConfiguration() != null) {
+            InputStream configInputStream = new ByteArrayInputStream(table.getDataSetConfiguration().getBytes(StandardCharsets.UTF_8));
+            dataSetConfigfileInfo = hdfsService.write(configInputStream, "datasetconfig.json", table.getPath());
+        }
 
         String createSql = "CREATE EXTERNAL TABLE `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
                 "("+columns+")\n"+
@@ -327,16 +330,31 @@ public class HiveService {
         }
     }
 
-    public void deleteTable(HiveTable table) throws HiveQueryException {
-        String dropSql = "DROP TABLE IF EXISTS `" + table.getDatabase() + "`.`" + table.getTable() + "`";
-        log.info("Drop table: " + dropSql);
+    public void deleteTable(HiveTable table) throws HiveQueryException, TException {
+        String dropSql;
 
         try {
-            long startTime = System.currentTimeMillis();
-            hiveJdbcTemplate.execute(dropSql);
-            log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
-        }catch(Exception e){
-            throw new HiveQueryException("Unable to create table: "+dropSql, e);
+            Table hiveMetaStoreClientTable = hiveMetaStoreClient.getTable(table.getDatabase(), table.getTable());
+
+            if(hiveMetaStoreClientTable.getTableType().equalsIgnoreCase("VIRTUAL_VIEW")) {
+                dropSql = "DROP VIEW IF EXISTS `" + table.getDatabase() + "`.`" + table.getTable() + "`";
+                log.info("Drop view: " + dropSql);
+            }
+            else {
+                dropSql = "DROP TABLE IF EXISTS `" + table.getDatabase() + "`.`" + table.getTable() + "`";
+                log.info("Drop table: " + dropSql);
+            }
+
+            try {
+                long startTime = System.currentTimeMillis();
+                hiveJdbcTemplate.execute(dropSql);
+                log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+            }catch(Exception e){
+                throw new HiveQueryException("Unable to create table: "+dropSql, e);
+            }
+        }
+        catch (org.apache.hadoop.hive.metastore.api.NoSuchObjectException nsoe){
+            log.info("No table found "+table.getDatabase() +"."+ table.getTable());
         }
     }
 

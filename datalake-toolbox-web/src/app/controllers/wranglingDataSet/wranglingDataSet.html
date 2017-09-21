@@ -14,7 +14,7 @@
         <a type="button" class="btn btn-primary" aria-label="Left Align" ui-sref="dataset" style="margin-right:10px;">
           <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span> Back
         </a>
-        <a type="button" class="btn btn-success" ui-sref="chooseTable">
+        <a type="button" class="btn btn-success" ui-sref="wranglingDataSetTableSelection">
           <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add new table
         </a>
       </div>
@@ -47,17 +47,17 @@
           <span ng-if="table.primary" class="pull-right"> <b><span class="glyphicon glyphicon-star" aria-hidden="true"></span> Primary</b></span>
         </div>
         <div class="panel-body">
-            <button type="button" class="btn btn-danger btn-xs pull-right"  ng-click="wranglingDataSet.removeTable(table)">
+          <button type="button" class="btn btn-danger btn-xs pull-right" style="margin-bottom:5px;"  ng-click="wranglingDataSet.removeTable(table)">
             <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
           </button>
-          <button type="button" class="btn btn-info btn-xs" ng-click="wranglingDataSet.links(table)">
+          <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;" ng-click="wranglingDataSet.links(table)">
             <span class="glyphicon glyphicon-link" aria-hidden="true"></span> Links
           </button>
-          <button type="button" class="btn btn-info btn-xs">
+          <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;">
             <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Refresh statistics
           </button>
-          <button type="button" class="btn btn-info btn-xs" ng-if="!table.primary" ng-click="wranglingDataSet.makeTablePrimary(table.database, table.table)">
-            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Make principal
+          <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;" ng-if="!table.primary" ng-click="wranglingDataSet.makeTablePrimary(table.database, table.table)">
+            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Make primary
           </button>
         </div>
         <div class="panel-body" style="max-height:300px; overflow-y: scroll;">

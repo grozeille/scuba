@@ -53,6 +53,31 @@ public class WranglingDataSetService {
             Boolean temporary,
             WranglingDataSetConf wranglingDataSetConf) throws Exception {
 
+
+        if(temporary && wranglingDataSetConf.getTables().length == 0) {
+            // "temporary" view, so create a temporary table
+            HiveTable hiveTable = new HiveTable();
+            hiveTable.setTemporary(true);
+            hiveTable.setDatabase(dataSetConf.getDatabase());
+            hiveTable.setTable(dataSetConf.getTable()+"_dummy_table");
+            hiveTable.setColumns(new HiveColumn[]{ new HiveColumn("dummy", "STRING", "", null)});
+            hiveService.createOrcTable(hiveTable);
+
+            WranglingDataSetConfTable table = new WranglingDataSetConfTable();
+            table.setDatabase(hiveTable.getDatabase());
+            table.setTable(hiveTable.getTable());
+            WranglingDataSetConfColumn column = new WranglingDataSetConfColumn();
+            column.setName("dummy");
+            column.setNewName("dummy");
+            column.setType("STRING");
+            column.setNewType("STRING");
+            column.setIsCalculated(false);
+            column.setSelected(true);
+            table.setColumns(new WranglingDataSetConfColumn[] { column });
+            table.setPrimary(true);
+            wranglingDataSetConf.setTables(new WranglingDataSetConfTable[] { table });
+        }
+
         verifyDataSet(wranglingDataSetConf);
 
         // do all joins
@@ -89,6 +114,7 @@ public class WranglingDataSetService {
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
             hiveTable.setTemporary(temporary);
+            hiveTable.setFormat("QUERY");
             hiveTable.setDataSetType(dataSetType);
             hiveTable.setDataSetConfiguration(json);
 
@@ -141,7 +167,9 @@ public class WranglingDataSetService {
     private void verifyDataSet(WranglingDataSetConf wranglingDataSetConf) throws HiveInvalidDataSetException {
         // verify that column names are unique
         Set<String> columns = new HashSet<>();
+        Boolean hasPrimary = false;
         for(WranglingDataSetConfTable table : wranglingDataSetConf.getTables()){
+            hasPrimary |= table.getPrimary();
             for(WranglingDataSetConfColumn col : table.getColumns()) {
                 if (col.getSelected()) {
                     if(columns.contains(col.getNewName().toLowerCase())){
@@ -151,6 +179,11 @@ public class WranglingDataSetService {
                 }
             }
         }
+
+        if(!hasPrimary) {
+            throw new HiveInvalidDataSetException("A primary table is mandatory");
+        }
+
     }
 
     private String buildDenormalizedSqlQuery(
@@ -183,7 +216,7 @@ public class WranglingDataSetService {
                 .orElse(null);
 
         if(primaryTable == null) {
-            return "SELECT 'empty' as DATA";
+            throw new HiveInvalidDataSetException("A primary table is mandatory");
         }
 
         String primaryTableName = formatTableName(primaryTable.getDatabase(), primaryTable.getTable());
@@ -284,7 +317,7 @@ public class WranglingDataSetService {
                 .orElse(null);
 
         if(primaryTable == null) {
-            return "SELECT 'empty' as DATA";
+            throw new HiveInvalidDataSetException("A primary table is mandatory");
         }
 
         // get all tables with links

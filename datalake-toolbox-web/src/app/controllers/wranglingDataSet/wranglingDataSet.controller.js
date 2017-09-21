@@ -232,12 +232,16 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
 
   vm.getData = function() {
     vm.isLoading = true;
-    return wranglingDataSetService.getData(vm.maxRows).then(function(data) {
+    return internalSave(true).then(function() {
+      return wranglingDataSetService.getData(vm.maxRows);
+    })
+    .then(function(data) {
       if(data !== null) {
         vm.gridOptions.data = data.data;
       }
       vm.isLoading = false;
-    }).catch(function(error) {
+    })
+    .catch(function(error) {
       $log.error(error);
       vm.isLoading = false;
     });

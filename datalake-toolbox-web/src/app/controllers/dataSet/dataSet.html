@@ -50,8 +50,10 @@
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
           <p><b>Database:</b> {{v.database}}</p>
-          <p><b>View:</b> {{v.table}}</p>
+          <p><b>Name:</b> {{v.table}}</p>
+          <p><b>Path:</b> {{v.path}}</p>
           <br/>
+          <p><b>Format:</b> {{v.format}}</p>
           <p><b>Owner:</b> <a href="mailto:{{v.creator}}">{{v.creator}}</a></p>
           <p><b>Comment:</b><br/><span ng-bind-html="v.comment"></span></p>
           <p><b>Tags:</b><br/>

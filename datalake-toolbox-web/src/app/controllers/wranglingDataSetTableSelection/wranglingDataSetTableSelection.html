@@ -31,11 +31,11 @@
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
           <p><b>Database:</b> {{table.database}}</p>
-          <p><b>Table:</b> {{table.table}}</p>
+          <p><b>Name:</b> {{table.table}}</p>
           <p><b>Path:</b> {{table.path}}</p>
           <br/>
           <p><b>Format:</b> {{table.format}}</p>
-          <p><b>Data Domain Owner:</b> <a href="mailto:{{table.creator}}">{{table.creator}}</a></p>
+          <p><b>Owner:</b> <a href="mailto:{{table.creator}}">{{table.creator}}</a></p>
           <p><b>Comment:</b><br/><span ng-bind-html="table.comment"></span></p>
           <p><b>Tags:</b><br/>
             <span ng-repeat="tag in table.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>

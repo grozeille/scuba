@@ -416,7 +416,7 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
 
   function getData(maxRows) {
     if(vm.cancelCurrentGetData !== null) {
-      vm.cancelCurrentGetData('new Get Data');
+      vm.cancelCurrentGetData.resolve('New GetData');
     }
     vm.cancelCurrentGetData = null;
 
@@ -428,17 +428,18 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
       return $q.when([]);
     }
 
+    vm.cancelCurrentGetData = $q.defer();
+
     var url = vm.apiHost + '/dataset/wrangling/' + vm.database + '/' + vm.temporaryTable + '/preview?max=' + maxRows;
-    var result = $http.get(url)
+    var result = $http.get(url, {timeout: vm.cancelCurrentGetData.promise})
       .catch(vm.catchServiceException);
 
-    vm.cancelCurrentGetData = result.cancel;
-    return result.promise;
+    return result;
   }
 
   function cancelGetData() {
     if(vm.cancelCurrentGetData !== null) {
-      vm.cancelCurrentGetData('user cancellation');
+      vm.cancelCurrentGetData.resolve('Cancel Get Data');
     }
     vm.cancelCurrentGetData = null;
   }
