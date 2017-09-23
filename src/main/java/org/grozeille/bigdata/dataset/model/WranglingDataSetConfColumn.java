@@ -19,7 +19,7 @@ public class WranglingDataSetConfColumn {
 
     private Boolean selected;
 
-    private Boolean isCalculated;
+    private Boolean calculated;
 
     private String formula;
 }

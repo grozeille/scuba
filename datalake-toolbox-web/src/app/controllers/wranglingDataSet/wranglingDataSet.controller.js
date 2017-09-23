@@ -284,7 +284,7 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
     vm.selectedColumn = col.colDef.hive.column;
     vm.selectedDatabase = col.colDef.hive.database;
     vm.selectedTable = col.colDef.hive.table;
-    vm.selectedColumnIsCalculated = col.colDef.hive.column.isCalculated;
+    vm.selectedColumnIsCalculated = col.colDef.hive.column.calculated;
 
     if(angular.isDefined(vm.selectedColumn) && vm.selectedColumn !== null) {
       vm.renameField = vm.selectedColumn.newName;
@@ -319,7 +319,7 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
         newName: vm.selectedColumn.newName + ' calculated',
         newDescription: '',
         formula: '`' + vm.selectedColumn.newName + '`',
-        isCalculated: true
+        calculated: true
       };
       wranglingDataSetService.addCalculatedColumn(calculatedColumn);
 

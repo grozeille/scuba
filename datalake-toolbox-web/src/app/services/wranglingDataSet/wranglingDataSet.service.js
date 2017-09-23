@@ -86,7 +86,7 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
             vm.filter = parseDataSetFilterGroup(vm.wranglingDataSetConfig.filter);
             vm.tables = [];
             for(var t = 0; t < vm.wranglingDataSetConfig.tables.length; t++) {
-              addTable(vm.wranglingDataSetConfig.tables[t]);
+              loadTable(vm.wranglingDataSetConfig.tables[t]);
             }
           });
       }
@@ -263,6 +263,15 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
     vm.filter = filter;
   }
 
+  function loadTable(table) {
+    vm.tables[table.database + '.' + table.table] = table;
+    for(var i = 0; i < table.columns.length; i++) {
+      var column = table.columns[i];
+    }
+
+    notifyOnChange();
+  }
+
   function addTable(table) {
     if(getTables().length === 0) {
       table.primary = true;
@@ -273,11 +282,10 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
     vm.tables[table.database + '.' + table.table] = table;
     for(var i = 0; i < table.columns.length; i++) {
       var column = table.columns[i];
-      column.selected = true;
       column.newName = column.name;
       column.newType = column.type;
       column.newDescription = column.description;
-      column.isCalculated = false;
+      column.selected = true;
     }
 
     notifyOnChange();

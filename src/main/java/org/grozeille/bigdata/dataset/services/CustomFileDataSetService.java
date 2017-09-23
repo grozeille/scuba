@@ -75,10 +75,12 @@ public class CustomFileDataSetService {
             hiveTable = new HiveTable();
             hiveTable.setDatabase(dataSetConf.getDatabase());
             hiveTable.setTable(dataSetConf.getTable());
+
             hiveTable.setComment(dataSetConf.getComment());
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
             hiveTable.setTemporary(temporary);
+
             hiveTable.setDataSetType(dataSetType);
             hiveTable.setDataSetConfiguration(json);
 
@@ -113,8 +115,9 @@ public class CustomFileDataSetService {
             hiveTable.setComment(dataSetConf.getComment());
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
-            hiveTable.setDataSetConfiguration(json);
             hiveTable.setTemporary(temporary);
+
+            hiveTable.setDataSetConfiguration(json);
 
             this.createOrcTable(hiveTable);
         }

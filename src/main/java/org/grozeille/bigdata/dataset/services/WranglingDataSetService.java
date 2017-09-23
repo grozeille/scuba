@@ -71,7 +71,7 @@ public class WranglingDataSetService {
             column.setNewName("dummy");
             column.setType("STRING");
             column.setNewType("STRING");
-            column.setIsCalculated(false);
+            column.setCalculated(false);
             column.setSelected(true);
             table.setColumns(new WranglingDataSetConfColumn[] { column });
             table.setPrimary(true);
@@ -110,10 +110,12 @@ public class WranglingDataSetService {
             hiveTable = new HiveTable();
             hiveTable.setDatabase(dataSetConf.getDatabase());
             hiveTable.setTable(dataSetConf.getTable());
+
             hiveTable.setComment(dataSetConf.getComment());
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
             hiveTable.setTemporary(temporary);
+
             hiveTable.setFormat("QUERY");
             hiveTable.setDataSetType(dataSetType);
             hiveTable.setDataSetConfiguration(json);
@@ -127,15 +129,14 @@ public class WranglingDataSetService {
             hiveTable.setComment(dataSetConf.getComment());
             hiveTable.setTags(dataSetConf.getTags());
             hiveTable.setCreator(creator);
-            hiveTable.setDataSetConfiguration(json);
             hiveTable.setTemporary(temporary);
 
-            hiveService.updateView(hiveTable);
+            hiveTable.setDataSetConfiguration(json);
+
+            hiveService.createView(hiveTable, sqlQuery);
         }
 
-        if(!temporary) {
-            dataSetService.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
-        }
+        dataSetService.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
     }
 
     public List<Map<String, Object>> getPreviewData(
@@ -418,10 +419,10 @@ public class WranglingDataSetService {
 
         String hash = "";
         try {
-            MessageDigest cript = MessageDigest.getInstance("SHA-1");
-            cript.reset();
-            cript.update(stringToHash.getBytes("utf8"));
-            hash = new String(Hex.encodeHex(cript.digest()));
+            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+            crypt.reset();
+            crypt.update(stringToHash.getBytes("utf8"));
+            hash = new String(Hex.encodeHex(crypt.digest()));
         } catch (UnsupportedEncodingException e) {
             throw new HiveQueryException("Unexpected exception", e);
         } catch (NoSuchAlgorithmException e) {
@@ -460,7 +461,10 @@ public class WranglingDataSetService {
 
             String createCacheTableSql = "CREATE TABLE `" + database + "`.`" + cacheTableName + "`\n" +
                     "STORED AS ORC\n" +
-                    "TBLPROPERTIES ('" + cacheHashKey + "'='" + hash + "')\n" +
+                    "TBLPROPERTIES ("+
+                    "'" + cacheHashKey + "'='" + hash + "',"+
+                    "'temporary' = '"+true+"'" +
+                    ")\n" +
                     "AS " + selectStatement;
 
             log.info("Creating cache table: " + createCacheTableSql);
