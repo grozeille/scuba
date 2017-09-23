@@ -91,7 +91,7 @@ public class WranglingDataSetService {
         String sqlQuery = buildSqlQuery(wranglingDataSetConf, denormalizedSqlQuery);
 
         String json = objectMapper.writeValueAsString(wranglingDataSetConf);
-        String dataSetType = DataSetType.CustomFileDataSet.name();
+        String dataSetType = DataSetType.WranglingDataSet.name();
 
         HiveDatabase hiveDatabase = hiveService.findOneDatabase(dataSetConf.getDatabase());
         if(hiveDatabase == null) {
