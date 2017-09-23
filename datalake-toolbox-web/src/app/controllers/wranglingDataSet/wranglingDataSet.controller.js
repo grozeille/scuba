@@ -36,6 +36,8 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
 
   vm.saving = false;
 
+  vm.needRefresh = false;
+
   vm.jsTags = {
     edit: true,
     texts: {
@@ -84,6 +86,8 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
   };
 
   function internalSave(temporary) {
+    vm.refreshTables();
+
     if(angular.isUndefined(temporary)) {
       temporary = false;
     }
@@ -168,6 +172,8 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
           });
         }
       }
+
+      vm.needRefresh = false;
     }
 
     for(var cc = 0; cc < vm.calculatedColumns.length; cc++) {
@@ -232,6 +238,8 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
   };
 
   vm.getData = function() {
+    vm.refreshTables();
+
     vm.isLoading = true;
     return internalSave(true).then(function() {
       return wranglingDataSetService.getData(vm.maxRows);
@@ -258,7 +266,7 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
       vm.selectedColumn.newDescription = vm.renameDescription;
       vm.selectedColumn.newType = vm.changeType;
 
-      vm.refreshTables();
+      vm.needRefresh = true;
     }
   };
 

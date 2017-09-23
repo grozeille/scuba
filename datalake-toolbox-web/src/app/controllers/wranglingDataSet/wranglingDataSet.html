@@ -286,6 +286,15 @@
             <div class="panel-body" style="padding: 0px 0px">
 
               <nav class="navbar fill-height-substract" style="margin: 0px 10px; border-width: 0px;">
+                <form class="navbar-form navbar-left">
+                  <div class="form-group">
+                    <div ng-if="wranglingDataSet.needRefresh" style="margin-top: 5px;margin-bottom: 5px;">
+                      <span class="label label-warning">
+                        <span class="glyphicon glyphicon-exclamation-sign"></span> <i>DataSet changed, please refresh.</i>
+                      </span>
+                    </div>
+                  </div>
+                </form>
                 <form class="navbar-form navbar-right">
                   <button type="button" class="btn btn-default" ng-click="wranglingDataSet.cancelGetData()" ng-if="wranglingDataSet.isLoading" style="margin-right:10px;">  <i><span>cancel</span></i></button>
                   <div class="form-group" style="margin-right:10px;" ng-if="wranglingDataSet.isLoading">
