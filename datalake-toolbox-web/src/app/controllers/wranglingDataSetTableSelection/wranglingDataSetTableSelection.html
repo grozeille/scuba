@@ -31,8 +31,8 @@
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
           <p><b>Database:</b> {{table.database}}</p>
-          <p><b>Name:</b> {{table.table}}</p>
-          <p><b>Path:</b> {{table.path}}</p>
+          <p><b>Name:</b> <span uib-tooltip="{{table.table}}">{{table.table | limitTo: 50 }}{{ table.table.length > 50 ? '...' : ''}}</span></p>
+          <p><b>Path:</b> <span uib-tooltip="{{table.path}}">{{table.path | limitTo: 50 }}{{ table.path.length > 50 ? '...' : ''}}</span></p>
           <br/>
           <p><b>Format:</b> {{table.format}}</p>
           <p><b>Owner:</b> <a href="mailto:{{table.creator}}">{{table.creator}}</a></p>

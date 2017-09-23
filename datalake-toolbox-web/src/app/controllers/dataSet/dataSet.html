@@ -50,8 +50,8 @@
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
           <p><b>Database:</b> {{v.database}}</p>
-          <p><b>Name:</b> {{v.table}}</p>
-          <p><b>Path:</b> {{v.path}}</p>
+          <p><b>Name:</b> <span uib-tooltip="{{v.table}}">{{v.table | limitTo: 50 }}{{ v.table.length > 50 ? '...' : ''}}</span></p>
+          <p><b>Path:</b> <span uib-tooltip="{{v.path}}">{{v.path | limitTo: 50 }}{{ v.path.length > 50 ? '...' : ''}}</span></p>
           <br/>
           <p><b>Format:</b> {{v.format}}</p>
           <p><b>Owner:</b> <a href="mailto:{{v.creator}}">{{v.creator}}</a></p>

@@ -140,6 +140,7 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
 
     for(var t = 0; t < vm.tables.length; t++) {
       var table = vm.tables[t];
+      table.columnFilter = '';
 
       for(var c = 0; c < table.columns.length; c++) {
         var column = table.columns[c];
