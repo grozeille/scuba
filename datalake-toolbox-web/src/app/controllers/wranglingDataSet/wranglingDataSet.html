@@ -27,10 +27,12 @@
         </div>
       </div>
 
-      <div class="panel panel-default" ng-if="wranglingDataSet.tables.length">
-        <div class="panel-heading" > <span class="glyphicon glyphicon-flash"></span> Calculated columns
-        </div>
-        <div class="panel-body">
+      <uib-accordion close-others="false">
+      <div uib-accordion-group class="panel panel-default" ng-if="wranglingDataSet.tables.length" is-open="true">
+        <uib-accordion-heading>
+          <span class="glyphicon glyphicon-flash"></span> Calculated columns
+        </uib-accordion-heading>
+        <div>
           <p ng-if="!wranglingDataSet.calculatedColumns.length"><i>No calculated columns.</i></p>
           <div ng-repeat="c in wranglingDataSet.calculatedColumns" class="checkbox">
             <label>
@@ -42,26 +44,28 @@
         </div>
       </div>
 
-      <div class="panel panel-default" ng-repeat="table in wranglingDataSet.tables">
-        <div class="panel-heading" > <span class="glyphicon glyphicon-th-large"></span> <span uib-tooltip="{{table.database + '.' + table.table}}">{{table.database + '.' + table.table  | limitTo: 30 }}{{ (table.database + '.' + table.table).length > 30 ? '...' : ''}}</span>
-          <span ng-if="table.primary" class="pull-right"> <b><span class="glyphicon glyphicon-star" aria-hidden="true"></span> Primary</b></span>
-        </div>
-        <div class="panel-body">
+      <div uib-accordion-group class="panel panel-default" ng-repeat="table in wranglingDataSet.tables" is-open="true">
+        <uib-accordion-heading>
+          <span ng-if="table.primary" class="glyphicon glyphicon-star"></span>
+          <span ng-if="!table.primary" class="glyphicon glyphicon-th-large"></span>
+          <span uib-tooltip="{{table.database + '.' + table.table}}">{{table.database + '.' + table.table  | limitTo: 30 }}{{ (table.database + '.' + table.table).length > 30 ? '...' : ''}}</span>
+        </uib-accordion-heading>
+        <div>
           <button type="button" class="btn btn-danger btn-xs pull-right" style="margin-bottom:5px;"  ng-click="wranglingDataSet.removeTable(table)">
-            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Remove
+            <span class="glyphicon glyphicon-minus"></span> Remove
           </button>
           <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;" ng-click="wranglingDataSet.links(table)">
-            <span class="glyphicon glyphicon-link" aria-hidden="true"></span> Links
+            <span class="glyphicon glyphicon-link"></span> Links
           </button>
           <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;">
-            <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Refresh statistics
+            <span class="glyphicon glyphicon-signal"></span> Refresh statistics
           </button>
           <button type="button" class="btn btn-info btn-xs" style="margin-bottom:5px;" ng-if="!table.primary" ng-click="wranglingDataSet.makeTablePrimary(table.database, table.table)">
-            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Make primary
+            <span class="glyphicon glyphicon-star"></span> Make primary
           </button>
         </div>
-        <div class="panel-body" style="max-height:300px; overflow-y: scroll;padding-top:0px;">
-          <div><input class="form-control" placeholder="filter" ng-model="table.columnFilter"></div>
+        <div><input class="form-control" placeholder="filter" ng-model="table.columnFilter"></div>
+        <div style="max-height:300px; overflow-y: scroll;padding-top:0px;">
           <div ng-repeat="c in table.columns | filter:{newName: table.columnFilter}" class="checkbox">
             <label>
               <input type="checkbox" ng-model="c.selected" ng-change="wranglingDataSet.onColumnSelectionChange(c)">
@@ -73,6 +77,7 @@
           </div>
         </div>
       </div>
+      </uib-accordion>
 
 
     </div>

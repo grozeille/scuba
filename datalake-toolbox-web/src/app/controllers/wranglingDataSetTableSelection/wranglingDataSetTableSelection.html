@@ -12,37 +12,39 @@
       </button>
     </div>
 
-    <div class="col-md-11">
+    <form ng-submit="wranglingDataSetTableSelection.loadAllDataSet()">
+      <div class="col-md-11">
 
-      <div class="input-group" >
-        <span class="input-group-addon" id="catalog-filter"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
-        <input ng-model="wranglingDataSetTableSelection.sourceFilter" type="text" class="form-control" placeholder="Search" aria-describedby="catalog-filter">
+        <div class="input-group" >
+          <span class="input-group-addon" id="catalog-filter"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+          <input ng-model="wranglingDataSetTableSelection.sourceFilter" type="text" class="form-control" placeholder="Search" aria-describedby="view-filter">
+        </div>
       </div>
-    </div>
+    </form>
 
   </div>
 
   <div class="row">
 
-    <div class="col-sm-3" ng-repeat="table in wranglingDataSetTableSelection.tables | filter:wranglingDataSetTableSelection.sourceFilter | orderBy:'-access'">
+    <div class="col-sm-3" ng-repeat="d in wranglingDataSetTableSelection.dataSetList">
 
       <div class="panel panel-default" >
         <div class="panel-heading" >
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
-          <p><b>Database:</b> {{table.database}}</p>
-          <p><b>Name:</b> <span uib-tooltip="{{table.table}}">{{table.table | limitTo: 50 }}{{ table.table.length > 50 ? '...' : ''}}</span></p>
-          <p><b>Path:</b> <span uib-tooltip="{{table.path}}">{{table.path | limitTo: 50 }}{{ table.path.length > 50 ? '...' : ''}}</span></p>
+          <p><b>Database:</b> {{d.database}}</p>
+          <p><b>Name:</b> <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 50 }}{{ d.d.length > 50 ? '...' : ''}}</span></p>
+          <p><b>Path:</b> <span uib-tooltip="{{d.path}}">{{d.path | limitTo: 50 }}{{ d.path.length > 50 ? '...' : ''}}</span></p>
           <br/>
-          <p><b>Format:</b> {{table.format}}</p>
-          <p><b>Owner:</b> <a href="mailto:{{table.creator}}">{{table.creator}}</a></p>
-          <p><b>Comment:</b><br/><span ng-bind-html="table.comment"></span></p>
+          <p><b>Format:</b> {{d.format}}</p>
+          <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
+          <p><b>Comment:</b><br/><span ng-bind-html="d.comment"></span></p>
           <p><b>Tags:</b><br/>
-            <span ng-repeat="tag in table.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
+            <span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
           </p>
       </div>
       <div class="panel-body">
-        <button ng-click="wranglingDataSetTableSelection.selectTable(table.database, table.table)" type="button" class="btn btn-success btn-sm pull-right" aria-label="Left Align">
+        <button ng-click="wranglingDataSetTableSelection.selectTable(d.database, d.table)" type="button" class="btn btn-success btn-sm pull-right" aria-label="Left Align">
           <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
         </button>
       </div>
@@ -51,9 +53,18 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-md-12">
+      <div class="text-center">
+        <ul uib-pagination items-per-page="wranglingDataSetTableSelection.itemsPerPage" total-items="wranglingDataSetTableSelection.pageResult.totalElements" ng-model="wranglingDataSetTableSelection.currentPage" ng-change="wranglingDataSetTableSelection.loadAllDataSet()"></ul>
+      </div>
+    </div>
+  </div>
 
-</div>
+
+  </div>
 
 
 <!-- END : main-container -->
 
+</div>

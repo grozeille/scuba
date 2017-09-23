@@ -26,20 +26,6 @@
           <input ng-model="dataset.sourceFilter" type="text" class="form-control" placeholder="Search" aria-describedby="view-filter">
         </div>
       </div>
-
-      <!--
-      <div class="col-md-1">
-
-        <div class="input-group" >
-          <select class="form-control" ng-model="dataset.sourceFilterType">
-            <option value="">All types</option>
-            <option value="CustomFileDataSet">Files</option>
-            <option value="WranglingDataSet">Wrangling</option>
-            <option value="PublicDataSet">Public</option>
-          </select>
-        </div>
-      </div>
-      -->
     </form>
   </div>
 
@@ -57,36 +43,36 @@
       </div>
     </div>
 
-    <div class="col-md-3" ng-repeat="v in dataset.dataSetList">
+    <div class="col-md-3" ng-repeat="d in dataset.dataSetList">
 
       <div class="panel panel-default" >
         <div class="panel-heading" >
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
-          <p><b>Database:</b> {{v.database}}</p>
-          <p><b>Name:</b> <span uib-tooltip="{{v.table}}">{{v.table | limitTo: 30 }}{{ v.table.length > 30 ? '...' : ''}}</span></p>
-          <p><b>Path:</b> <span uib-tooltip="{{v.path}}">{{v.path | limitTo: 30 }}{{ v.path.length > 30 ? '...' : ''}}</span></p>
+          <p><b>Database:</b> {{d.database}}</p>
+          <p><b>Name:</b> <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 30 }}{{ d.table.length > 30 ? '...' : ''}}</span></p>
+          <p><b>Path:</b> <span uib-tooltip="{{d.path}}">{{d.path | limitTo: 30 }}{{ d.path.length > 30 ? '...' : ''}}</span></p>
           <br/>
-          <p><b>Format:</b> {{v.format}}</p>
-          <p><b>Owner:</b> <a href="mailto:{{v.creator}}">{{v.creator}}</a></p>
-          <p><b>Comment:</b><br/><span ng-bind-html="v.comment"></span></p>
+          <p><b>Format:</b> {{d.format}}</p>
+          <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
+          <p><b>Comment:</b><br/><span ng-bind-html="d.comment"></span></p>
           <p><b>Tags:</b><br/>
-            <span ng-repeat="tag in v.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
+            <span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
           </p>
         </div>
-        <div class="panel-body" ng-show="v.showButtons">
-          <a ng-click="dataset.deleteDataSet(v.database, v.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
+        <div class="panel-body" ng-show="d.showButtons">
+          <a ng-click="dataset.deleteDataSet(d.database, d.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
             <span class="glyphicon glyphicon-remove"></span> Delete
           </a>
-          <a ng-click="dataset.cloneDataSet(v.database, v.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
+          <a ng-click="dataset.cloneDataSet(d.database, d.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
             <span class="glyphicon glyphicon-duplicate"></span> Clone
           </a>
-          <a ng-click="dataset.editDataSet(v.database, v.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="v.editLoading">
-            <span ng-show="!v.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="v.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
+          <a ng-click="dataset.editDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.editLoading">
+            <span ng-show="!d.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="d.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
           </a>
 
         </div>
-        <div class="panel-body" ng-show="!v.showButtons" style="height:60px;">
+        <div class="panel-body" ng-show="!d.showButtons" style="height:60px;">
         </div>
 
 
