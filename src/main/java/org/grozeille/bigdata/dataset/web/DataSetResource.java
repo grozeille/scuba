@@ -3,6 +3,7 @@ package org.grozeille.bigdata.dataset.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.thrift.TException;
 import org.grozeille.bigdata.dataset.model.DataSetSearchItem;
 import org.grozeille.bigdata.dataset.repositories.DataSetRepository;
 import org.grozeille.bigdata.dataset.web.dto.DataSetData;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -30,6 +32,16 @@ public class DataSetResource {
 
     @Autowired
     private DataSetService dataSetService;
+
+    private final ThreadPoolTaskExecutor refreshThreadPoolTaskExecutor;
+
+    public DataSetResource() {
+        refreshThreadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        refreshThreadPoolTaskExecutor.setMaxPoolSize(1);
+        refreshThreadPoolTaskExecutor.setQueueCapacity(1);
+        refreshThreadPoolTaskExecutor.setCorePoolSize(1);
+        refreshThreadPoolTaskExecutor.initialize();
+    }
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     public Iterable<HiveTable> filter(
@@ -99,7 +111,17 @@ public class DataSetResource {
     }
 
     @RequestMapping(value = "/refresh", method = RequestMethod.POST)
-    public void refresh() throws Exception {
-        dataSetService.refreshAll();
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseEntity<Void> refresh() throws Exception {
+
+        refreshThreadPoolTaskExecutor.execute(() -> {
+            try {
+                dataSetService.refreshAll();
+            } catch (TException e) {
+                log.error("Error during refresh", e);
+            }
+        });
+
+        return ResponseEntity.accepted().build();
     }
 }
