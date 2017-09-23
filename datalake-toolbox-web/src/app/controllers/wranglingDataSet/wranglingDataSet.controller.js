@@ -236,9 +236,9 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
     return internalSave(true).then(function() {
       return wranglingDataSetService.getData(vm.maxRows);
     })
-    .then(function(data) {
-      if(data !== null) {
-        vm.gridOptions.data = data.data;
+    .then(function(response) {
+      if(response.data !== null) {
+        vm.gridOptions.data = response.data.data;
       }
       vm.isLoading = false;
     })
