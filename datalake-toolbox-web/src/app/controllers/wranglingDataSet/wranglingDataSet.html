@@ -104,53 +104,51 @@
 
                       <div class="row">
 
-                        <div class="col-sm-4">
-                          <div class="form-group">
-                            <label for="inputDatabase" class="control-label">Database</label>
-                            <input class="form-control" id="inputDatabase" placeholder="" ng-model="wranglingDataSet.database" disabled>
-                          </div>
-                        </div>
+                        <div class="col-md-8">
 
-                        <div class="col-sm-4">
-                          <div class="form-group">
-                            <label for="inputTableName" class="control-label">Table Name</label>
-                            <input class="form-control" id="inputTableName" placeholder="" ng-model="wranglingDataSet.name" disabled>
-                          </div>
-                        </div>
+                          <div class="row">
 
-                      </div>
-
-                      <div class="row">
-
-                        <div class="col-sm-4">
-                          <div class="form-group">
-                            <label for="inputTableDescription" class="control-label">Description</label>
-                            <input class="form-control" id="inputTableDescription" placeholder="" ng-model="wranglingDataSet.comment">
-                          </div>
-                        </div>
-
-                        <div class="col-sm-4">
-                          <div class="form-group">
-                            <label class="control-label">Tags</label>
-                            <js-tag js-tag-options="wranglingDataSet.jsTags"></js-tag>
-                          </div>
-                        </div>
-
-                      </div>
-
-                      <div class="row">
-                        <div class="col-sm-8">
-                          <div class="form-group">
-                            <div class="checkbox">
-                              <label>
-                                <input type="checkbox" value="">
-                                Persistent DataSet
-                              </label>
+                            <div class="col-sm-6">
+                              <div class="form-group">
+                                <label for="inputDatabase" class="control-label">Database</label>
+                                <input class="form-control" id="inputDatabase" placeholder="" ng-model="wranglingDataSet.database" disabled>
+                              </div>
                             </div>
+
+                            <div class="col-sm-6">
+                              <div class="form-group">
+                                <label for="inputTableName" class="control-label">Table Name</label>
+                                <input class="form-control" id="inputTableName" placeholder="" ng-model="wranglingDataSet.name" disabled>
+                              </div>
+                            </div>
+
+                          </div>
+
+                          <div class="row">
+
+                            <div class="col-sm-12">
+                              <div class="form-group">
+                                <label for="inputTableDescription" class="control-label">Description</label>
+                                <input class="form-control" id="inputTableDescription" placeholder="" ng-model="wranglingDataSet.comment">
+                              </div>
+                            </div>
+
+                          </div>
+
+                        </div>
+                        <div class="col-md-4">
+                          <div class="row">
+
+                            <div class="col-sm-12">
+                              <div class="form-group">
+                                <label class="control-label">Tags</label>
+                                <tags-input ng-model="wranglingDataSet.tags"></tags-input>
+                              </div>
+                            </div>
+
                           </div>
                         </div>
                       </div>
-
 
                     </form>
                   </fieldset>

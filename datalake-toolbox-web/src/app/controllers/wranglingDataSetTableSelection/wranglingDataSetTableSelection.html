@@ -33,9 +33,7 @@
         </div>
         <div class="panel-body" style="height:300px; overflow: hidden;">
           <p><b>Database:</b> {{d.database}}</p>
-          <p><b>Name:</b> <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 50 }}{{ d.d.length > 50 ? '...' : ''}}</span></p>
-          <p><b>Path:</b> <span uib-tooltip="{{d.path}}">{{d.path | limitTo: 50 }}{{ d.path.length > 50 ? '...' : ''}}</span></p>
-          <br/>
+          <p><b>Name:</b> <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 30 }}{{ d.d.length > 30 ? '...' : ''}}</span></p>
           <p><b>Format:</b> {{d.format}}</p>
           <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
           <p><b>Comment:</b><br/><span ng-bind-html="d.comment"></span></p>

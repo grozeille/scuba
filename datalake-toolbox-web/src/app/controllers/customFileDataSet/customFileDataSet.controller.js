@@ -31,12 +31,7 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
   vm.maxLinePreview = 5000;
   vm.saving = false;
 
-  vm.jsTags = {
-    edit: true,
-    texts: {
-      inputPlaceHolder: 'Type text here'
-    }
-  };
+  vm.tags = [];
 
   vm.gridOptions = {
     enableSorting: false,
@@ -207,9 +202,14 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
       vm.saving = true;
     }
 
+    var tags = [];
+    for(var cpt = 0; cpt < vm.tags.length; cpt++) {
+      tags.push(vm.tags[cpt].text);
+    }
+
     var dataSet = {
       comment: vm.comment,
-      tags: []
+      tags: tags
     };
 
     if(vm.fileFormat === 'RAW') {
@@ -264,10 +264,13 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     vm.comment = dataSet.comment;
     vm.fileFormat = dataSet.dataSetConfig.fileFormat;
 
-    // TODO tags
+    vm.tags = [];
+    for(var cpt = 0; cpt < dataSet.tags.length; cpt++) {
+      vm.tags.push({text: dataSet.tags[cpt]});
+    }
 
     if(dataSet.dataSetConfig.fileFormat === 'RAW') {
-      // TODO do nothing
+      // do nothing
     }
     else if(dataSet.dataSetConfig.fileFormat === 'CSV') {
       setSeparator(dataSet.dataSetConfig.separator);

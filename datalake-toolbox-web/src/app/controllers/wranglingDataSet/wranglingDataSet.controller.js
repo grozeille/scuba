@@ -38,12 +38,7 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
 
   vm.needRefresh = false;
 
-  vm.jsTags = {
-    edit: true,
-    texts: {
-      inputPlaceHolder: 'Type text here'
-    }
-  };
+  vm.tags = [];
 
   function htmlEntities(str) {
     return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -96,9 +91,14 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
       vm.saving = true;
     }
 
+    var tags = [];
+    for(var cpt = 0; cpt < vm.tags.length; cpt++) {
+      tags.push(vm.tags[cpt].text);
+    }
+
     var dataSet = {
       comment: vm.comment,
-      tags: []
+      tags: tags
     };
 
     wranglingDataSetService.setDataSet(dataSet);
@@ -362,6 +362,11 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
     vm.database = dataSet.database;
     vm.name = dataSet.name;
     vm.comment = dataSet.comment;
+
+    vm.tags = [];
+    for(var cpt = 0; cpt < dataSet.tags.length; cpt++) {
+      vm.tags.push({text: dataSet.tags[cpt]});
+    }
 
     vm.queryGroup = wranglingDataSetService.getFilter();
 

@@ -8,7 +8,9 @@ require('angular-ui-grid/ui-grid.css');
 require('ui-select');
 require('ui-select/dist/select.css');
 require('ng-file-upload');
-require('ng-tags-input');
+require('ng-tags-input/build/ng-tags-input.min');
+require('ng-tags-input/build/ng-tags-input.min.css');
+require('ng-tags-input/build/ng-tags-input.bootstrap.min.css');
 require('angular-ui-router');
 require('angular-ui-router-uib-modal');
 require('angular-sanitize');
@@ -23,6 +25,7 @@ angular
     'ui.grid.resizeColumns',
     'ui.grid.autoResize',
     'ngSanitize',
+    'ngTagsInput',
     'ngFileUpload']);
 
 require('./directives');
