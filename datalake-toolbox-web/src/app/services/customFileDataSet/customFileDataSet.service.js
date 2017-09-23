@@ -147,14 +147,6 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
       .catch(vm.catchServiceException);
   }
 
-  function updateTableSchema(temporary) {
-    var table = getTableName(temporary);
-
-    var url = vm.apiHost + '/dataset/custom-file/' + vm.database + '/' + table + '/update-table-schema';
-
-    return $http.post(url);
-  }
-
   function uploadFile(temporary, file) {
     var table = getTableName(temporary);
 
@@ -209,7 +201,6 @@ function customFileDataSetService($log, $http, $location, $filter, $q, $rootScop
     initDataSet: initDataSet,
     cloneDataSet: cloneDataSet,
     saveDataSet: saveDataSet,
-    updateTableSchema: updateTableSchema,
     uploadFile: uploadFile,
     getData: getData,
     getExcelWorksheets: getExcelWorksheets,

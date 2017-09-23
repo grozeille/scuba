@@ -238,10 +238,6 @@ function CustomFileDataSetController($timeout, $log, $location, $filter, $q, $sc
     return customFileDataSetService.saveDataSet(temporary)
       .then(function() {
         return uploadFile(temporary);
-      })
-      .then(function() {
-        $log.info('Update DataSet schema...');
-        return customFileDataSetService.updateTableSchema(temporary);
       });
   }
 

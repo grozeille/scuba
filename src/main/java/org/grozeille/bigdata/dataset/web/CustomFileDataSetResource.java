@@ -88,17 +88,6 @@ public class CustomFileDataSetResource {
                 file.getInputStream());
     }
 
-    @RequestMapping(value = "/{database}/{table}/update-table-schema", method = RequestMethod.POST)
-    @Transactional(readOnly = false)
-    public void updateSchema(
-            @PathVariable("database") String database,
-            @PathVariable("table") String table) throws Exception {
-
-        checkIfExists(database, table);
-
-        customFileDataSetService.updateTableSchema(database, table);
-    }
-
     @RequestMapping(value = "/{database}/{table}/file", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> downloadFile(
             @PathVariable("database") String database,

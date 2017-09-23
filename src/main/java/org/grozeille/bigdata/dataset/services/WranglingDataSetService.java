@@ -164,6 +164,35 @@ public class WranglingDataSetService {
         return objectMapper.readValue(hiveTable.getDataSetConfiguration(), WranglingDataSetConf.class);
     }
 
+    public void clone(String sourceDatabase,
+                      String sourceTable,
+                      String targetDatabase,
+                      String targetTable,
+                      String creator,
+                      Boolean temporary) throws Exception {
+        HiveTable sourceHiveTable = hiveService.findOne(sourceDatabase, sourceTable);
+
+        if(sourceHiveTable == null) {
+            throw new HiveTableNotFoundException(sourceDatabase + "." + sourceTable + " not found");
+        }
+
+        HiveTable targetHiveTable = hiveService.findOne(targetDatabase, targetTable);
+
+        if(targetHiveTable != null && targetHiveTable.getTemporary() == false) {
+            throw new HiveTableAlreadyExistsException(targetDatabase + "." + targetTable + " already exists");
+        }
+
+        WranglingDataSetConf wranglingDataSetConf = objectMapper.readValue(sourceHiveTable.getDataSetConfiguration(), WranglingDataSetConf.class);
+
+        // create the table
+        this.createOrUpdateWranglingView(
+                new DataSetConf(targetDatabase, targetTable, sourceHiveTable.getComment(), sourceHiveTable.getTags()),
+                creator,
+                temporary,
+                wranglingDataSetConf
+        );
+    }
+
     private void verifyDataSet(WranglingDataSetConf wranglingDataSetConf) throws HiveInvalidDataSetException {
         // verify that column names are unique
         Set<String> columns = new HashSet<>();
@@ -638,5 +667,4 @@ public class WranglingDataSetService {
     private String computeColumnAlias(String database, String table, String column){
         return (database+"_"+table+"_"+column).toLowerCase();
     }
-
 }

@@ -4,7 +4,6 @@ package org.grozeille.bigdata.dataset.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.Path;
-import org.apache.thrift.TException;
 import org.grozeille.bigdata.dataset.exceptions.HiveDatabaseNotFoundException;
 import org.grozeille.bigdata.dataset.exceptions.HiveTableAlreadyExistsException;
 import org.grozeille.bigdata.dataset.exceptions.HiveTableNotFoundException;
@@ -82,12 +81,11 @@ public class CustomFileDataSetService {
             hiveTable.setTemporary(temporary);
             hiveTable.setDataSetType(dataSetType);
             hiveTable.setDataSetConfiguration(json);
-            hiveTable.setColumns(new HiveColumn[]{new HiveColumn("line", "binary", "", new HiveColumnStatistics())});
 
             String tablePath = hiveDatabase.getPath() + "/" + dataSetConf.getTable();
             hiveTable.setPath(tablePath);
 
-            hiveService.createOrcTable(hiveTable);
+            this.createOrcTable(hiveTable);
         }
         else {
 
@@ -118,7 +116,7 @@ public class CustomFileDataSetService {
             hiveTable.setDataSetConfiguration(json);
             hiveTable.setTemporary(temporary);
 
-            hiveService.updateTable(hiveTable);
+            this.createOrcTable(hiveTable);
         }
 
         dataSetService.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
@@ -148,7 +146,7 @@ public class CustomFileDataSetService {
 
         hiveTable.setDataSetConfiguration(objectMapper.writeValueAsString(config));
 
-        hiveService.updateTable(hiveTable);
+        this.createOrcTable(hiveTable);
 
         dataSetService.refreshTable(database, table);
     }
@@ -157,32 +155,26 @@ public class CustomFileDataSetService {
         return objectMapper.readValue(hiveTable.getDataSetConfiguration(), CustomFileDataSetConf.class);
     }
 
-    public void updateTableSchema(String database, String table) throws Exception {
-
-        HiveTable hiveTable = hiveService.findOne(database, table);
-
-        if(hiveTable == null) {
-            throw new HiveTableNotFoundException(database + "." + table + " not found");
-        }
+    private void createOrcTable(HiveTable hiveTable) throws Exception {
 
         CustomFileDataSetConf config = extractDataSetConf(hiveTable);
 
-        if(config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.RAW) {
-            updateTableSchemaFromRaw(hiveTable, config);
-        }
-        else if(config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.CSV) {
-            updateTableSchemaFromCsv(hiveTable, config);
-        }
-        else if(config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.EXCEL) {
-            updateTableSchemaFromExcel(hiveTable, config);
+        if(config.getOriginalFile() == null || config.getOriginalFile().getPath() == null) {
+            log.info("No original file for the hive table " + hiveTable.getDatabase() + "." + hiveTable.getTable() + ", use default schema");
+            hiveTable.setColumns(new HiveColumn[]{new HiveColumn("line", "binary", "", new HiveColumnStatistics())});
+            hiveService.createOrcTable(hiveTable);
+        } else {
+            if (config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.RAW) {
+                createRawTable(hiveTable, config);
+            } else if (config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.CSV) {
+                createCsvTable(hiveTable, config);
+            } else if (config.getFileFormat() == CustomFileDataSetConf.CustomFileDataSetFormat.EXCEL) {
+                createExcelTable(hiveTable, config);
+            }
         }
     }
 
-    private void updateTableSchemaFromRaw(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
-        if(config.getOriginalFile() == null || config.getOriginalFile().getPath() == null) {
-            log.warn("No original file for the hive table " + hiveTable.getDatabase() + "." + hiveTable.getTable() + ", update schema skipped");
-        }
-
+    private void createRawTable(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
         try(InputStream in = hdfsService.read(config.getOriginalFile().getPath())) {
 
             hiveTable.setFormat("RAW");
@@ -198,12 +190,10 @@ public class CustomFileDataSetService {
             hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
 
             hiveService.createOrcTable(hiveTable);
-
-            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
-    private void updateTableSchemaFromCsv(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
+    private void createCsvTable(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
         try(InputStream in = hdfsService.read(config.getOriginalFile().getPath())) {
 
             hiveTable.setFormat("CSV");
@@ -222,8 +212,6 @@ public class CustomFileDataSetService {
             hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
 
             hiveService.createOrcTable(hiveTable);
-
-            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
@@ -240,7 +228,7 @@ public class CustomFileDataSetService {
         }
     }
 
-    private void updateTableSchemaFromExcel(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
+    private void createExcelTable(HiveTable hiveTable, CustomFileDataSetConf config) throws Exception {
         try(InputStream in = hdfsService.read(config.getOriginalFile().getPath())) {
 
             hiveTable.setFormat("EXCEL");
@@ -259,8 +247,6 @@ public class CustomFileDataSetService {
             hiveTable.setColumns(hiveColumns.toArray(new HiveColumn[0]));
 
             hiveService.createOrcTable(hiveTable);
-
-            dataSetService.refreshTable(hiveTable.getDatabase(), hiveTable.getTable());
         }
     }
 
@@ -316,9 +302,6 @@ public class CustomFileDataSetService {
                 temporary,
                 customFileDataSetConf
         );
-
-        // update the schema
-        this.updateTableSchema(targetDatabase, targetTable);
 
     }
 }

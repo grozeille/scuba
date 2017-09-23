@@ -5,14 +5,14 @@ module.exports = {
 };
 
 /** @ngInject */
-function DeleteCalculatedController($timeout, $log, $location, $filter, $uibModalInstance, $state, columnName, preparationService) {
+function DeleteCalculatedController($timeout, $log, $location, $filter, $uibModalInstance, $state, columnName, wranglingDataSetService) {
   var vm = this;
-  vm.column = preparationService.getCalculatedColumn(columnName);
+  vm.column = wranglingDataSetService.getCalculatedColumn(columnName);
 
   vm.ok = function() {
     $log.info('Modal OK at: ' + new Date());
 
-    preparationService.removeCalculatedColumn(vm.column.name);
+    wranglingDataSetService.removeCalculatedColumn(vm.column.name);
 
     $uibModalInstance.close();
   };

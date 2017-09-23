@@ -336,14 +336,14 @@ function wranglingDataSetService($log, $http, $location, $filter, $q, $rootScope
 
     var newLinks = [];
     // remove links related to this table
-    for(var l = 0; l < vm.links.length; l++) {
-      var link = vm.links[l];
+    for(var l = 0; l < vm.wranglingDataSetConfig.links.length; l++) {
+      var link = vm.wranglingDataSetConfig.links[l];
 
       if(!(link.left.database.localeCompare(database) === 0 && link.left.table.localeCompare(table) === 0)) {
         newLinks.push(link);
       }
     }
-    vm.links = newLinks;
+    vm.wranglingDataSetConfig.links = newLinks;
 
     notifyOnChange();
   }

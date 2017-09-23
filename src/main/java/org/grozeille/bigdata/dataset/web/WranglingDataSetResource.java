@@ -10,8 +10,10 @@ import org.grozeille.bigdata.dataset.web.dto.WranglingDataSetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.net.URI;
 import java.security.Principal;
 
 
@@ -58,6 +60,18 @@ public class WranglingDataSetResource {
             @PathVariable("table") String table,
             @RequestBody CloneDataSetRequest request) throws Exception {
 
-        return ResponseEntity.ok().build();
+        this.wranglingDataSetService.clone(
+                database,
+                table,
+                request.getTargetDatabase(),
+                request.getTargetTable(),
+                principal.getName(),
+                request.getTemporary());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/api/dataset/wrangling/{database}/{table}")
+                .buildAndExpand(request.getTargetDatabase(), request.getTargetTable()).toUri();
+
+        return ResponseEntity.created(location).build();
     }
 }
