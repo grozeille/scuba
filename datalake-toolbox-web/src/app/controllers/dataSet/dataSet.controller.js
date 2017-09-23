@@ -12,6 +12,14 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
 
   vm.sourceFilter = '';
   vm.dataSetList = [];
+  vm.pageResult = {
+    totalElements: 0,
+    totalPages: 0,
+    last: true,
+    first: true
+  };
+  vm.currentPage = 1;
+  vm.itemsPerPage = 11;
 
   function getDataSet(database, table) {
     var selectedDataSet = null;
@@ -97,8 +105,14 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
   };
 
   vm.loadAllDataSet = function() {
-    dataSetService.getAllDataSet().then(function(data) {
+    dataSetService.getAllDataSet(vm.sourceFilter, vm.currentPage - 1, vm.itemsPerPage).then(function(data) {
       vm.dataSetList = data.content;
+      vm.pageResult = {
+        totalElements: data.totalElements,
+        last: data.last,
+        first: data.first,
+        totalPages: data.totalPages
+      };
       for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
         vm.dataSetList[cpt].editLoading = false;
         vm.dataSetList[cpt].showButtons = vm.dataSetList[cpt].dataSetType !== 'PublicDataSet';

@@ -2,6 +2,8 @@ package org.grozeille.bigdata.dataset.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.grozeille.bigdata.dataset.model.DataSetSearchItem;
@@ -43,6 +45,16 @@ public class DataSetResource {
         refreshThreadPoolTaskExecutor.initialize();
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "Number of records per page."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "Sorting criteria in the format: property(,asc|desc). " +
+                            "Default sort order is ascending. " +
+                            "Multiple sort criteria are supported.")
+    })
     @RequestMapping(value = "", method = RequestMethod.GET)
     public Iterable<HiveTable> filter(
             Pageable pageable,

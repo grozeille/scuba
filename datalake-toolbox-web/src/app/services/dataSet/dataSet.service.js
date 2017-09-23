@@ -14,8 +14,8 @@ function dataSetService($log, $http, $location, $filter, $q, $rootScope) {
     throw error;
   };
 
-  function getAllDataSet() {
-    return $http.get(vm.apiHost + '/dataset')
+  function getAllDataSet(filter, page, size) {
+    return $http.get(vm.apiHost + '/dataset?filter=' + filter + '&page=' + page + '&size=' + size)
       .then(vm.getServiceData)
       .catch(vm.catchServiceException);
   }
