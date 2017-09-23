@@ -81,6 +81,13 @@
                           </div>
                         </div>
                         <div class="col-sm-3">
+                          <div class="form-group" style="padding-top:25px;">
+                            <a class="btn btn-default" type="button" ng-href="/api/dataset/custom-file/{{customFileDataSet.database}}/{{customFileDataSet.name}}/file" download="{{customFileDataSet.fileInfo.name}}" target="_blank">
+                              <span class="glyphicon glyphicon-download-alt"></span> Download file
+                            </a>
+                          </div>
+                        </div>
+                        <div class="col-sm-3">
                           <div class="form-group">
                             <label for="inputTableFileFormat" class="control-label">Data Type</label>
                             <select class="form-control" id="inputTableFileFormat" style="font-family: FontAwesome, sans-serif;" ng-model="customFileDataSet.fileFormat">
