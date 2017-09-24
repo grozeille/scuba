@@ -408,7 +408,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>src/main/assembly/dist.xml</descriptor>
-                    <finalName>datalake-toolbox-${project.version}</finalName>
+                    <finalName>scuba-${project.version}</finalName>
                 </configuration>
                 <executions>
                     <execution>
