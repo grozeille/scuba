@@ -13,6 +13,7 @@ function ChooseDataSetTypeController($uibModalInstance, $log, $state, wranglingD
   vm.database = '';
   vm.name = '';
   vm.showTableAlreadyExistError = false;
+  vm.loading = false;
 
   vm.nextPage = function() {
     userService.getLastProject().then(function(data) {
@@ -33,17 +34,20 @@ function ChooseDataSetTypeController($uibModalInstance, $log, $state, wranglingD
 
   vm.ok = function() {
     vm.showTableAlreadyExistError = false;
+    vm.loading = true;
 
     dataSetService.getDataSet(vm.database, vm.name).then(function(data) {
       if(data === null) {
         if(vm.dataSetType === 'wranglingDataSet') {
           wranglingDataSetService.initDataSet(vm.database, vm.name).then(function() {
+            vm.loading = false;
             $uibModalInstance.close();
             $state.go('wranglingDataSet');
           });
         }
         else if(vm.dataSetType === 'customFileDataSet') {
           customFileDataSetService.initDataSet(vm.database, vm.name).then(function() {
+            vm.loading = false;
             $uibModalInstance.close();
             $state.go('customFileDataSet');
           });
@@ -51,6 +55,7 @@ function ChooseDataSetTypeController($uibModalInstance, $log, $state, wranglingD
       }
       else {
         vm.showTableAlreadyExistError = true;
+        vm.loading = false;
       }
     });
   };
