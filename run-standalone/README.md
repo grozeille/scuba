@@ -104,13 +104,13 @@ Use the MAVEN_OPTS variable to be able to debug the API.
 
 ```
 export MAVEN_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
-mvn -P dev spring-boot:run
+mvn spring-boot:run -pl scuba-api -amd -P dev
 ```
 
 If you want to run the API with the Web UI embedded, use also the "web" profile:
 
 ```
-mvn -P dev,web spring-boot:run
+mvn spring-boot:run -pl scuba-api -amd -P dev,web
 ```
 
 ## Run the Web UI separately
@@ -118,13 +118,21 @@ mvn -P dev,web spring-boot:run
 I case you run the API without the Web UI embedded, run the Web UI using npm:
 
 ```
-cd datalake-toolbox-web
+cd scuba-web
 npm install
 npm run serve
 ```
 
 ## Initial setup
 
+By default, 2 users are allowed:
+
+- admin
+- user
+
+
+
 First, you need to refresh the list of public dataset using the API.
 
-Go to the URL http://localhost:8000/swagger-ui.html#!/data-set-resource/refreshUsingPOST and run the REST endpoint. 
+Go to the URL http://localhost:8000/swagger-ui.html#!/data-set-resource/refreshUsingPOST and run the REST endpoint.
+ 

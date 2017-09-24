@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.grozeille</groupId>
+        <artifactId>scuba</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+	<artifactId>scuba-web</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>scuba-web</name>
+	<description>Web Jar with UI for Scuba</description>
+
+	<build>
+      <plugins>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <executions>
+                  <execution>
+                      <id>install</id>
+                      <phase>generate-sources</phase>
+                      <goals>
+                          <goal>exec</goal>
+                      </goals>
+                      <configuration>
+                          <executable>npm</executable>
+                          <arguments>
+                              <argument>install</argument>
+                          </arguments>
+                          <workingDirectory>${basedir}</workingDirectory>
+                      </configuration>
+                  </execution>
+                  <execution>
+                      <id>build</id>
+                      <phase>compile</phase>
+                      <goals>
+                          <goal>exec</goal>
+                      </goals>
+                      <configuration>
+                          <executable>npm</executable>
+                          <arguments>
+                              <argument>run-script</argument>
+                              <argument>build</argument>
+                          </arguments>
+                          <workingDirectory>${basedir}</workingDirectory>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+          <plugin>
+              <!-- Copy the front end into the static folder for JARs-->
+              <artifactId>maven-resources-plugin</artifactId>
+              <executions>
+                  <execution>
+                      <id>prepare package</id>
+                      <phase>prepare-package</phase>
+                      <goals>
+                          <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                          <outputDirectory>${basedir}/target/classes/META-INF/resources</outputDirectory>
+                          <resources>
+                              <resource>
+                                  <directory>${basedir}/dist</directory>
+                                  <filtering>false</filtering>
+                              </resource>
+                          </resources>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
+
+    </build>
+
+</project>
