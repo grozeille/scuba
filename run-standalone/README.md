@@ -125,14 +125,78 @@ npm run serve
 
 ## Initial setup
 
+### Setup admin account
+
 By default, 2 users are allowed:
 
 - admin
 - user
 
+You can change it to use Oauth2 provider.
 
+First, you need to register the user "admin" as an administrator. Retrieve the admin token from the application.yml or from the console log:
 
-First, you need to refresh the list of public dataset using the API.
+![Admin Token](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/default-admin-token.png)
 
-Go to the URL http://localhost:8000/swagger-ui.html#!/data-set-resource/refreshUsingPOST and run the REST endpoint.
- 
+If you started the Web UI using npm, go to the URL: http://localhost:3000/#!/setup, enter the following login/password:
+
+- login: admin
+- password: admin
+
+And enter this token:
+
+![Setup Admin Token](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/setup-token.png)
+
+Now the current account **admin** is member of administrators. 
+
+### Create a project
+
+You can do anything unless you selected the current project for the current user. 
+
+First, to create the project, go to the URL: http://localhost:3000/#!/admin
+
+Enter the following information to create a new project:
+
+- New Project: sample
+- Hive Database: project_sample
+- HDFS Working Directory: /project/sample
+
+![Create project](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/create-project.png)
+
+Now the project is created, click on it to add **admin** as member. Don't forget to save.
+
+![Add member](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/add-member.png)
+
+At last, you have to select this project as your default one for the current user. Go to the URL http://localhost:3000/#!/profile and select the created project.
+
+![Select project](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/add-member.png)
+
+### Refresh public hive tables
+
+The preparation script created tables in **public_dataset** database. To use them, you need to refresh the list of public dataset using the API.
+
+Go to the URL http://localhost:8800/swagger-ui.html#!/data-set-resource/refreshUsingPOST and trigger the endpoint.
+
+![Refresh Dataset](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/select-project.png)
+
+You should see now the dataset in the UI.
+
+### Create new datasets
+
+Now everything is setup to let you create new datasets.
+
+![Demo 01](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-01.png)
+
+![Demo 02](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-02.png)
+
+![Demo 03](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-03.png)
+
+![Demo 04](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-04.png)
+
+![Demo 05](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-05.png)
+
+![Demo 06](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-06.png)
+
+![Demo 07](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-07.png)
+
+![Demo 08](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-08.png)

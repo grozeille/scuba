@@ -15,5 +15,7 @@ You can register and share queries :
 * **SQLQuery** : a Hive query
 * **PySparkQuery** : a PySpark query
 
+![Demo 06](https://raw.githubusercontent.com/grozeille/scuba/master/run-standalone/img/demo-06.png)
 
+For more information, please read the readme in **run-standalone** folder.
 
