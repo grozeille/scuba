@@ -4,9 +4,8 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const FailPlugin = require('webpack-fail-plugin');
+const Autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const pkg = require('../package.json');
-const autoprefixer = require('autoprefixer');
 
 module.exports = {
   module: {
@@ -69,13 +68,14 @@ module.exports = {
     }),
     new webpack.optimize.UglifyJsPlugin({
       output: {comments: false},
-      compress: {unused: true, dead_code: true, warnings: false} // eslint-disable-line camelcase
+      compress: {unused: true, dead_code: true, warnings: false}, // eslint-disable-line camelcase
+      except: /\/bootstrap/
     }),
     new ExtractTextPlugin('index-[contenthash].css'),
     new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
     new webpack.LoaderOptionsPlugin({
       options: {
-        postcss: () => [autoprefixer]
+        postcss: () => [Autoprefixer]
       }
     })
   ],
@@ -83,8 +83,5 @@ module.exports = {
     path: path.join(process.cwd(), conf.paths.dist),
     filename: '[name]-[hash].js'
   },
-  entry: {
-    app: `./${conf.path.src('index')}`,
-    vendor: Object.keys(pkg.dependencies)
-  }
+  entry: `./${conf.path.src('index')}`
 };

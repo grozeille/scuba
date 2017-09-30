@@ -10,10 +10,26 @@
 
 	<name>scuba</name>
 	<description>Scuba, data discovery on Hadoop</description>
+    <properties>
+        <spring-boot.version>1.4.0.RELEASE</spring-boot.version>
+    </properties>
 
     <modules>
         <module>scuba-web</module>
         <module>scuba-api</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     
 </project>

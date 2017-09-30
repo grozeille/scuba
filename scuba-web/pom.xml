@@ -22,9 +22,10 @@
           <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>exec-maven-plugin</artifactId>
+              <version>1.6.0</version>
               <executions>
                   <execution>
-                      <id>install</id>
+                      <id>npm install</id>
                       <phase>generate-sources</phase>
                       <goals>
                           <goal>exec</goal>
@@ -38,7 +39,7 @@
                       </configuration>
                   </execution>
                   <execution>
-                      <id>build</id>
+                      <id>npm build</id>
                       <phase>compile</phase>
                       <goals>
                           <goal>exec</goal>
@@ -56,11 +57,13 @@
           </plugin>
           <plugin>
               <!-- Copy the front end into the static folder for JARs-->
+              <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-resources-plugin</artifactId>
+              <version>3.0.2</version>
               <executions>
                   <execution>
-                      <id>prepare package</id>
-                      <phase>prepare-package</phase>
+                      <id>copy to target</id>
+                      <phase>compile</phase>
                       <goals>
                           <goal>copy-resources</goal>
                       </goals>

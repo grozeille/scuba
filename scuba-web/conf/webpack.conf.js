@@ -4,7 +4,7 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const FailPlugin = require('webpack-fail-plugin');
-const autoprefixer = require('autoprefixer');
+const Autoprefixer = require('autoprefixer');
 
 module.exports = {
   module: {
@@ -68,7 +68,7 @@ module.exports = {
     }),
     new webpack.LoaderOptionsPlugin({
       options: {
-        postcss: () => [autoprefixer]
+        postcss: () => [Autoprefixer]
       },
       debug: true
     })

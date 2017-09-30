@@ -14,7 +14,7 @@ require('ng-tags-input/build/ng-tags-input.bootstrap.min.css');
 require('angular-ui-router');
 require('angular-ui-router-uib-modal');
 require('angular-sanitize');
-require('font-awesome/css/font-awesome.css');
+require('font-awesome-loader');
 
 angular
   .module('datalakeToolbox', [
