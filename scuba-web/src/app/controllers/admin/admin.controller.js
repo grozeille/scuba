@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function AdminController($log, $uibModal, adminService, userService, projectService) {
+function AdminController($log, $uibModal, adminService, userService, projectService, dataSetService) {
   var vm = this;
 
   vm.alerts = [];
@@ -20,6 +20,11 @@ function AdminController($log, $uibModal, adminService, userService, projectServ
     name: '',
     hiveDatabase: '',
     hdfsWorkingDirectory: ''
+  };
+
+  vm.dataset = {
+    regex: '',
+    cron: ''
   };
 
   vm.showPage = false;
@@ -161,6 +166,17 @@ function AdminController($log, $uibModal, adminService, userService, projectServ
         vm.newProject.hiveDatabase = '';
         vm.newProject.hdfsWorkingDirectory = '';
         vm.refreshProjects();
+      });
+  };
+
+  vm.refreshDataSet = function() {
+    dataSetService.refresh()
+      .catch(function(error) {
+        vm.alerts.push({msg: 'Unable to refresh.', type: 'danger'});
+        throw error;
+      })
+      .then(function() {
+        vm.alerts.push({msg: 'Refresh started.', type: 'info'});
       });
   };
 

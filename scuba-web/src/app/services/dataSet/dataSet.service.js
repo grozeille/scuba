@@ -40,10 +40,16 @@ function dataSetService($log, $http, $location, $filter, $q, $rootScope) {
       .catch(vm.catchServiceException);
   }
 
+  function refresh() {
+    return $http.post(vm.apiHost + '/dataset/refresh')
+      .catch(vm.catchServiceException);
+  }
+
   var service = {
     getAllDataSet: getAllDataSet,
     getDataSet: getDataSet,
-    deleteDataSet: deleteDataSet
+    deleteDataSet: deleteDataSet,
+    refresh: refresh
   };
 
   return service;

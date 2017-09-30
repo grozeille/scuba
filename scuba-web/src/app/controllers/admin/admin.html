@@ -191,6 +191,47 @@
 
         </uib-tab>
 
+        <uib-tab index="2" heading="Datasets">
+
+          <div class="panel panel-default panel-editor-tab" style="min-height: 220px;">
+            <div class="panel-body">
+
+              <fieldset>
+                <form style="padding: 0px;">
+
+
+                  <div class="row">
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="publicDataSetRegex" class="control-label">Public dataset regex</label>
+                        <input class="form-control" id="publicDataSetRegex" placeholder="" ng-model="admin.dataset.regex">
+                      </div>
+                    </div>
+                    <div class="col-sm-4">
+                      <div class="form-group">
+                        <label for="publicDataSetCron" class="control-label">Public dataset cron</label>
+                        <input class="form-control" id="publicDataSetCron" placeholder="" ng-model="admin.dataset.cron">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-sm-12">
+                      <a id="refreshDataSet" type="button" class="btn btn-primary" ng-click="admin.refreshDataSet()">
+                        <span class="glyphicon glyphicon-refresh"></span> Refresh
+                      </a>
+                    </div>
+                  </div>
+
+                </form>
+
+              </fieldset>
+
+            </div>
+          </div>
+
+        </uib-tab>
+
       </uib-tabset>
     </div>
 
