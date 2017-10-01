@@ -145,32 +145,32 @@
                       </div>
 
                       <div class="row" ng-if="customFileDataSet.fileFormat=='EXCEL'">
-                      <div class="col-sm-3">
-                        <div class="form-group">
-                          <label for="inputExcelSource" class="control-label">Excel worksheet/table</label>
-                          <select class="form-control" id="inputExcelSource"  ng-model="customFileDataSet.excelSheet" ng-options="item as item for item in customFileDataSet.excelSheets">
-                          </select>
+                        <div class="col-sm-3">
+                          <div class="form-group">
+                            <label for="inputExcelSource" class="control-label">Excel worksheet/table</label>
+                            <select class="form-control" id="inputExcelSource"  ng-model="customFileDataSet.excelSheet" ng-options="item as item for item in customFileDataSet.excelSheets">
+                            </select>
+                          </div>
                         </div>
-                      </div>
 
-                      <div class="col-sm-3">
-                        <div class="form-group" style="padding-top:23px;">
-                          <button id="inputRefreshExcel" ng-click="customFileDataSet.getWorksheet()" type="button" class="btn btn-default"  aria-label="Left Align">
-                            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reload
-                          </button>
+                        <div class="col-sm-3">
+                          <div class="form-group" style="padding-top:23px;">
+                            <button id="inputRefreshExcel" ng-click="customFileDataSet.getWorksheet()" type="button" class="btn btn-default"  aria-label="Left Align">
+                              <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Reload
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      <div class="col-sm-3">
-                        <div class="form-group">
-                          <label for="inputFirstLineHeaderExcel" class="control-label">Use first line as header</label>
-                          <select class="form-control" id="inputFirstLineHeaderExcel"  ng-model="customFileDataSet.excelFirstLineHeader">
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
+                        <div class="col-sm-3">
+                          <div class="form-group">
+                            <label for="inputFirstLineHeaderExcel" class="control-label">Use first line as header</label>
+                            <select class="form-control" id="inputFirstLineHeaderExcel"  ng-model="customFileDataSet.excelFirstLineHeader">
+                              <option value="true">Yes</option>
+                              <option value="false">No</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                     </div>
 

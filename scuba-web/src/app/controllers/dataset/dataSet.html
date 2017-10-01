@@ -34,9 +34,7 @@
     <div class="col-md-3">
 
       <div class="panel panel-default" >
-        <div class="panel-heading" >
-        </div>
-        <div class="panel-body" style="height:360px; overflow: hidden;">
+        <div class="panel-body" style="height:378px; overflow: hidden;">
           <a ng-click="dataset.createNewDataSet()" ><img style="display:block;margin-left:auto;margin-right:auto;margin-top:80px;cursor: pointer;" src="../../assets/images/plus-outline-gray.png"/></a>
         </div>
 
@@ -46,31 +44,32 @@
     <div class="col-md-3" ng-repeat="d in dataset.dataSetList">
 
       <div class="panel panel-default" >
-        <div class="panel-heading" >
+        <div class="panel-header dataset-card-header" ng-class="d.headerClass">
+          <p>{{d.database}}<br/>
+            <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 30 }}{{ d.table.length > 30 ? '...' : ''}}</span></p>
         </div>
-        <div class="panel-body" style="height:300px; overflow: hidden;">
-          <p><b>Database:</b> {{d.database}}</p>
-          <p><b>Name:</b> <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 30 }}{{ d.table.length > 30 ? '...' : ''}}</span></p>
+        <div class="panel-body" style="height:243px; overflow: hidden;">
+          <p style="color:#737373;"><span ng-bind-html="d.comment"></span></p>
+          <br/>
           <p><b>Format:</b> {{d.format}}</p>
           <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
-          <p><b>Comment:</b><br/><span ng-bind-html="d.comment"></span></p>
-          <p><b>Tags:</b><br/>
-            <span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
+          <p><span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
           </p>
         </div>
-        <div class="panel-body" ng-show="d.showButtons">
-          <a ng-click="dataset.deleteDataSet(d.database, d.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
+        <div class="panel-footer" style="display: table;width: 100%;padding: 5px 5px;">
+          <a ng-show="d.showEditionButtons" ng-click="dataset.deleteDataSet(d.database, d.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
             <span class="glyphicon glyphicon-remove"></span> Delete
           </a>
-          <a ng-click="dataset.cloneDataSet(d.database, d.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
+          <a ng-show="d.showEditionButtons" ng-click="dataset.cloneDataSet(d.database, d.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
             <span class="glyphicon glyphicon-duplicate"></span> Clone
           </a>
-          <a ng-click="dataset.editDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.editLoading">
+          <a ng-show="d.showEditionButtons" ng-click="dataset.editDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.editLoading">
             <span ng-show="!d.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="d.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
           </a>
+          <a ng-click="dataset.viewDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.viewLoading">
+            <span ng-show="!d.viewLoading" class="glyphicon glyphicon-eye-open"></span><span ng-show="d.viewLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> View
+          </a>
 
-        </div>
-        <div class="panel-body" ng-show="!d.showButtons" style="height:60px;">
         </div>
 
 

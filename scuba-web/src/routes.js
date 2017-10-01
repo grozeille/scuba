@@ -19,6 +19,10 @@ function routesConfig($stateProvider, $urlRouterProvider) {
       url: '/dataset/customFile',
       component: 'customFileDataSetControllerComponent'
     })
+    .state('viewDataSet', {
+      url: '/dataset/view',
+      component: 'viewDataSetControllerComponent'
+    })
     .state('admin', {
       url: '/admin',
       component: 'adminControllerComponent'

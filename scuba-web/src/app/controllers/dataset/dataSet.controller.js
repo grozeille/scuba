@@ -7,7 +7,7 @@ module.exports = {
 };
 
 /** @ngInject */
-function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, dataSetService, wranglingDataSetService, customFileDataSetService) {
+function DatasetController($timeout, $log, $location, $filter, $uibModal, $state, dataSetService, wranglingDataSetService, customFileDataSetService, viewDataSetService) {
   var vm = this;
 
   vm.sourceFilter = '';
@@ -34,6 +34,17 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
 
   vm.createNewDataSet = function() {
     vm.chooseDataSetType();
+  };
+
+  vm.viewDataSet = function(database, table) {
+    var selectedDataSet = getDataSet(database, table);
+
+    if(selectedDataSet !== null) {
+      selectedDataSet.viewLoading = true;
+      viewDataSetService.initDataSet(database, table).then(function() {
+        $state.go('viewDataSet');
+      });
+    }
   };
 
   vm.editDataSet = function(database, table) {
@@ -115,7 +126,18 @@ function DatasetController($timeout, $log, $location, $filter, $uibModal, $state
       };
       for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
         vm.dataSetList[cpt].editLoading = false;
-        vm.dataSetList[cpt].showButtons = vm.dataSetList[cpt].dataSetType !== 'PublicDataSet';
+        vm.dataSetList[cpt].viewLoading = false;
+        vm.dataSetList[cpt].showEditionButtons = vm.dataSetList[cpt].dataSetType !== 'PublicDataSet';
+
+        if(vm.dataSetList[cpt].dataSetType === 'PublicDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-blue';
+        }
+        else if(vm.dataSetList[cpt].dataSetType === 'CustomFileDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-green';
+        }
+        else if(vm.dataSetList[cpt].dataSetType === 'WranglingDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-orange';
+        }
       }
     });
   };
