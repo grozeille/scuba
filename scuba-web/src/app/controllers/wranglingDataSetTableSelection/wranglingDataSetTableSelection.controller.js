@@ -36,6 +36,17 @@ function WranglingDataSetTableSelectionController($timeout, $log, $location, $fi
         first: data.first,
         totalPages: data.totalPages
       };
+      for(var cpt = 0; cpt < vm.dataSetList.length; cpt++) {
+        if(vm.dataSetList[cpt].dataSetType === 'PublicDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-blue';
+        }
+        else if(vm.dataSetList[cpt].dataSetType === 'CustomFileDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-green';
+        }
+        else if(vm.dataSetList[cpt].dataSetType === 'WranglingDataSet') {
+          vm.dataSetList[cpt].headerClass = 'dataset-card-header-orange';
+        }
+      }
     });
   };
 

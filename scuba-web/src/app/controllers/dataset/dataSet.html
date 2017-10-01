@@ -46,7 +46,7 @@
       <div class="panel panel-default" >
         <div class="panel-header dataset-card-header" ng-class="d.headerClass">
           <p>{{d.database}}<br/>
-            <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 30 }}{{ d.table.length > 30 ? '...' : ''}}</span></p>
+            <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 25 }}{{ d.table.length > 25 ? '...' : ''}}</span></p>
         </div>
         <div class="panel-body" style="height:243px; overflow: hidden;">
           <p style="color:#737373;"><span ng-bind-html="d.comment"></span></p>
@@ -69,11 +69,9 @@
           <a ng-click="dataset.viewDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.viewLoading">
             <span ng-show="!d.viewLoading" class="glyphicon glyphicon-eye-open"></span><span ng-show="d.viewLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> View
           </a>
-
         </div>
-
-
       </div>
+
     </div>
 
 
