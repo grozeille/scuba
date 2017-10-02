@@ -43,34 +43,20 @@
 
     <div class="col-md-3" ng-repeat="d in dataset.dataSetList">
 
-      <div class="panel panel-default" >
-        <div class="panel-header dataset-card-header" ng-class="d.headerClass">
-          <p>{{d.database}}<br/>
-            <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 25 }}{{ d.table.length > 25 ? '...' : ''}}</span></p>
-        </div>
-        <div class="panel-body" style="height:243px; overflow: hidden;">
-          <p style="color:#737373;"><span ng-bind-html="d.comment"></span></p>
-          <br/>
-          <p><b>Format:</b> {{d.format}}</p>
-          <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
-          <p><span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
-          </p>
-        </div>
-        <div class="panel-footer" style="display: table;width: 100%;padding: 5px 5px;">
-          <a ng-show="d.showEditionButtons" ng-click="dataset.deleteDataSet(d.database, d.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
-            <span class="glyphicon glyphicon-remove"></span> Delete
-          </a>
-          <a ng-show="d.showEditionButtons" ng-click="dataset.cloneDataSet(d.database, d.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align">
-            <span class="glyphicon glyphicon-duplicate"></span> Clone
-          </a>
-          <a ng-show="d.showEditionButtons" ng-click="dataset.editDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.editLoading">
-            <span ng-show="!d.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="d.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
-          </a>
-          <a ng-click="dataset.viewDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:10px;" aria-label="Left Align" ng-disabled="d.viewLoading">
-            <span ng-show="!d.viewLoading" class="glyphicon glyphicon-eye-open"></span><span ng-show="d.viewLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> View
-          </a>
-        </div>
-      </div>
+      <dataset-card item="d">
+        <a ng-show="d.showEditionButtons" ng-click="dataset.deleteDataSet(d.database, d.table)" class="btn btn-danger btn-sm pull-right" style="margin-left:5px;" aria-label="Left Align">
+          <span class="glyphicon glyphicon-remove"></span> Delete
+        </a>
+        <a ng-show="d.showEditionButtons" ng-click="dataset.cloneDataSet(d.database, d.table)" type="button" class="btn btn-default btn-sm pull-right" style="margin-left:5px;" aria-label="Left Align">
+          <span class="glyphicon glyphicon-duplicate"></span> Clone
+        </a>
+        <a ng-show="d.showEditionButtons" ng-click="dataset.editDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:5px;" aria-label="Left Align" ng-disabled="d.editLoading">
+          <span ng-show="!d.editLoading" class="glyphicon glyphicon-pencil"></span><span ng-show="d.editLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> Edit
+        </a>
+        <a ng-click="dataset.viewDataSet(d.database, d.table)" class="btn btn-default btn-sm pull-right" style="margin-left:5px;" aria-label="Left Align" ng-disabled="d.viewLoading">
+          <span ng-show="!d.viewLoading" class="glyphicon glyphicon-eye-open"></span><span ng-show="d.viewLoading" class="fa fa-spinner fa-spin" style="color: inherit;font-size: 15px;"></span> View
+        </a>
+      </dataset-card>
 
     </div>
 

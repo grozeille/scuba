@@ -28,25 +28,11 @@
 
     <div class="col-sm-3" ng-repeat="d in wranglingDataSetTableSelection.dataSetList">
 
-      <div class="panel panel-default" >
-        <div class="panel-header dataset-card-header" ng-class="d.headerClass">
-          <p>{{d.database}}<br/>
-            <span uib-tooltip="{{d.table}}">{{d.table | limitTo: 25 }}{{ d.table.length > 25 ? '...' : ''}}</span></p>
-        </div>
-        <div class="panel-body" style="height:243px; overflow: hidden;">
-          <p style="color:#737373;"><span ng-bind-html="d.comment"></span></p>
-          <br/>
-          <p><b>Format:</b> {{d.format}}</p>
-          <p><b>Owner:</b> <a href="mailto:{{d.creator}}">{{d.creator}}</a></p>
-          <p><span ng-repeat="tag in d.tags"><span class="label label-primary">{{tag}}</span>&nbsp;</span>
-          </p>
-        </div>
-        <div class="panel-footer" style="display: table;width: 100%;padding: 5px 5px;">
-          <button ng-click="wranglingDataSetTableSelection.selectTable(d.database, d.table)" type="button" class="btn btn-success btn-sm pull-right" aria-label="Left Align">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
-          </button>
-        </div>
-      </div>
+      <dataset-card item="d">
+        <button ng-click="wranglingDataSetTableSelection.selectTable(d.database, d.table)" type="button" class="btn btn-success btn-sm pull-right" aria-label="Left Align">
+          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+        </button>
+      </dataset-card>
 
     </div>
   </div>
