@@ -316,6 +316,36 @@ public class HiveService {
         }
     }
 
+    public void updateHeaders(HiveTable table) throws HiveQueryException, TException {
+        String alterPropertiesSql;
+
+        try {
+            Table hiveMetaStoreClientTable = hiveMetaStoreClient.getTable(table.getDatabase(), table.getTable());
+
+            if(hiveMetaStoreClientTable.getTableType().equalsIgnoreCase("VIRTUAL_VIEW")) {
+                alterPropertiesSql = "ALTER VIEW `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
+                        "SET "+ buildTablePropertiesHeaders(table);
+            }
+            else {
+                alterPropertiesSql = "ALTER TABLE `" + table.getDatabase() + "`.`" + table.getTable() + "`\n" +
+                        "SET "+ buildTablePropertiesHeaders(table);
+            }
+
+            log.info("Alter table properties: " + alterPropertiesSql);
+
+            try {
+                long startTime = System.currentTimeMillis();
+                hiveJdbcTemplate.execute(alterPropertiesSql);
+                log.info("SQL executed in: " + (System.currentTimeMillis() - startTime)+" ms");
+            }catch(Exception e){
+                throw new HiveQueryException("Unable to alter table: "+alterPropertiesSql, e);
+            }
+        }
+        catch (org.apache.hadoop.hive.metastore.api.NoSuchObjectException nsoe){
+            log.info("No table found "+table.getDatabase() +"."+ table.getTable());
+        }
+    }
+
     public String getCurrentSchema(HiveTable table) throws HiveQueryException, TException {
         HiveTable previous = this.findOne(table.getDatabase(), table.getTable());
         if(previous == null) {
@@ -359,6 +389,23 @@ public class HiveService {
         catch (org.apache.hadoop.hive.metastore.api.NoSuchObjectException nsoe){
             log.info("No table found "+table.getDatabase() +"."+ table.getTable());
         }
+    }
+
+    private String buildTablePropertiesHeaders(HiveTable table) {
+        String jsonTags = "[]";
+        try {
+            jsonTags = objectMapper.writeValueAsString(table.getTags());
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to serialize tags", e);
+        }
+
+        String result = "TBLPROPERTIES (" +
+                "\"creator\" = \""+table.getCreator()+"\"," +
+                "\"comment\" = \""+table.getComment()+"\"," +
+                "\"temporary\" = \""+table.getTemporary()+"\"," +
+                "\"tags\" = \""+jsonTags.replace("\"", "\\\"")+"\"";
+        result += ")";
+        return result;
     }
 
     private String buildTableProperties(HiveTable table, HdfsService.HdfsFileInfo dataSetConfigfileInfo) {

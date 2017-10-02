@@ -2,10 +2,9 @@ package fr.grozeille.scuba.dataset.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.grozeille.scuba.dataset.model.CustomFileDataSetConf;
-import fr.grozeille.scuba.dataset.model.DataSetSearchItem;
-import fr.grozeille.scuba.dataset.model.DataSetType;
-import fr.grozeille.scuba.dataset.model.HiveTable;
+import fr.grozeille.scuba.dataset.exceptions.HiveDatabaseNotFoundException;
+import fr.grozeille.scuba.dataset.exceptions.HiveTableNotFoundException;
+import fr.grozeille.scuba.dataset.model.*;
 import fr.grozeille.scuba.dataset.repositories.DataSetRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -34,6 +33,25 @@ public class DataSetService {
     private DataSetRepository dataSetRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public void update(DataSetConf dataSetConf) throws Exception {
+        HiveDatabase hiveDatabase = hiveService.findOneDatabase(dataSetConf.getDatabase());
+        if(hiveDatabase == null) {
+            throw new HiveDatabaseNotFoundException(dataSetConf.getDatabase() + " not found");
+        }
+
+        HiveTable hiveTable = hiveService.findOne(dataSetConf.getDatabase(), dataSetConf.getTable());
+        if(hiveTable == null) {
+            throw new HiveTableNotFoundException(dataSetConf.getDatabase() + "." + dataSetConf.getTable() + " not found");
+        }
+
+        hiveTable.setComment(dataSetConf.getComment());
+        hiveTable.setTags(dataSetConf.getTags());
+
+        hiveService.updateHeaders(hiveTable);
+
+        this.refreshTable(dataSetConf.getDatabase(), dataSetConf.getTable());
+    }
 
     public void refreshAll() throws TException {
 

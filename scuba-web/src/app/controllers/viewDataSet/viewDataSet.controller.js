@@ -16,6 +16,7 @@ function ViewDataSetController($timeout, $log, $location, $filter, $q, $scope, $
   vm.database = '';
   vm.name = '';
   vm.maxLinePreview = 5000;
+  vm.saving = false;
 
   vm.gridOptions = {
     enableSorting: false,
@@ -53,6 +54,36 @@ function ViewDataSetController($timeout, $log, $location, $filter, $q, $scope, $
       throw error;
     })
     .catch(stopLoading);
+  };
+
+  vm.save = function() {
+    vm.saving = true;
+
+    var tags = [];
+    for(var cpt = 0; cpt < vm.tags.length; cpt++) {
+      tags.push(vm.tags[cpt].text);
+    }
+
+    var dataSet = {
+      comment: vm.comment,
+      tags: tags
+    };
+
+    viewDataSetService.setDataSet(dataSet);
+
+    return viewDataSetService.saveDataSet()
+      .then(function() {
+        $log.info('DataSet saved...');
+        vm.saving = false;
+        vm.alerts.push({msg: 'DataSet saved.', type: 'info'});
+      })
+      .catch(function(error) {
+        $log.info('Error...');
+        vm.saving = false;
+        vm.alerts.push({msg: 'Unable to save the DataSet.', type: 'danger'});
+        $log.error(error);
+        throw error;
+      });
   };
 
   function activate() {

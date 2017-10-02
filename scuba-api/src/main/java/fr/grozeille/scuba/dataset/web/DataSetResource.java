@@ -2,24 +2,31 @@ package fr.grozeille.scuba.dataset.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import fr.grozeille.scuba.dataset.model.DataSetConf;
 import fr.grozeille.scuba.dataset.model.DataSetSearchItem;
 import fr.grozeille.scuba.dataset.model.HiveTable;
 import fr.grozeille.scuba.dataset.repositories.DataSetRepository;
 import fr.grozeille.scuba.dataset.services.DataSetService;
 import fr.grozeille.scuba.dataset.web.dto.DataSetData;
+import fr.grozeille.scuba.dataset.web.dto.DataSetRequest;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Collection;
 
 @RestController
@@ -60,6 +67,13 @@ public class DataSetResource {
             Pageable pageable,
             @RequestParam(value = "filter", required = false, defaultValue = "") String filter,
             @RequestParam(value = "dataSetType", required = false) Collection<String> datalakeItemType) {
+
+        if(pageable.getSort() == null) {
+            pageable = new PageRequest(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    new Sort(Sort.Direction.ASC, "database", "table"));
+        }
 
         final ObjectMapper objectMapper = new ObjectMapper();
         Page<DataSetSearchItem> result;
@@ -120,6 +134,20 @@ public class DataSetResource {
         DataSetData data = new DataSetData();
         data.setData(this.dataSetService.getData(database, table, max, useTablePrefix));
         return data;
+    }
+
+    @RequestMapping(value = "/{database}/{table}", method = RequestMethod.POST)
+    public void update(
+            @PathVariable("database") String database,
+            @PathVariable("table") String table,
+            @RequestBody DataSetRequest request) throws Exception {
+
+        this.dataSetService.update(new DataSetConf(
+                database,
+                table,
+                request.getComment(),
+                request.getTags()
+        ));
     }
 
     @RequestMapping(value = "/refresh", method = RequestMethod.POST)

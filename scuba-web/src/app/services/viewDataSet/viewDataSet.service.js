@@ -35,12 +35,31 @@ function viewDataSetService($log, $http, $location, $filter, $q, $rootScope, dat
     });
   }
 
+  function saveDataSet() {
+    var url = vm.apiHost + '/dataset/' + vm.database + '/' + vm.table;
+
+    var updateRequest = {
+      comment: vm.dataSet.comment,
+      tags: vm.dataSet.tags
+    };
+
+    return $http.post(url, updateRequest)
+      .catch(vm.catchServiceException);
+  }
+
   function getDataSet() {
     return {
       database: vm.database,
       name: vm.table,
       comment: vm.dataSet.comment,
       tags: vm.dataSet.tags
+    };
+  }
+
+  function setDataSet(dataSet) {
+    vm.dataSet = {
+      comment: dataSet.comment,
+      tags: dataSet.tags
     };
   }
 
@@ -53,6 +72,8 @@ function viewDataSetService($log, $http, $location, $filter, $q, $rootScope, dat
   var service = {
     initDataSet: initDataSet,
     getDataSet: getDataSet,
+    setDataSet: setDataSet,
+    saveDataSet: saveDataSet,
     getData: getData
   };
 
