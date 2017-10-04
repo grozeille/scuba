@@ -44,3 +44,7 @@
 .panel-title > a {
   text-decoration: none;
 }
+
+.ace_editor {
+  height: 140px;
+}

@@ -40,6 +40,11 @@ function WranglingDataSetController($timeout, $log, $uibModal, $state, $statePar
 
   vm.tags = [];
 
+  vm.aceOption = {
+    mode: 'ace/mode/sql',
+    theme: 'ace/theme/tomorrow'
+  };
+
   function htmlEntities(str) {
     return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }

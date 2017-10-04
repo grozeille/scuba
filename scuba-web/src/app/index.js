@@ -15,6 +15,8 @@ require('angular-ui-router');
 require('angular-ui-router-uib-modal');
 require('angular-sanitize');
 require('font-awesome-loader');
+require('ace-builds/src-min-noconflict/ace');
+require('angular-ui-ace');
 
 angular
   .module('datalakeToolbox', [
@@ -24,6 +26,7 @@ angular
     'ui.grid',
     'ui.grid.resizeColumns',
     'ui.grid.autoResize',
+    'ui.ace',
     'ngSanitize',
     'ngTagsInput',
     'ngFileUpload']);
